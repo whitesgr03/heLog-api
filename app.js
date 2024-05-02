@@ -19,21 +19,22 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/personal-website", personalSiteRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-	next(createError(404));
+// Unknown routes handler
+app.use((req, res, next) => {
+	next(createError(404, "The endpoint you are looking for cannot be found."));
 });
 
-
-// error handler
-app.use(function (err, req, res, next) {
-	// set locals, only providing error in development
-	res.locals.message = err.message;
-	res.locals.error = req.app.get("env") === "development" ? err : {};
-
-	// render the error page
+// Errors handler
+app.use((err, req, res, next) => {
 	res.status(err.status || 500);
-	res.render("error");
+
+	errorLog(`${err.name}: ${err.message}`);
+
+	err.status ?? (err = createError(500, ""));
+
+	err.name = err.name.replace(/([A-Z])/g, " $1").trim();
+
+	res.json({ error: err });
 });
 
 module.exports = app;
