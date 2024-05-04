@@ -6,6 +6,8 @@ const errorLog = require("debug")("ServerError");
 
 const compression = require("compression");
 
+const personalRouter = require("./routes/personal");
+
 const app = express();
 
 app.use(compression());
@@ -15,9 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
-
-app.use("/", indexRouter);
-app.use("/personal-website", personalSiteRouter);
+app.use("/personal", personalRouter);
 
 // Unknown routes handler
 app.use((req, res, next) => {
