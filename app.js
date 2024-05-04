@@ -34,7 +34,10 @@ app.use((err, req, res, next) => {
 
 	err.name = err.name.replace(/([A-Z])/g, " $1").trim();
 
-	res.json({ error: err });
+	res.json({
+		success: false,
+		message: err.message,
+	});
 });
 
 module.exports = app;
