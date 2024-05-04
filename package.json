@@ -13,10 +13,14 @@
 		"dev": "NODE_ENV=development node --env-file=.env --env-file=.env.development --watch index"
 	},
 	"dependencies": {
+		"bcrypt": "^5.1.1",
 		"compression": "^1.7.4",
 		"debug": "~2.6.9",
 		"express": "~4.16.1",
+		"express-async-handler": "^1.2.0",
+		"express-validator": "^7.0.1",
 		"http-errors": "~1.6.3",
+		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.3.3",
 		"morgan": "~1.9.1"
 	}
