@@ -69,48 +69,123 @@ const userLogin = [
 		);
 	}),
 ];
-
-			bcrypt.hash(
-				user.password,
-				randomSalt,
-				async (err, hashedPassword) => {
-					const handleAddUser = async () => {
-						const currentTime = new Date();
-						const newUser = new User({
-							...user,
-							password: hashedPassword,
-							isAdmin: process.env.NODE_ENV === "development",
-							lastModified: currentTime,
-							createdAt: currentTime,
-						});
-
-						await newUser.save();
-						req.signUp = "Sign up success.";
-						next();
-					};
-
-					err ? next(err) : handleAddUser();
-				}
-			);
-		};
-
-		const handleSchemaErrorMessages = () => {
-			const errors = schemaErrors.array().map(error => ({
-				field: error.path,
-				message: error.msg,
-			}));
-
-			res.json({
-				success: false,
-				errors,
-			});
-		};
-
-		schemaErrors.isEmpty() ? handleSignUp() : handleSchemaErrorMessages();
+const userRegister = [
+	verifySchema({
+		name: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The name is required.",
+				bail: true,
+			},
+			isLength: {
+				options: { max: 30 },
+				errorMessage: "The name must be less than 30 long.",
+				bail: true,
+			},
+			custom: {
+				options: name => name.match(/^[a-zA-Z]\w*$/),
+				errorMessage: "The name must be alphanumeric and underscore.",
+				bail: true,
+			},
+			escape: true,
+			custom: {
+				options: (name, { req }) =>
+					new Promise(async (resolve, reject) => {
+						const existingName = await User.findOne({
+							name,
+						}).exec();
+						existingName
+							? reject((req.schema = { isConflict: true }))
+							: resolve();
+					}),
+				errorMessage: "The name is been used.",
+			},
+		},
+		email: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The email is required.",
+				bail: true,
+			},
+			isEmail: {
+				errorMessage: "The email must be in the correct format.",
+				bail: true,
+			},
+			normalizeEmail: {
+				errorMessage: "The email must be in standard format.",
+				bail: true,
+			},
+			escape: true,
+			toLowerCase: true,
+			custom: {
+				options: (email, { req }) =>
+					new Promise(async (resolve, reject) => {
+						const existingUserEmail = await User.findOne({
+							email,
+						}).exec();
+						existingUserEmail
+							? reject((req.schema = { isConflict: true }))
+							: resolve();
+					}),
+				errorMessage: "The email is been used.",
+			},
+		},
+		password: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The password is required.",
+				bail: true,
+			},
+			isStrongPassword: {
+				errorMessage:
+					"The password must contain one or more numbers, special symbols, lowercase and uppercase characters, and at least 8 characters without spaces.",
+			},
+			escape: true,
+		},
+		confirmPassword: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The confirm password is required.",
+				bail: true,
+			},
+			escape: true,
+			custom: {
+				options: (confirmPassword, { req }) =>
+					confirmPassword === req.body.password,
+				errorMessage:
+					"The confirmation password is not the same as the password.",
+			},
+		},
 	}),
-	userSignInPost,
+	asyncHandler(async (req, res, next) => {
+		const randomSalt = 12;
+
+		bcrypt.hash(
+			req.body.password,
+			randomSalt,
+			async (err, hashedPassword) => {
+				const handleAddUser = async () => {
+					const currentTime = new Date();
+					const newUser = new User({
+						...req.body,
+						password: hashedPassword,
+						isAdmin: process.env.NODE_ENV === "development",
+						lastModified: currentTime,
+						createdAt: currentTime,
+					});
+
+					await newUser.save();
+					req.signUp = "Sign up successfully.";
+					next();
+				};
+
+				err ? next(err) : handleAddUser();
+			}
+		);
+	}),
+	userLogin,
 ];
 module.exports = {
-	userSignUpPost,
-	userSignInPost,
+	userLogin,
+	userRegister,
 };
