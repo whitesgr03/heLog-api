@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { Types } = require("mongoose");
 
 const verifyToken = require("../utils/verifyToken");
-const verifyPermission = require("../utils/verifyPermission");
+const verifyPostPermission = require("../utils/verifyPostPermission");
 const verifyParamId = require("../utils/verifyParamId");
 const verifySchema = require("../utils/verifySchema");
 
@@ -47,7 +47,7 @@ const postDetail = [
 ];
 const postCreate = [
 	verifyToken,
-	verifyPermission,
+	verifyPostPermission,
 	verifySchema({
 		title: {
 			trim: true,
@@ -103,7 +103,7 @@ const postCreate = [
 const postUpdate = [
 	verifyToken,
 	verifyParamId,
-	verifyPermission,
+	verifyPostPermission,
 	verifySchema({
 		title: {
 			trim: true,
@@ -164,7 +164,7 @@ const postUpdate = [
 const postDelete = [
 	verifyToken,
 	verifyParamId,
-	verifyPermission,
+	verifyPostPermission,
 	asyncHandler(async (req, res, next) => {
 		await Post.findByIdAndDelete(req.params.id).exec();
 
