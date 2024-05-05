@@ -13,7 +13,7 @@ const verifySchema = schema => {
 				message: error.msg,
 			}));
 
-			res.status(req.schema?.isConflict ? 409 : 422).json({
+			res.status(req.schema?.isConflict ? 409 : 400).json({
 				success: false,
 				errors,
 			});
