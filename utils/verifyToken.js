@@ -8,7 +8,7 @@ const verifyToken = asyncHandler(async (req, res, next) => {
 		res.status(401).json({
 			success: false,
 			message:
-				"Please sign in to your account to make authentication successful.",
+				"The access token provided is expired, revoked, malformed, or invalid for other reasons.",
 		});
 	};
 
