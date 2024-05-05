@@ -26,15 +26,11 @@ app.use((req, res, next) => {
 
 // Errors handler
 app.use((err, req, res, next) => {
-	res.status(err.status || 500);
-
 	errorLog(`${err.name}: ${err.message}`);
 
-	err.status ?? (err = createError(500, ""));
+	err.status ?? (err = createError(500));
 
-	err.name = err.name.replace(/([A-Z])/g, " $1").trim();
-
-	res.json({
+	res.status(err.status).json({
 		success: false,
 		message: err.message,
 	});
