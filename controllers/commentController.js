@@ -113,7 +113,6 @@ const commentDelete = [
 	}),
 ];
 
-// 測試 comments
 module.exports = {
 	commentList,
 	commentCreate,
