@@ -13,7 +13,7 @@ router
 	.post(postControllers.postCreate);
 
 router
-	.route("/posts/:id")
+	.route("/posts/:postId")
 	.get(postControllers.postDetail)
 	.put(postControllers.postUpdate)
 	.delete(postControllers.postDelete);

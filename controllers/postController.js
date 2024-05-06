@@ -26,7 +26,7 @@ const postList = asyncHandler(async (req, res, next) => {
 const postDetail = [
 	verifyParamId,
 	asyncHandler(async (req, res, next) => {
-		const post = await Post.findById(req.params.id)
+		const post = await Post.findById(req.params.postId)
 			.populate("author", {
 				name: 1,
 				_id: 0,
@@ -126,7 +126,7 @@ const postUpdate = [
 								{
 									_id: {
 										$ne: Types.ObjectId.createFromHexString(
-											req.params.id
+											req.params.postId
 										),
 									},
 								},
@@ -153,7 +153,7 @@ const postUpdate = [
 			lastModified: new Date(),
 		};
 
-		await Post.findByIdAndUpdate(req.params.id, newPost).exec();
+		await Post.findByIdAndUpdate(req.params.postId, newPost).exec();
 
 		res.json({
 			success: true,
@@ -166,7 +166,7 @@ const postDelete = [
 	verifyParamId,
 	verifyPostPermission,
 	asyncHandler(async (req, res, next) => {
-		await Post.findByIdAndDelete(req.params.id).exec();
+		await Post.findByIdAndDelete(req.params.postId).exec();
 
 		res.json({
 			success: true,
