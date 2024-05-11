@@ -1,11 +1,11 @@
 {
-	"name": "personal-website-api",
+	"name": "helog-api",
 	"version": "0.0.0",
 	"private": true,
 	"engines": {
 		"node": ">=20.10.0"
 	},
-	"description": "Personal Website API server.",
+	"description": "This project is HeLog's API server.",
 	"main": "index.js",
 	"scripts": {
 		"start": "NODE_ENV=production node --env-file=.env --env-file=.env.production index",

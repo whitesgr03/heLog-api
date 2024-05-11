@@ -1,2 +1,3 @@
-# Personal-Website-API
-Weiss Bai personal website's API server.
+# HeLog API Server
+
+This project is HeLog's API server.
