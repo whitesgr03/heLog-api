@@ -5,7 +5,7 @@ const errorLog = require("debug")("ServerError");
 
 const compression = require("compression");
 
-const personalRouter = require("./routes/personal");
+const personalRouter = require("./routes/blog");
 
 const app = express();
 
@@ -14,7 +14,7 @@ app.use(logger("dev"));
 
 app.use(express.json());
 
-app.use("/personal", personalRouter);
+app.use("/blog", personalRouter);
 
 // Unknown routes handler
 app.use((req, res, next) => {
