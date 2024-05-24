@@ -56,6 +56,9 @@ const commentCreate = [
 			createdAt: currentTime,
 		});
 
+		const reply = req.params.commentId;
+		reply && (newComment.reply = reply);
+
 		await newComment.save();
 
 		res.json({
