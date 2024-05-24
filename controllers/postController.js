@@ -75,6 +75,18 @@ const postCreate = [
 			},
 			escape: true,
 		},
+		publish: {
+			trim: true,
+			toLowerCase: true,
+			notEmpty: {
+				errorMessage: "The publish is required.",
+				bail: true,
+			},
+			isBoolean: {
+				errorMessage: "The publish must be boolean.",
+			},
+			escape: true,
+		},
 	}),
 	asyncHandler(async (req, res, next) => {
 		const currentTime = new Date();
@@ -137,6 +149,18 @@ const postUpdate = [
 			trim: true,
 			notEmpty: {
 				errorMessage: "The content is required.",
+			},
+			escape: true,
+		},
+		publish: {
+			trim: true,
+			toLowerCase: true,
+			notEmpty: {
+				errorMessage: "The publish is required.",
+				bail: true,
+			},
+			isBoolean: {
+				errorMessage: "The publish must be boolean.",
 			},
 			escape: true,
 		},
