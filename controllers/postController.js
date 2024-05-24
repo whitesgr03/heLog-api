@@ -9,13 +9,7 @@ const verifySchema = require("../utils/verifySchema");
 const Post = require("../models/post");
 
 const postList = asyncHandler(async (req, res, next) => {
-	const posts = await Post.find({})
-		.populate("author", {
-			name: 1,
-			_id: 0,
-		})
-		.sort({ createdAt: 1 })
-		.exec();
+	const posts = await Post.find({}).sort({ createdAt: 1 }).exec();
 
 	res.json({
 		success: true,
