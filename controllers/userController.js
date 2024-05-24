@@ -10,11 +10,11 @@ const userLogin = [
 	verifySchema({
 		email: {
 			trim: true,
+			toLowerCase: true,
 			notEmpty: {
 				errorMessage: "The email is required.",
 			},
 			escape: true,
-			toLowerCase: true,
 		},
 		password: {
 			trim: true,
@@ -103,6 +103,7 @@ const userRegister = [
 		},
 		email: {
 			trim: true,
+			toLowerCase: true,
 			notEmpty: {
 				errorMessage: "The email is required.",
 				bail: true,
@@ -116,7 +117,7 @@ const userRegister = [
 				bail: true,
 			},
 			escape: true,
-			toLowerCase: true,
+
 			custom: {
 				options: (email, { req }) =>
 					new Promise(async (resolve, reject) => {
