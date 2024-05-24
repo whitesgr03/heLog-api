@@ -26,6 +26,7 @@ router
 
 router
 	.route("/posts/:postId/comments/:commentId")
+	.post(commentControllers.commentCreate)
 	.put(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
