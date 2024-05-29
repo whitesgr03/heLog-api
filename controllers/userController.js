@@ -1,10 +1,40 @@
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const cors = require("cors");
 
 const verifySchema = require("../utils/verifySchema.js");
+const verifyToken = require("../utils/verifyToken.js");
 
 const User = require("../models/user");
+
+const corsOptions = {
+	origin: "*",
+	optionsSuccessStatus: 200,
+};
+
+const userDetail = [
+	cors(corsOptions),
+	verifyToken,
+	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, {
+			name: 1,
+			isAdmin: 1,
+			email: 1,
+			_id: 0,
+		}).exec();
+		user
+			? res.json({
+					success: true,
+					message: "Get user successfully.",
+					data: user,
+			  })
+			: res.status(404).json({
+					success: false,
+					message: "The user could not be found.",
+			  });
+	}),
+];
 
 const userLogin = [
 	cors(corsOptions),
@@ -193,6 +223,7 @@ const userRegister = [
 	userLogin,
 ];
 module.exports = {
+	userDetail,
 	userLogin,
 	userRegister,
 };
