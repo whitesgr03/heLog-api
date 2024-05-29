@@ -29,12 +29,7 @@ const postList = [
 const postDetail = [
 	verifyParamId,
 	asyncHandler(async (req, res, next) => {
-		const post = await Post.findById(req.params.postId)
-			.populate("author", {
-				name: 1,
-				_id: 0,
-			})
-			.exec();
+		const post = await Post.findById(req.params.postId).exec();
 
 		post
 			? res.json({
@@ -44,7 +39,7 @@ const postDetail = [
 			  })
 			: res.status(404).json({
 					success: false,
-					message: "The post cannot be found.",
+					message: "The post could not be found.",
 			  });
 	}),
 ];
