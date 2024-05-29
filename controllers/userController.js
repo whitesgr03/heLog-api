@@ -26,27 +26,32 @@ const userLogin = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const handleAuthenticate = async () => {
-			const { email, password } = req.body;
-			const user = await User.findOne({ email });
-			const match =
-				user && (await bcrypt.compare(password, user.password));
+		const { email, password } = req.body;
+		const user = await User.findOne({ email }).exec();
+		const match = user && (await bcrypt.compare(password, user.password));
 
-			const handleSignInErrorMessages = () => {
-				res.status(404).json({
-					success: false,
-					message: "Wrong email or password please try again.",
-				});
-			};
-
-			const setUserId = () => {
-				req.userId = user._id;
-				next();
-			};
-
-			match ? setUserId() : handleSignInErrorMessages();
+		const handleSignInErrorMessages = () => {
+			res.status(404).json({
+				success: false,
+				errors: [
+					{
+						field: "email",
+						message: "The email is incorrect.",
+					},
+					{
+						field: "password",
+						message: "The password is incorrect.",
+					},
+				],
+			});
 		};
-		handleAuthenticate();
+
+		const setUserId = () => {
+			req.user = user;
+			next();
+		};
+
+		match ? setUserId() : handleSignInErrorMessages();
 	}),
 	asyncHandler((req, res, next) => {
 		const oneWeek = 7 * 24 * 60 * 60 * 1000;
