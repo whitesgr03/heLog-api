@@ -65,7 +65,7 @@ const userLogin = [
 					? next(err)
 					: res.json({
 							success: true,
-							message: req.signUp ?? "Sign in successfully.",
+							message: req.register ?? "User login successfully.",
 							data: {
 								token,
 								exp,
