@@ -11,6 +11,7 @@ const userControllers = require("../controllers/userController");
 const postControllers = require("../controllers/postController");
 const commentControllers = require("../controllers/commentController");
 
+router.get("/user", userControllers.userDetail);
 router.post("/users", userControllers.userRegister);
 router
 	.route("/users/login")
