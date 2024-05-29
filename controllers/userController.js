@@ -7,6 +7,7 @@ const verifySchema = require("../utils/verifySchema.js");
 const User = require("../models/user");
 
 const userLogin = [
+	cors(corsOptions),
 	verifySchema({
 		email: {
 			trim: true,
