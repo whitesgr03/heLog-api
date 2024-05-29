@@ -182,7 +182,7 @@ const userRegister = [
 					});
 
 					await newUser.save();
-					req.signUp = "Sign up successfully.";
+					req.register = "User register successfully.";
 					next();
 				};
 
