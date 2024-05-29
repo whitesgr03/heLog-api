@@ -56,7 +56,7 @@ const userLogin = [
 	asyncHandler((req, res, next) => {
 		const oneWeek = 7 * 24 * 60 * 60 * 1000;
 		jwt.sign(
-			{ id: req.userId },
+			{ id: req.user._id },
 			process.env.PRIVATE_KEY,
 			{ expiresIn: oneWeek / 1000 },
 			(err, token) => {
