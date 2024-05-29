@@ -1,12 +1,21 @@
 const express = require("express");
 const router = express.Router();
+const cors = require("cors");
+
+const corsOptions = {
+	origin: "*",
+	optionsSuccessStatus: 200,
+};
 
 const userControllers = require("../controllers/userController");
 const postControllers = require("../controllers/postController");
 const commentControllers = require("../controllers/commentController");
 
 router.post("/users", userControllers.userRegister);
-router.post("/users/login", userControllers.userLogin);
+router
+	.route("/users/login")
+	.options(cors(corsOptions))
+	.post(userControllers.userLogin);
 
 router
 	.route("/posts")
