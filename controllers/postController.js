@@ -1,6 +1,5 @@
 const asyncHandler = require("express-async-handler");
 const { Types } = require("mongoose");
-const cors = require("cors");
 
 const verifyToken = require("../utils/verifyToken");
 const verifyPermission = require("../utils/verifyPermission");
@@ -9,15 +8,11 @@ const verifySchema = require("../utils/verifySchema");
 
 const Post = require("../models/post");
 
-const corsOptions = {
-	origin: "*",
-	optionsSuccessStatus: 200,
-};
-
 const postList = [
-	cors(corsOptions),
 	asyncHandler(async (req, res, next) => {
-		const posts = await Post.find({}).sort({ createdAt: 1 }).exec();
+		const posts = await Post.find({}, { author: 0 })
+			.sort({ createdAt: 1 })
+			.exec();
 
 		res.json({
 			success: true,
@@ -29,7 +24,9 @@ const postList = [
 const postDetail = [
 	verifyParamId,
 	asyncHandler(async (req, res, next) => {
-		const post = await Post.findById(req.params.postId).exec();
+		const post = await Post.findById(req.params.postId, {
+			author: 0,
+		}).exec();
 
 		post
 			? res.json({

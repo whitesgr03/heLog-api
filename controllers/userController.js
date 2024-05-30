@@ -1,20 +1,13 @@
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const cors = require("cors");
 
 const verifySchema = require("../utils/verifySchema.js");
 const verifyToken = require("../utils/verifyToken.js");
 
 const User = require("../models/user");
 
-const corsOptions = {
-	origin: "*",
-	optionsSuccessStatus: 200,
-};
-
 const userDetail = [
-	cors(corsOptions),
 	verifyToken,
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user.id, {
@@ -37,7 +30,6 @@ const userDetail = [
 ];
 
 const userLogin = [
-	cors(corsOptions),
 	verifySchema({
 		email: {
 			trim: true,
