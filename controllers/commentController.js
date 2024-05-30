@@ -2,13 +2,13 @@ const asyncHandler = require("express-async-handler");
 
 const verifyToken = require("../utils/verifyToken");
 const verifyPermission = require("../utils/verifyPermission");
-const verifyParamId = require("../utils/verifyParamId");
+const verifyId = require("../utils/verifyId");
 const verifySchema = require("../utils/verifySchema");
 
 const Comment = require("../models/comment");
 
 const commentList = [
-	verifyParamId,
+	verifyId("post"),
 	asyncHandler(async (req, res, next) => {
 		const comments = await Comment.find(
 			{ post: req.params.postId },
@@ -30,7 +30,7 @@ const commentList = [
 ];
 const commentCreate = [
 	verifyToken,
-	verifyParamId,
+	verifyId("post"),
 	verifySchema({
 		content: {
 			trim: true,
@@ -56,9 +56,6 @@ const commentCreate = [
 			createdAt: currentTime,
 		});
 
-		const reply = req.params.commentId;
-		reply && (newComment.reply = reply);
-
 		await newComment.save();
 
 		res.json({
@@ -69,7 +66,7 @@ const commentCreate = [
 ];
 const commentUpdate = [
 	verifyToken,
-	verifyParamId,
+	verifyId("comment"),
 	verifyPermission,
 	verifySchema({
 		content: {
@@ -104,7 +101,7 @@ const commentUpdate = [
 ];
 const commentDelete = [
 	verifyToken,
-	verifyParamId,
+	verifyId("comment"),
 	verifyPermission,
 	asyncHandler(async (req, res, next) => {
 		await Comment.findByIdAndDelete(req.params.commentId).exec();

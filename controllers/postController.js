@@ -3,7 +3,7 @@ const { Types } = require("mongoose");
 
 const verifyToken = require("../utils/verifyToken");
 const verifyPermission = require("../utils/verifyPermission");
-const verifyParamId = require("../utils/verifyParamId");
+const verifyId = require("../utils/verifyId");
 const verifySchema = require("../utils/verifySchema");
 
 const Post = require("../models/post");
@@ -22,7 +22,7 @@ const postList = [
 	}),
 ];
 const postDetail = [
-	verifyParamId,
+	verifyId("post"),
 	asyncHandler(async (req, res, next) => {
 		const post = await Post.findById(req.params.postId, {
 			author: 0,
@@ -109,7 +109,7 @@ const postCreate = [
 ];
 const postUpdate = [
 	verifyToken,
-	verifyParamId,
+	verifyId("post"),
 	verifyPermission,
 	verifySchema({
 		title: {
@@ -182,7 +182,7 @@ const postUpdate = [
 ];
 const postDelete = [
 	verifyToken,
-	verifyParamId,
+	verifyId("post"),
 	verifyPermission,
 	asyncHandler(async (req, res, next) => {
 		await Post.findByIdAndDelete(req.params.postId).exec();
