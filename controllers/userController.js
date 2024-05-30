@@ -1,9 +1,11 @@
 const asyncHandler = require("express-async-handler");
+const { Types } = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const verifySchema = require("../utils/verifySchema.js");
 const verifyToken = require("../utils/verifyToken.js");
+const verifyId = require("../utils/verifyId");
 
 const User = require("../models/user");
 
@@ -28,6 +30,67 @@ const userDetail = [
 			  });
 	}),
 ];
+
+const userUpdate = [
+	verifyToken,
+	verifyId("user"),
+	verifySchema({
+		name: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The name is required.",
+				bail: true,
+			},
+			isLength: {
+				options: { max: 30 },
+				errorMessage: "The name must be less than 30 long.",
+				bail: true,
+			},
+			custom: {
+				options: name => name.match(/^[a-zA-Z]\w*$/),
+				errorMessage: "The name must be alphanumeric and underscore.",
+				bail: true,
+			},
+			escape: true,
+			custom: {
+				options: (name, { req }) =>
+					new Promise(async (resolve, reject) => {
+						const existingName = await User.findOne({
+							$and: [
+								{ name },
+								{
+									_id: {
+										$ne: Types.ObjectId.createFromHexString(
+											req.user.id
+										),
+									},
+								},
+							],
+						}).exec();
+						existingName
+							? reject((req.schema = { isConflict: true }))
+							: resolve();
+					}),
+				errorMessage: "The name is been used.",
+			},
+		},
+	}),
+	asyncHandler(async (req, res, next) => {
+		const { name } = req.body;
+
+		const newUser = {
+			name,
+			lastModified: new Date(),
+		};
+		await User.findByIdAndUpdate(req.user.id, newUser).exec();
+
+		res.json({
+			success: true,
+			message: "Update post successfully.",
+		});
+	}),
+];
+const userDelete = [verifyToken, asyncHandler(async (req, res, next) => {})];
 
 const userLogin = [
 	verifySchema({
@@ -216,6 +279,8 @@ const userRegister = [
 ];
 module.exports = {
 	userDetail,
+	userUpdate,
+	userDelete,
 	userLogin,
 	userRegister,
 };
