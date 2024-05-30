@@ -11,21 +11,24 @@ const userControllers = require("../controllers/userController");
 const postControllers = require("../controllers/postController");
 const commentControllers = require("../controllers/commentController");
 
-router.get("/user", userControllers.userDetail);
+router
+	.route("/user")
+	.options(cors(corsOptions))
+	.get(cors(corsOptions), userControllers.userDetail);
 router.post("/users", userControllers.userRegister);
 router
 	.route("/users/login")
 	.options(cors(corsOptions))
-	.post(userControllers.userLogin);
+	.post(cors(corsOptions), userControllers.userLogin);
 
 router
 	.route("/posts")
-	.get(postControllers.postList)
+	.get(cors(corsOptions), postControllers.postList)
 	.post(postControllers.postCreate);
 
 router
 	.route("/posts/:postId")
-	.get(postControllers.postDetail)
+	.get(cors(corsOptions), postControllers.postDetail)
 	.put(postControllers.postUpdate)
 	.delete(postControllers.postDelete);
 
