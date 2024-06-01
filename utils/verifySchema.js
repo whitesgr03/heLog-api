@@ -1,5 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const { validationResult, checkSchema } = require("express-validator");
+const {
+	validationResult,
+	checkSchema,
+	matchedData,
+} = require("express-validator");
 
 const verifySchema = schema => {
 	return asyncHandler(async (req, res, next) => {
@@ -19,7 +23,11 @@ const verifySchema = schema => {
 			});
 		};
 
-		schemaErrors.isEmpty() ? next() : handleSchemaErrorMessages();
+		const setMatchedData = () => {
+			req.data = matchedData(req);
+			next();
+		};
+		schemaErrors.isEmpty() ? setMatchedData() : handleSchemaErrorMessages();
 	});
 };
 
