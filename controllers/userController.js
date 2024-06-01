@@ -16,7 +16,6 @@ const userDetail = [
 			name: 1,
 			isAdmin: 1,
 			email: 1,
-			_id: 0,
 		}).exec();
 		user
 			? res.json({
