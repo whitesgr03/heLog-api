@@ -93,7 +93,7 @@ const postCreate = [
 		const currentTime = new Date();
 
 		const newPost = new Post({
-			...req.body,
+			...req.data,
 			author: req.user.id,
 			lastModified: currentTime,
 			createdAt: currentTime,
@@ -168,7 +168,7 @@ const postUpdate = [
 	}),
 	asyncHandler(async (req, res, next) => {
 		const newPost = {
-			...req.body,
+			...req.data,
 			lastModified: new Date(),
 		};
 

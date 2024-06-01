@@ -76,10 +76,8 @@ const userUpdate = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const { name } = req.body;
-
 		const newUser = {
-			name,
+			...req.data,
 			lastModified: new Date(),
 		};
 		await User.findByIdAndUpdate(req.user.id, newUser).exec();
@@ -111,7 +109,7 @@ const userLogin = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const { email, password } = req.body;
+		const { email, password } = req.data;
 		const user = await User.findOne({ email }).exec();
 		const match = user && (await bcrypt.compare(password, user.password));
 
@@ -243,7 +241,7 @@ const userRegister = [
 			escape: true,
 			custom: {
 				options: (confirmPassword, { req }) =>
-					confirmPassword === req.body.password,
+					confirmPassword === req.data.password,
 				errorMessage:
 					"The confirmation password is not the same as the password.",
 			},
@@ -253,13 +251,13 @@ const userRegister = [
 		const randomSalt = 12;
 
 		bcrypt.hash(
-			req.body.password,
+			req.data.password,
 			randomSalt,
 			async (err, hashedPassword) => {
 				const handleAddUser = async () => {
 					const currentTime = new Date();
 					const newUser = new User({
-						...req.body,
+						...req.data,
 						password: hashedPassword,
 						isAdmin: process.env.NODE_ENV === "development",
 						lastModified: currentTime,

@@ -49,7 +49,7 @@ const commentCreate = [
 		const currentTime = new Date();
 
 		const newComment = new Comment({
-			...req.body,
+			...req.data,
 			author: req.user.id,
 			post: req.params.postId,
 			lastModified: currentTime,
@@ -84,7 +84,7 @@ const commentUpdate = [
 	}),
 	asyncHandler(async (req, res, next) => {
 		const newComment = {
-			...req.body,
+			...req.data,
 			lastModified: new Date(),
 		};
 
@@ -134,7 +134,7 @@ const commentReplyCreate = [
 		const currentTime = new Date();
 
 		const newComment = new Comment({
-			...req.body,
+			...req.data,
 			author: req.user.id,
 			post: req.params.postId,
 			lastModified: currentTime,
