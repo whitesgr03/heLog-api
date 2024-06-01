@@ -33,6 +33,14 @@ const userDetail = [
 const userUpdate = [
 	verifyToken,
 	verifyId("user"),
+	asyncHandler(async (req, res, next) => {
+		req.params.userId === req.user.id
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `The user could not be found.`,
+			  });
+	}),
 	verifySchema({
 		name: {
 			trim: true,
