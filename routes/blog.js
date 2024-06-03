@@ -17,6 +17,10 @@ router.post("/users", userControllers.userRegister);
 router.post("/users/login", userControllers.userLogin);
 router.get("/users/user", userControllers.userDetail);
 
+router
+	.route("/users/:userId")
+	.put(userControllers.userUpdate)
+	.delete(userControllers.userDelete);
 
 router
 	.route("/posts")
