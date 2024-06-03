@@ -10,8 +10,11 @@ const Post = require("../models/post");
 
 const postList = [
 	asyncHandler(async (req, res, next) => {
-		const posts = await Post.find({}, { author: 0 })
-			.sort({ createdAt: 1 })
+		const { limit = 0 } = req.query;
+
+		const posts = await Post.find({ publish: true }, { author: 0 })
+			.sort({ createdAt: -1 })
+			.limit(limit)
 			.exec();
 
 		res.json({
