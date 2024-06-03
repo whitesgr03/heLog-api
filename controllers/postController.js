@@ -27,9 +27,12 @@ const postList = [
 const postDetail = [
 	verifyId("post"),
 	asyncHandler(async (req, res, next) => {
-		const post = await Post.findById(req.params.postId, {
-			author: 0,
-		}).exec();
+		const post = await Post.findById(req.params.postId)
+			.populate("author", {
+				name: 1,
+				_id: 0,
+			})
+			.exec();
 
 		post
 			? res.json({
