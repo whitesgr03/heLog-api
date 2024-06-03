@@ -276,7 +276,7 @@ const userRegister = [
 			escape: true,
 			custom: {
 				options: (confirmPassword, { req }) =>
-					confirmPassword === req.data.password,
+					confirmPassword === req.body.password,
 				errorMessage:
 					"The confirmation password is not the same as the password.",
 			},
