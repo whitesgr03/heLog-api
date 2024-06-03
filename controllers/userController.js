@@ -95,8 +95,25 @@ const userUpdate = [
 		});
 	}),
 ];
-const userDelete = [verifyToken, asyncHandler(async (req, res, next) => {})];
-
+const userDelete = [
+	verifyToken,
+	verifyId("user"),
+	asyncHandler(async (req, res, next) => {
+		req.params.userId === req.user.id
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `The user could not be found.`,
+			  });
+	}),
+	asyncHandler(async (req, res, next) => {
+		await User.findByIdAndDelete(req.params.userId).exec();
+		res.json({
+			success: true,
+			message: "Delete user successfully.",
+		});
+	}),
+];
 const userLogin = [
 	verifySchema({
 		email: {
@@ -104,44 +121,56 @@ const userLogin = [
 			toLowerCase: true,
 			notEmpty: {
 				errorMessage: "The email is required.",
+				bail: true,
+			},
+			isEmail: {
+				errorMessage: "The email must be in the correct format.",
+				bail: true,
+			},
+			normalizeEmail: {
+				errorMessage: "The email must be in standard format.",
+				bail: true,
 			},
 			escape: true,
+			custom: {
+				options: (email, { req }) =>
+					new Promise(async (resolve, reject) => {
+						const user = await User.findOne({ email }).exec();
+						user ? resolve((req.user = user)) : reject();
+					}),
+				errorMessage: "The account could not be found.",
+			},
 		},
 		password: {
 			trim: true,
 			notEmpty: {
 				errorMessage: "The password is required.",
+				bail: true,
+			},
+			isLength: {
+				options: { min: 8 },
+				errorMessage: "The password is incorrect.",
 			},
 			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const { email, password } = req.data;
-		const user = await User.findOne({ email }).exec();
-		const match = user && (await bcrypt.compare(password, user.password));
+		const match = await bcrypt.compare(
+			req.data.password,
+			req.user.password
+		);
 
-		const handleSignInErrorMessages = () => {
-			res.status(404).json({
-				success: false,
-				errors: [
-					{
-						field: "email",
-						message: "The email is incorrect.",
-					},
-					{
-						field: "password",
-						message: "The password is incorrect.",
-					},
-				],
-			});
-		};
-
-		const setUserId = () => {
-			req.user = user;
-			next();
-		};
-
-		match ? setUserId() : handleSignInErrorMessages();
+		match
+			? next()
+			: res.status(404).json({
+					success: false,
+					errors: [
+						{
+							field: "email",
+							message: "The account could not be found.",
+						},
+					],
+			  });
 	}),
 	asyncHandler((req, res, next) => {
 		const oneWeek = 7 * 24 * 60 * 60 * 1000;
@@ -213,7 +242,6 @@ const userRegister = [
 				bail: true,
 			},
 			escape: true,
-
 			custom: {
 				options: (email, { req }) =>
 					new Promise(async (resolve, reject) => {
