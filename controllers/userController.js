@@ -1,120 +1,205 @@
 const asyncHandler = require("express-async-handler");
 const { Types } = require("mongoose");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const passport = require("../config/password");
+const errorLog = require("debug")("ServerError");
 
-const verifySchema = require("../utils/verifySchema.js");
-const verifyToken = require("../utils/verifyToken.js");
-const verifyId = require("../utils/verifyId");
+// const jwt = require("jsonwebtoken");
+
+const verifySchema = require("../middlewares/verifySchema.js");
+const verifyToken = require("../middlewares/verifyToken.js");
+const verifyId = require("../middlewares/verifyId.js");
 
 const User = require("../models/user");
 
-const userDetail = [
-	verifyToken,
-	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, {
-			name: 1,
-			isAdmin: 1,
-			email: 1,
-		}).exec();
-		user
-			? res.json({
-					success: true,
-					message: "Get user successfully.",
-					data: user,
-			  })
-			: res.status(404).json({
-					success: false,
-					message: "The user could not be found.",
-			  });
-	}),
-];
+// const userDetail = [
+// 	verifyToken,
+// 	asyncHandler(async (req, res, next) => {
+// 		const user = await User.findById(req.user.id, {
+// 			name: 1,
+// 			isAdmin: 1,
+// 			email: 1,
+// 		}).exec();
+// 		user
+// 			? res.json({
+// 					success: true,
+// 					message: "Get user successfully.",
+// 					data: user,
+// 			  })
+// 			: res.status(404).json({
+// 					success: false,
+// 					message: "The user could not be found.",
+// 			  });
+// 	}),
+// ];
+// const userUpdate = [
+// 	verifyToken,
+// 	verifyId("user"),
+// 	asyncHandler(async (req, res, next) => {
+// 		req.params.userId === req.user.id
+// 			? next()
+// 			: res.status(404).json({
+// 					success: false,
+// 					message: `The user could not be found.`,
+// 			  });
+// 	}),
+// 	verifySchema({
+// 		name: {
+// 			trim: true,
+// 			notEmpty: {
+// 				errorMessage: "The name is required.",
+// 				bail: true,
+// 			},
+// 			isLength: {
+// 				options: { max: 30 },
+// 				errorMessage: "The name must be less than 30 long.",
+// 				bail: true,
+// 			},
+// 			custom: {
+// 				options: name => name.match(/^[a-zA-Z]\w*$/),
+// 				errorMessage: "The name must be alphanumeric and underscore.",
+// 				bail: true,
+// 			},
+// 			escape: true,
+// 			custom: {
+// 				options: (name, { req }) =>
+// 					new Promise(async (resolve, reject) => {
+// 						const existingName = await User.findOne({
+// 							$and: [
+// 								{ name },
+// 								{
+// 									_id: {
+// 										$ne: Types.ObjectId.createFromHexString(
+// 											req.user.id
+// 										),
+// 									},
+// 								},
+// 							],
+// 						}).exec();
+// 						existingName
+// 							? reject((req.schema = { isConflict: true }))
+// 							: resolve();
+// 					}),
+// 				errorMessage: "The name is been used.",
+// 			},
+// 		},
+// 	}),
+// 	asyncHandler(async (req, res, next) => {
+// 		const newUser = {
+// 			...req.data,
+// 			lastModified: new Date(),
+// 		};
+// 		await User.findByIdAndUpdate(req.user.id, newUser).exec();
 
-const userUpdate = [
-	verifyToken,
-	verifyId("user"),
-	asyncHandler(async (req, res, next) => {
-		req.params.userId === req.user.id
-			? next()
-			: res.status(404).json({
-					success: false,
-					message: `The user could not be found.`,
-			  });
-	}),
-	verifySchema({
-		name: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "The name is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 30 },
-				errorMessage: "The name must be less than 30 long.",
-				bail: true,
-			},
-			custom: {
-				options: name => name.match(/^[a-zA-Z]\w*$/),
-				errorMessage: "The name must be alphanumeric and underscore.",
-				bail: true,
-			},
-			escape: true,
-			custom: {
-				options: (name, { req }) =>
-					new Promise(async (resolve, reject) => {
-						const existingName = await User.findOne({
-							$and: [
-								{ name },
-								{
-									_id: {
-										$ne: Types.ObjectId.createFromHexString(
-											req.user.id
-										),
-									},
-								},
-							],
-						}).exec();
-						existingName
-							? reject((req.schema = { isConflict: true }))
-							: resolve();
-					}),
-				errorMessage: "The name is been used.",
-			},
-		},
-	}),
-	asyncHandler(async (req, res, next) => {
-		const newUser = {
-			...req.data,
-			lastModified: new Date(),
+// 		res.json({
+// 			success: true,
+// 			message: "Update post successfully.",
+// 		});
+// 	}),
+// ];
+// const userDelete = [
+// 	verifyToken,
+// 	verifyId("user"),
+// 	asyncHandler(async (req, res, next) => {
+// 		req.params.userId === req.user.id
+// 			? next()
+// 			: res.status(404).json({
+// 					success: false,
+// 					message: `The user could not be found.`,
+// 			  });
+// 	}),
+// 	asyncHandler(async (req, res, next) => {
+// 		await User.findByIdAndDelete(req.params.userId).exec();
+// 		res.json({
+// 			success: true,
+// 			message: "Delete user successfully.",
+// 		});
+// 	}),
+// ];
+const userAuth = [
+	asyncHandler((req, res, next) => {
+		const createAuthCode = async () => {
+			const querySchema = {
+				response_type: {
+					trim: true,
+					notEmpty: {
+						errorMessage: "The response type is required.",
+						bail: true,
+					},
+					equals: {
+						comparison: "code",
+						errorMessage: "Incorrect response type.",
+						bail: true,
+					},
+				},
+				client_id: {
+					trim: true,
+					notEmpty: {
+						errorMessage: "The client id is required.",
+						bail: true,
+					},
+					equals: {
+						comparison: process.env.CLIENT_ID,
+						errorMessage: "Incorrect client id.",
+						bail: true,
+					},
+				},
+				redirect_uri: {
+					trim: true,
+					notEmpty: {
+						errorMessage: "The redirect uri is required.",
+						bail: true,
+					},
+					isURL: {
+						options: {
+							protocols:
+								process.env.NODE_ENV === "production"
+									? ["https"]
+									: ["http", "https"],
+							allow_fragments: false,
+						},
+						errorMessage: "Incorrect redirect uri.",
+					},
+				},
+				state: {
+					optional: true,
+					trim: true,
+				},
+			};
+
+			await checkSchema(querySchema, ["query"]).run(req);
+
+			const schemaErrors = validationResult(req);
+
+			const sendAuthCode = () => {
+				const [state, redirect_uri] = matchedData(req);
+				const code = "";
+				res.redirect(`${redirect_uri}?code=${code}&state=${state}`);
+			};
+
+			const handleError = () => {
+				errorLog(schemaErrors);
+				res.render("error");
+			};
+
+			// schemaErrors.isEmpty() ? sendAuthCode() :handleError();
+
+			// res.send("The user is Authenticated");
+			console.log("The user is Authenticated");
+			res.redirect("/account/logout");
 		};
-		await User.findByIdAndUpdate(req.user.id, newUser).exec();
 
-		res.json({
-			success: true,
-			message: "Update post successfully.",
-		});
+		req.isAuthenticated()
+			? createAuthCode()
+			: res.redirect("/account/login");
 	}),
 ];
-const userDelete = [
-	verifyToken,
-	verifyId("user"),
-	asyncHandler(async (req, res, next) => {
-		req.params.userId === req.user.id
-			? next()
-			: res.status(404).json({
-					success: false,
-					message: `The user could not be found.`,
-			  });
-	}),
-	asyncHandler(async (req, res, next) => {
-		await User.findByIdAndDelete(req.params.userId).exec();
-		res.json({
-			success: true,
-			message: "Delete user successfully.",
-		});
+const userLoginGet = [
+	asyncHandler((req, res, next) => {
+		res.render("login");
 	}),
 ];
-const userLogin = [
+const userLoginPost = [
 	verifySchema({
 		email: {
 			trim: true,
@@ -132,14 +217,14 @@ const userLogin = [
 				bail: true,
 			},
 			escape: true,
-			custom: {
-				options: (email, { req }) =>
-					new Promise(async (resolve, reject) => {
-						const user = await User.findOne({ email }).exec();
-						user ? resolve((req.user = user)) : reject();
-					}),
-				errorMessage: "The account could not be found.",
-			},
+			// custom: {
+			// 	options: (email, { req }) =>
+			// 		new Promise(async (resolve, reject) => {
+			// 			const user = await User.findOne({ email }).exec();
+			// 			user ? resolve((req.user = user)) : reject();
+			// 		}),
+			// 	errorMessage: "The account could not be found.",
+			// },
 		},
 		password: {
 			trim: true,
@@ -154,47 +239,32 @@ const userLogin = [
 			escape: true,
 		},
 	}),
-	asyncHandler(async (req, res, next) => {
-		const match = await bcrypt.compare(
-			req.data.password,
-			req.user.password
-		);
-
-		match
-			? next()
-			: res.status(404).json({
-					success: false,
-					errors: [
-						{
-							field: "email",
-							message: "The account could not be found.",
-						},
-					],
-			  });
-	}),
 	asyncHandler((req, res, next) => {
-		const oneWeek = 7 * 24 * 60 * 60 * 1000;
-		jwt.sign(
-			{ id: req.user._id },
-			process.env.PRIVATE_KEY,
-			{ expiresIn: oneWeek / 1000 },
-			(err, token) => {
-				const exp = Date.now() + oneWeek;
-				err
-					? next(err)
-					: res.json({
-							success: true,
-							message: req.register ?? "User login successfully.",
-							data: {
-								token,
-								exp,
-							},
-					  });
+		const authenticate = passport.authenticate(
+			"local",
+			(err, userId, failInfo) => {
+				err && next(err);
+				failInfo &&
+					res.render("userLogin", {
+						user: req.data,
+						inputErrors: {
+							email: failInfo,
+						},
+					});
+				userId &&
+					req.login(userId, () => res.redirect("/account/auth"));
 			}
 		);
+
+		authenticate(req, res, next);
 	}),
 ];
-const userRegister = [
+const userRegisterGet = [
+	asyncHandler((req, res, next) => {
+		res.render("register");
+	}),
+];
+const userRegisterPost = [
 	verifySchema({
 		name: {
 			trim: true,
@@ -216,10 +286,10 @@ const userRegister = [
 			custom: {
 				options: (name, { req }) =>
 					new Promise(async (resolve, reject) => {
-						const existingName = await User.findOne({
+						const existingNickname = await User.findOne({
 							name,
 						}).exec();
-						existingName
+						existingNickname
 							? reject((req.schema = { isConflict: true }))
 							: resolve();
 					}),
@@ -283,8 +353,7 @@ const userRegister = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const randomSalt = 12;
-
+		const randomSalt = 10;
 		bcrypt.hash(
 			req.data.password,
 			randomSalt,
@@ -298,22 +367,41 @@ const userRegister = [
 						lastModified: currentTime,
 						createdAt: currentTime,
 					});
-
 					await newUser.save();
 					req.register = "User register successfully.";
 					next();
 				};
-
 				err ? next(err) : handleAddUser();
 			}
 		);
 	}),
-	userLogin,
+	userLoginPost,
+];
+const userLogout = [
+	asyncHandler(async (req, res, next) => {
+		req.user
+			? req.logout(err =>
+					err
+						? next(err)
+						: res.json({
+								success: true,
+								message: "User logged out successfully.",
+						  })
+			  )
+			: res.json({
+					success: false,
+					message: "User has not logged in yet.",
+			  });
+	}),
 ];
 module.exports = {
-	userDetail,
-	userUpdate,
-	userDelete,
-	userLogin,
-	userRegister,
+	// userDetail,
+	// userUpdate,
+	// userDelete,
+	userAuth,
+	userLoginPost,
+	userRegisterPost,
+	userLoginGet,
+	userRegisterGet,
+	userLogout,
 };

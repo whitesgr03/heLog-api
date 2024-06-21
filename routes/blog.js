@@ -7,20 +7,10 @@ const corsOptions = {
 	optionsSuccessStatus: 200,
 };
 
-const userControllers = require("../controllers/userController");
 const postControllers = require("../controllers/postController");
 const commentControllers = require("../controllers/commentController");
 
 router.use(cors(corsOptions));
-
-router.post("/users", userControllers.userRegister);
-router.post("/users/login", userControllers.userLogin);
-router.get("/users/user", userControllers.userDetail);
-
-router
-	.route("/users/:userId")
-	.put(userControllers.userUpdate)
-	.delete(userControllers.userDelete);
 
 router
 	.route("/posts")

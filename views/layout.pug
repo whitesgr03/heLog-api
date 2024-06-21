@@ -1,0 +1,47 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        //- meta(name="msapplication-TileColor" content="#da532c")
+        //- meta(name="msapplication-config" content="/images/browserconfig.xml")
+        //- link(rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png")
+        //- link(rel="manifest" href="/images/site.webmanifest")
+        //- link(rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png")
+        //- link(rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png")
+        //- link(rel="shortcut icon" href="/images/favicon.ico")
+        title HeLog
+        script(type='text/javascript', src='/javascripts/index.js', nonce=cspNonce, defer)
+        link(rel='stylesheet', href='/stylesheets/index.css')
+        
+        block head
+    body(class= darkScheme ? 'dark' : '')
+        script(type='text/javascript', src='/javascripts/handleColorScheme.js', nonce=cspNonce)
+
+        div.app
+            header.content
+                a.logo(href="/")
+                    h1 HeLog
+
+                button.themeBtn
+                    div.switchWrap
+                        span.icon.moon
+                        span.icon.sun
+                        div.switch
+                            div
+                    span.darkText Dark mode
+                    span.lightText Light mode
+            
+
+            div.container
+                main
+                    block content
+
+                footer.content
+                    a.link(href="https://github.com/whitesgr03/heLog-api" alt="heLog-api github repository" rel="noreferrer" target="_blank" aria-label="visit author's github")
+                        span.icon.github
+                    address
+                        a(href="mailto:whitesgr03@gmail.com")
+                            span.icon.email
+                            em whitesgr03@gmail.com
+                    p &copy; 2024 Designed &amp; coded by Weiss Bai

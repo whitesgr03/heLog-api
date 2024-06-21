@@ -12,15 +12,22 @@ const verifySchema = schema => {
 		const schemaErrors = validationResult(req);
 
 		const handleSchemaErrorMessages = () => {
-			const errors = schemaErrors.array().map(error => ({
-				field: error.path,
-				message: error.msg,
-			}));
+			const path = req.originalUrl.split("/")[2];
+			// const errors = schemaErrors.array().map(error => ({
+			// 	field: error.path,
+			// 	message: error.msg,
+			// }));
+			const inputErrors = schemaErrors.mapped();
 
-			res.status(req.schema?.isConflict ? 409 : 400).json({
-				success: false,
-				errors,
-			});
+			path && (path === "login" || path === "register")
+				? res.render(path, {
+						user: { ...req.body },
+						inputErrors,
+				  })
+				: res.status(req.schema?.isConflict ? 409 : 400).json({
+						success: false,
+						inputErrors,
+				  });
 		};
 
 		const setMatchedData = () => {

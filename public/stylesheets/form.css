@@ -1,0 +1,212 @@
+.title {
+	margin-bottom: 15px;
+}
+
+.formWrap {
+	border: 1px solid var(--light-scheme-color);
+	border-radius: 5px;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	row-gap: 10px;
+	padding: 15px;
+}
+
+form label {
+	row-gap: 15px;
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 10px;
+}
+
+form input {
+	border: 2px solid transparent;
+	border-radius: 5px;
+	padding: 10px;
+	width: 100%;
+	background-color: var(--light-scheme-layout-bgc);
+}
+
+form label + .placeholder {
+	position: relative;
+	margin-left: 30px;
+	color: var(--light-scheme-error);
+	opacity: 0;
+	visibility: hidden;
+}
+
+form label + .placeholder .alert {
+	position: absolute;
+	right: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	margin-right: 5px;
+}
+
+form label.error input {
+	border-color: var(--light-scheme-error);
+}
+form label.error + .placeholder {
+	opacity: 1;
+	visibility: visible;
+}
+
+.alert {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7t-.712.288T11 8v4q0 .425.288.713T12 13m0 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8'/%3E%3C/svg%3E");
+	height: var(--icon-size-desktop);
+	width: var(--icon-size-desktop);
+}
+
+button[type="submit"] {
+	border-radius: 5px;
+	min-height: 45px;
+	border: 2px solid var(--light-scheme-color);
+	color: var(--dark-scheme-color);
+	cursor: pointer;
+	background-color: var(--light-scheme-success);
+	position: relative;
+	overflow: hidden;
+	margin-top: 40px;
+}
+
+button[type="submit"] .text {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	column-gap: 10px;
+	align-items: center;
+	justify-content: center;
+	z-index: 1;
+}
+
+button[type="submit"] .loadIcon {
+	display: none;
+}
+
+button[type="submit"].loading::after {
+	content: "";
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	right: 100%;
+	top: 50%;
+	transform: translate(0%, -50%);
+	border: 2px solid black;
+	border-left-width: 0;
+	border-right-width: 0;
+	background: linear-gradient(90deg, #0b563d 30%, #f2a145 100%);
+	animation: shimmer 1s forwards infinite ease-in-out;
+	z-index: 0;
+}
+
+@keyframes shimmer {
+	0% {
+		transform: translate(0%, -50%);
+	}
+	100% {
+		transform: translate(200%, -50%);
+	}
+}
+
+button[type="submit"].loading .loadIcon {
+	width: var(--icon-size-desktop);
+	display: block;
+}
+
+.loadIcon {
+	--size: calc(var(--icon-size-desktop) * 1.5);
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8'/%3E%3C/svg%3E");
+	height: var(--size);
+	width: var(--size);
+	animation: spin 1s linear infinite;
+}
+
+/* Pseudo classes */
+
+form label:focus-within,
+form label:hover {
+	color: var(--light-scheme-highlight);
+}
+form input:focus,
+form input:hover {
+	border: 2px solid var(--light-scheme-highlight);
+}
+
+button[type="submit"]:hover {
+	opacity: 0.8;
+}
+
+/* Dark scheme classes */
+
+.dark .formWrap {
+	border-color: var(--dark-scheme-color);
+}
+
+.dark .formWrap input {
+	color: var(--dark-scheme-color);
+	background-color: var(--dark-scheme-input-bgc);
+}
+
+.dark form label + div {
+	color: var(--dark-scheme-error);
+}
+
+.dark form label.error input {
+	border-color: var(--dark-scheme-error);
+}
+
+.dark form label:focus-within,
+.dark form label:hover {
+	color: var(--dark-scheme-highlight);
+}
+.dark form input:focus,
+.dark form input:hover {
+	border: 2px solid var(--dark-scheme-highlight);
+}
+
+.dark button[type="submit"] {
+	border: 2px transparent;
+	color: var(--dark-scheme-color);
+}
+
+@media (min-width: 600px) {
+	.formWrap button[type="submit"] {
+		width: 50%;
+		align-self: center;
+	}
+}
+
+@media (min-width: 700px) {
+	.title {
+		margin-bottom: 5%;
+	}
+
+	.formWrap {
+		border-radius: 15px;
+	}
+
+	.formWrap form {
+		padding: 5% 10%;
+		row-gap: 20px;
+	}
+
+	.formWrap button[type="submit"] {
+		width: 100%;
+	}
+}
+
+@media (min-width: 1300px) {
+	.formWrap {
+		width: 100%;
+	}
+
+	.formWrap button[type="submit"] {
+		width: 50%;
+		align-self: center;
+	}
+}

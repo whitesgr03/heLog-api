@@ -1,0 +1,41 @@
+extends layout
+
+block head
+    link(rel='stylesheet', href='/stylesheets/form.css')
+    link(rel='stylesheet', href='/stylesheets/login.css')
+
+block content
+    div.login
+        h3.title User Sign In
+        div.formWrap
+            form(method="POST")
+                div 
+                    label(for='email' class= inputErrors && inputErrors.email ? 'error' : "") Email
+                        input#email(
+                            type="text" 
+                            name="email" 
+                            value != user ? user.email : '' 
+                            title="The email is required and must be standard format." 
+                            required
+                        )
+                    div.placeholder
+                        span.icon.alert
+                        p= inputErrors && inputErrors.email ? inputErrors.email.msg : "Message placeholder"
+                div 
+                    label(for='password' class= inputErrors && inputErrors.password ? 'error' : "") Password
+                        input#password(
+                            type="password" 
+                            name="password" 
+                            value != user ? user.password : '' 
+                            title="The password is required." 
+                            required
+                        )
+                    div.placeholder
+                        span.icon.alert
+                        p= inputErrors && inputErrors.password  ? inputErrors.password.msg : "Message placeholder"
+                button(class= loading ? btnLoading : "" type="submit")
+                    span.text Login
+                        span.icon.loadIcon
+            div.linkWrap
+                p New to HeLog?
+                a(href="/account/register") Create an account

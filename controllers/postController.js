@@ -1,10 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const { Types } = require("mongoose");
 
-const verifyToken = require("../utils/verifyToken");
-const verifyPermission = require("../utils/verifyPermission");
-const verifyId = require("../utils/verifyId");
-const verifySchema = require("../utils/verifySchema");
+const verifyToken = require("../middlewares/verifyToken");
+const verifyPermission = require("../middlewares/verifyPermission");
+const verifyId = require("../middlewares/verifyId");
+const verifySchema = require("../middlewares/verifySchema");
 
 const Post = require("../models/post");
 

@@ -1,0 +1,62 @@
+extends layout
+
+block head
+    link(rel='stylesheet', href='/stylesheets/form.css')
+    link(rel='stylesheet', href='/stylesheets/register.css')
+
+block content
+    div.register
+        h3.title User Register
+        div.formWrap
+            form(method="POST")
+                div 
+                    label(for='name' class= inputErrors && inputErrors.name ? 'error' : "") Name
+                        input#name(
+                            type="text" 
+                            name="name" 
+                            value != user ? user.name : '' 
+                            title="The name must be less than 30 long." 
+                            required
+                        )
+                    div.placeholder
+                        span.icon.alert
+                        p= inputErrors && inputErrors.name ? inputErrors.name.msg  : "Message placeholder"
+                div 
+                    label(for='email' class= inputErrors && inputErrors.email ? 'error' : "") Email
+                        input#email(
+                            type="text" 
+                            name="email" 
+                            value != user ? user.email : '' 
+                            title="The email is required and must be standard format." 
+                            required
+                        )
+                    div.placeholder
+                        span.icon.alert
+                        p= inputErrors && inputErrors.email ? inputErrors.email.msg : "Message placeholder"
+                div 
+                    label(for='password' class= inputErrors && inputErrors.password ? 'error' : "") Password
+                        input#password(
+                            type="password" 
+                            name="password" 
+                            value != user ? user.password : '' 
+                            title="The password is required." 
+                            required
+                        )
+                    div.placeholder
+                        span.icon.alert
+                        p= inputErrors && inputErrors.password  ? inputErrors.password.msg : "Message placeholder"
+                div 
+                    label(for='confirmPassword' class= inputErrors && inputErrors.confirmPassword ? 'error' : "") Confirm Password
+                        input#confirmPassword(
+                            type="password" 
+                            name="confirmPassword" 
+                            value != user ? user.confirmPassword : '' 
+                            title="The confirm password must be the same as the password." 
+                            required
+                        )
+                    div.placeholder
+                        span.icon.alert
+                        p= inputErrors && inputErrors.confirmPassword  ? inputErrors.confirmPassword.msg : "Message placeholder"
+                button(class= loading ? btnLoading : "" type="submit")
+                    span.text Login
+                        span.icon.loadIcon
