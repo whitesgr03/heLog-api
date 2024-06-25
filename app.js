@@ -13,7 +13,8 @@ const db = require("./config/database");
 const compression = require("compression");
 const helmet = require("helmet");
 
-const userRouter = require("./routes/account");
+const authRouter = require("./routes/auth");
+const accountRouter = require("./routes/account");
 const blogRouter = require("./routes/blog");
 
 const app = express();
@@ -72,7 +73,8 @@ app.use(passport.session());
 
 app.get("/", (req, res) => res.redirect("/account/auth"));
 // app.get("/", (req, res, next) => next("gg"));
-app.use("/account", userRouter);
+app.use("/oauth2", authRouter);
+app.use("/account", accountRouter);
 app.use("/blog", blogRouter);
 
 // Unknown routes handler
