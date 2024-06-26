@@ -1,21 +1,21 @@
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const bcrypt = require("bcrypt");
-const errorLog = require("debug")("AuthenticateError");
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import bcrypt from "bcrypt";
+import debug from "debug";
 
-const User = require("../models/user");
+import User from "../models/user.js";
+
+const errorLog = debug("AuthenticateError");
 
 passport.use(
 	new LocalStrategy(
 		{ usernameField: "email" },
 		async (email, password, done) => {
-			console.log("LocalStrategy");
 			try {
 				const user = await User.findOne({ email });
 				const match =
 					user && (await bcrypt.compare(password, user.password));
 
-				console.log("match", match);
 				match
 					? done(null, user.id)
 					: done(null, false, "The account could not be found.");
@@ -38,4 +38,4 @@ passport.deserializeUser(async (id, done) => {
 	done(null, user);
 });
 
-module.exports = passport;
+export default passport;
