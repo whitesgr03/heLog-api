@@ -4,17 +4,6 @@ import * as postControllers from "../controllers/postController.js";
 import * as commentControllers from "../controllers/commentController.js";
 
 const router = express.Router();
-const cors = require("cors");
-
-const corsOptions = {
-	origin: "*",
-	optionsSuccessStatus: 200,
-};
-
-const postControllers = require("../controllers/postController");
-const commentControllers = require("../controllers/commentController");
-
-router.use(cors(corsOptions));
 
 router
 	.route("/posts")

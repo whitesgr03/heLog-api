@@ -4,17 +4,7 @@ import express from "express";
 import * as userControllers from "../controllers/userController.js";
 
 const router = express.Router();
-const cors = require("cors");
-const { randomBytes } = require("node:crypto");
 
-const corsOptions = {
-	origin: "*",
-	optionsSuccessStatus: 200,
-};
-
-const userControllers = require("../controllers/userController");
-
-router.use(cors(corsOptions));
 router.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(16).toString("base64");
 	// res.locals.darkScheme = req.query.darkTheme || false;
