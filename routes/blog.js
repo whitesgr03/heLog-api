@@ -1,4 +1,8 @@
-const express = require("express");
+import express from "express";
+
+import * as postControllers from "../controllers/postController.js";
+import * as commentControllers from "../controllers/commentController.js";
+
 const router = express.Router();
 const cors = require("cors");
 
@@ -34,4 +38,4 @@ router
 	.put(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
-module.exports = router;
+export default router;

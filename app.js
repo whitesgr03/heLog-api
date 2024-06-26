@@ -1,75 +1,36 @@
-const createError = require("http-errors");
-const express = require("express");
-const path = require("path");
-const logger = require("morgan");
-const errorLog = require("debug")("ServerError");
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const MongoStore = require("connect-mongo");
-const session = require("express-session");
+import express from "express";
+import createError from "http-errors";
+import morgan from "morgan";
+import debug from "debug";
+import MongoStore from "connect-mongo";
+import session from "express-session";
+import compression from "compression";
+import helmet from "helmet";
+import cors from "cors";
 
-const passport = require("./config/password");
-const db = require("./config/database");
+// config
+import passport from "./config/passport.js";
+import db from "./config/database.js";
 
-const compression = require("compression");
-const helmet = require("helmet");
-
-const authRouter = require("./routes/auth");
-const accountRouter = require("./routes/account");
-const blogRouter = require("./routes/blog");
+// routes
+import accountRouter from "./routes/account.js";
+import blogRouter from "./routes/blog.js";
 
 const app = express();
-
+const errorLog = debug("ServerError");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
-
-process.env.NODE_ENV === "production" &&
-	app.use(
-		helmet({
-			contentSecurityPolicy: {
-				directives: {
-					imgSrc: ["'self'", "data:", "blob:"],
-					styleSrc: [
-						"'self'",
-						"fonts.googleapis.com",
-						"necolas.github.io",
-					],
-					baseUri: ["'none'"],
-					objectSrc: ["'none'"],
-					scriptSrc: [
-						(req, res) => `'nonce-${res.locals.cspNonce}'`,
-						"strict-dynamic",
-					],
-				},
-			},
-		})
-	);
-
+app.use(passport.session());
 app.use(compression());
-app.use(
-	logger("dev", {
-		skip: (req, res) => req.baseUrl !== "/account",
-	})
-);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
-
-app.use(
-	session({
-		secret: "HeLog",
-		resave: false,
-		saveUninitialized: false,
-		store: MongoStore.create({
-			client: db.getClient(),
-		}),
-		cookie: {
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-		},
-	})
-);
-app.use(passport.session());
 
 app.get("/", (req, res) => res.redirect("/account/auth"));
 // app.get("/", (req, res, next) => next("gg"));
@@ -98,4 +59,4 @@ app.use((err, req, res, next) => {
 		  });
 });
 
-module.exports = app;
+export default app;

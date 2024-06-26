@@ -1,24 +1,24 @@
-const databaseLog = require("debug")("Mongoose");
-const serverLog = require("debug")("Server");
+import os from "node:os";
+import debug from "debug";
 
-const db = require("./config/database");
-const os = require("node:os");
-const app = require("./app");
+import app from "./app.js";
+import db from "./config/database.js";
+
+const databaseLog = debug("Mongoose");
+const serverLog = debug("Server");
 
 const PORT = process.env.PORT || "3000";
 
 const handleListening = async () => {
-	const IP_Address =
-		process.env.NODE_ENV === "development" &&
-		os
+	const handlePrintNetwork = () => {
+		const IP_Address = os
 			.networkInterfaces()
-			.en0.find(interface => interface.family === "IPv4").address;
+			.en0.find(internet => internet.family === "IPv4").address;
+		serverLog(`Listening on Your Network:  http://${IP_Address}:${PORT}`);
+	};
 
-	serverLog(`Listening on Local:            http://localhost:${PORT}`);
-	process.env.NODE_ENV === "development" &&
-		serverLog(
-			`Listening on On Your Network:  http://${IP_Address}:${PORT}`
-		);
+	serverLog(`Listening on Local:         http://localhost:${PORT}`);
+	process.env.NODE_ENV === "development" && handlePrintNetwork();
 };
 
 const handleError = error => {

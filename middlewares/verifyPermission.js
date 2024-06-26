@@ -1,7 +1,7 @@
-const asyncHandler = require("express-async-handler");
+import asyncHandler from "express-async-handler";
 
-const User = require("../models/user");
-const Comment = require("../models/comment");
+import User from "../models/user.js";
+import Comment from "../models/comment.js";
 
 const verifyPermission = asyncHandler(async (req, res, next) => {
 	const { commentId } = req.params;
@@ -24,6 +24,4 @@ const verifyPermission = asyncHandler(async (req, res, next) => {
 		  });
 });
 
-// 雙重 permission
-
-module.exports = verifyPermission;
+export default verifyPermission;

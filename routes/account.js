@@ -1,4 +1,8 @@
-const express = require("express");
+import { randomBytes } from "node:crypto";
+import express from "express";
+
+import * as userControllers from "../controllers/userController.js";
+
 const router = express.Router();
 const cors = require("cors");
 const { randomBytes } = require("node:crypto");
@@ -38,4 +42,4 @@ router
 // 	.put(userControllers.userUpdate)
 // 	.delete(userControllers.userDelete);
 
-module.exports = router;
+export default router;

@@ -1,8 +1,7 @@
-const databaseLog = require("debug")("Mongoose");
-const mongoose = require("mongoose");
+import debug from "debug";
+import mongoose from "mongoose";
 
-const dbString = process.env.DATABASE_STRING;
-const dbName = process.env.DATABASE_NAME;
+const databaseLog = debug("Mongoose");
 
 const handleError = err => {
 	databaseLog(`${err.name}: ${err.message}`);
@@ -14,6 +13,8 @@ const db = mongoose.connection;
 db.on("connecting", () => databaseLog("Starting connect to MongoDB"));
 db.on("error", err => handleError(err));
 
-mongoose.connect(dbString, { dbName }).catch(error => handleError(error));
+mongoose
+	.connect(process.env.DATABASE_STRING, { dbName: process.env.DATABASE_NAME })
+	.catch(err => handleError(err));
 
-module.exports = db;
+export default db;

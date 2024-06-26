@@ -1,12 +1,12 @@
-const asyncHandler = require("express-async-handler");
-const { Types } = require("mongoose");
+import asyncHandler from "express-async-handler";
+import { Types } from "mongoose";
 
-const verifyToken = require("../middlewares/verifyToken");
-const verifyPermission = require("../middlewares/verifyPermission");
-const verifyId = require("../middlewares/verifyId");
-const verifySchema = require("../middlewares/verifySchema");
+import verifyToken from "../middlewares/verifyToken.js";
+import verifyPermission from "../middlewares/verifyPermission.js";
+import verifyId from "../middlewares/verifyId.js";
+import verifySchema from "../middlewares/verifySchema.js";
 
-const Post = require("../models/post");
+import Post from "../models/post.js";
 
 const postList = [
 	asyncHandler(async (req, res, next) => {
@@ -204,10 +204,4 @@ const postDelete = [
 	}),
 ];
 
-module.exports = {
-	postList,
-	postDetail,
-	postCreate,
-	postUpdate,
-	postDelete,
-};
+export { postList, postDetail, postCreate, postUpdate, postDelete };

@@ -1,9 +1,6 @@
-const asyncHandler = require("express-async-handler");
-const {
-	validationResult,
-	checkSchema,
-	matchedData,
-} = require("express-validator");
+import asyncHandler from "express-async-handler";
+
+import { validationResult, checkSchema, matchedData } from "express-validator";
 
 const verifySchema = schema => {
 	return asyncHandler(async (req, res, next) => {
@@ -38,4 +35,4 @@ const verifySchema = schema => {
 	});
 };
 
-module.exports = verifySchema;
+export default verifySchema;

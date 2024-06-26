@@ -1,16 +1,9 @@
-const asyncHandler = require("express-async-handler");
-const { Types } = require("mongoose");
-const bcrypt = require("bcrypt");
-const passport = require("../config/password");
-const errorLog = require("debug")("ServerError");
+import asyncHandler from "express-async-handler";
+import bcrypt from "bcrypt";
+import passport from "../config/passport.js";
+import verifySchema from "../middlewares/verifySchema.js";
 
-// const jwt = require("jsonwebtoken");
-
-const verifySchema = require("../middlewares/verifySchema.js");
-const verifyToken = require("../middlewares/verifyToken.js");
-const verifyId = require("../middlewares/verifyId.js");
-
-const User = require("../models/user");
+import User from "../models/user.js";
 
 // const userDetail = [
 // 	verifyToken,

@@ -1,11 +1,11 @@
-const asyncHandler = require("express-async-handler");
+import asyncHandler from "express-async-handler";
 
-const verifyToken = require("../middlewares/verifyToken");
-const verifyPermission = require("../middlewares/verifyPermission");
-const verifyId = require("../middlewares/verifyId");
-const verifySchema = require("../middlewares/verifySchema");
+import verifyToken from "../middlewares/verifyToken.js";
+import verifyPermission from "../middlewares/verifyPermission.js";
+import verifyId from "../middlewares/verifyId.js";
+import verifySchema from "../middlewares/verifySchema.js";
 
-const Comment = require("../models/comment");
+import Comment from "../models/comment.js";
 
 const commentList = [
 	verifyId("post"),
@@ -151,7 +151,7 @@ const commentReplyCreate = [
 	}),
 ];
 
-module.exports = {
+export {
 	commentList,
 	commentCreate,
 	commentUpdate,

@@ -1,5 +1,5 @@
-const asyncHandler = require("express-async-handler");
-const { isValidObjectId } = require("mongoose");
+import asyncHandler from "express-async-handler";
+import { isValidObjectId } from "mongoose";
 
 const verifyId = name =>
 	asyncHandler(async (req, res, next) => {
@@ -11,4 +11,4 @@ const verifyId = name =>
 			  });
 	});
 
-module.exports = verifyId;
+export default verifyId;
