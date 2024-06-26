@@ -77,8 +77,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 app.get("/", (req, res) => res.redirect("/account/auth"));
-// app.get("/", (req, res, next) => next("gg"));
-app.use("/oauth2", authRouter);
 app.use("/account", accountRouter);
 app.use("/blog", blogRouter);
 
