@@ -22,9 +22,53 @@ import blogRouter from "./routes/blog.js";
 const app = express();
 const errorLog = debug("ServerError");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const corsOptions = {
+	origin: JSON.parse(process.env.ORIGIN),
+	optionsSuccessStatus: 200,
+};
+const helmetOptions = {
+	contentSecurityPolicy: {
+		directives: {
+			imgSrc: ["'self'", "data:", "blob:"],
+			styleSrc: ["'self'", "fonts.googleapis.com", "necolas.github.io"],
+			frameAncestors: ["'none'"],
+			baseUri: ["'none'"],
+			objectSrc: ["'none'"],
+			scriptSrc: [
+				(req, res) => `'nonce-${res.locals.cspNonce}'`,
+				"strict-dynamic",
+			],
+		},
+	},
+};
+const sessionOptions = {
+	secret: JSON.parse(process.env.SESSION_SECRET),
+	resave: false,
+	saveUninitialized: false,
+	store: MongoStore.create({
+		client: db.getClient(),
+	}),
+	cookie: {
+		sameSite: true,
+		secure: process.env.NODE_ENV === "production",
+		maxAge: 7 * 24 * 60 * 60 * 1000,
+	},
+};
+const morganOption = {
+	skip: (req, res) => req.baseUrl !== "/account",
+};
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
+
+app.use(
+	morgan("dev", process.env.NODE_ENV === "development" ? morganOption : {})
+);
+app.use(helmet(process.env.NODE_ENV === "production" ? helmetOptions : {}));
+app.use(cors(corsOptions));
+app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(compression());
 
