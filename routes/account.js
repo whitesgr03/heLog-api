@@ -11,6 +11,7 @@ router.use((req, res, next) => {
 	next();
 });
 
+router.get("/auth", userControllers.userAuth);
 router.get("/logout", userControllers.userLogout);
 
 router
