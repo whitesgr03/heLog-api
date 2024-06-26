@@ -1,3 +1,5 @@
+"use strict";
+
 const themeBtn = document.querySelector(".themeBtn");
 
 const handleChangeTheme = () => {
