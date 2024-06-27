@@ -1,15 +1,8 @@
-import { randomBytes } from "node:crypto";
 import express from "express";
 
 import * as userControllers from "../controllers/userController.js";
 
 const router = express.Router();
-
-router.use((req, res, next) => {
-	res.locals.cspNonce = randomBytes(16).toString("base64");
-	// res.locals.darkScheme = req.query.darkTheme || false;
-	next();
-});
 
 router.get("/auth", userControllers.userAuth);
 router.get("/logout", userControllers.userLogout);
