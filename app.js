@@ -15,6 +15,9 @@ import cors from "cors";
 import passport from "./config/passport.js";
 import db from "./config/database.js";
 
+// middleware
+import rateLimiter from "./middlewares/rateLimiter.js";
+
 // routes
 import accountRouter from "./routes/account.js";
 import blogRouter from "./routes/blog.js";
@@ -63,10 +66,7 @@ const morganOption = {
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-app.use(
-	morgan("dev", process.env.NODE_ENV === "development" ? morganOption : {})
-);
-app.use(helmet(process.env.NODE_ENV === "production" ? helmetOptions : {}));
+app.use(rateLimiter);
 app.use(cors(corsOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
