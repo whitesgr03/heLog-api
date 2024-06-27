@@ -74,6 +74,7 @@ app.set("view engine", "pug");
 
 app.use(rateLimiter);
 app.use(morgan("dev"));
+app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
