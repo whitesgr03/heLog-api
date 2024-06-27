@@ -24,7 +24,7 @@ import accountRouter from "./routes/account.js";
 import blogRouter from "./routes/blog.js";
 
 const app = express();
-const errorLog = debug("ServerError");
+const errorLog = debug("HandleErrorRouter");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use((req, res, next) => {
