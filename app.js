@@ -65,8 +65,7 @@ const sessionOptions = {
 		maxAge: 7 * 24 * 60 * 60 * 1000,
 	},
 };
-const morganOption = {
-	skip: (req, res) => req.baseUrl !== "/account",
+
 };
 
 // view engine setup
@@ -74,6 +73,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
 app.use(rateLimiter);
+app.use(morgan("dev"));
 app.use(cors(corsOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
