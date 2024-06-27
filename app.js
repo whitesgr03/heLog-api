@@ -66,11 +66,19 @@ const sessionOptions = {
 	},
 };
 
+const staticOptions = {
+	index: false,
+	maxAge: "1d",
+	redirect: false,
 };
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
+
+app.use(express.urlencoded());
+app.use(express.static(path.join(__dirname, "public"), staticOptions));
+app.use(express.json());
 
 app.use(rateLimiter);
 app.use(morgan("dev"));
@@ -80,11 +88,9 @@ app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(compression());
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json());
-
+// index route
 app.get("/", (req, res) => res.redirect("/account/auth"));
+
 app.use("/account", accountRouter);
 app.use("/blog", blogRouter);
 
