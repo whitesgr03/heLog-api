@@ -103,7 +103,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
 	errorLog(`${err.name}: ${err.message}`);
 
-	const path = req.baseUrl.split("/")[3] || "login";
+	const path = req.path.split("/")[2];
 
 	err.status ?? (err = createError(500));
 
