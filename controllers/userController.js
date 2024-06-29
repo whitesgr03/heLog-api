@@ -1,29 +1,30 @@
 import asyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
+
 import passport from "../config/passport.js";
+
 import verifySchema from "../middlewares/verifySchema.js";
 
 import User from "../models/user.js";
 
 // const userDetail = [
-// 	verifyToken,
-// 	asyncHandler(async (req, res, next) => {
-// 		const user = await User.findById(req.user.id, {
-// 			name: 1,
-// 			isAdmin: 1,
-// 			email: 1,
-// 		}).exec();
-// 		user
-// 			? res.json({
-// 					success: true,
-// 					message: "Get user successfully.",
-// 					data: user,
-// 			  })
-// 			: res.status(404).json({
-// 					success: false,
-// 					message: "The user could not be found.",
-// 			  });
-// 	}),
+// 	// asyncHandler(async (req, res, next) => {
+// 	// 	const user = await User.findById(req.user.id, {
+// 	// 		name: 1,
+// 	// 		isAdmin: 1,
+// 	// 		email: 1,
+// 	// 	}).exec();
+// 	// 	user
+// 	// 		? res.json({
+// 	// 				success: true,
+// 	// 				message: "Get user successfully.",
+// 	// 				data: user,
+// 	// 		  })
+// 	// 		: res.status(404).json({
+// 	// 				success: false,
+// 	// 				message: "The user could not be found.",
+// 	// 		  });
+// 	// }),
 // ];
 // const userUpdate = [
 // 	verifyToken,
@@ -111,88 +112,48 @@ import User from "../models/user.js";
 // ];
 const userAuth = [
 	asyncHandler((req, res, next) => {
-		const createAuthCode = async () => {
-			const querySchema = {
-				response_type: {
-					trim: true,
-					notEmpty: {
-						errorMessage: "The response type is required.",
-						bail: true,
-					},
-					equals: {
-						comparison: "code",
-						errorMessage: "Incorrect response type.",
-						bail: true,
-					},
-				},
-				client_id: {
-					trim: true,
-					notEmpty: {
-						errorMessage: "The client id is required.",
-						bail: true,
-					},
-					equals: {
-						comparison: process.env.CLIENT_ID,
-						errorMessage: "Incorrect client id.",
-						bail: true,
-					},
-				},
-				redirect_uri: {
-					trim: true,
-					notEmpty: {
-						errorMessage: "The redirect uri is required.",
-						bail: true,
-					},
-					isURL: {
-						options: {
-							protocols:
-								process.env.NODE_ENV === "production"
-									? ["https"]
-									: ["http", "https"],
-							allow_fragments: false,
-						},
-						errorMessage: "Incorrect redirect uri.",
-					},
-				},
-				state: {
-					optional: true,
-					trim: true,
-				},
-			};
-
-			await checkSchema(querySchema, ["query"]).run(req);
-
-			const schemaErrors = validationResult(req);
-
-			const sendAuthCode = () => {
-				const [state, redirect_uri] = matchedData(req);
-				const code = "";
-				res.redirect(`${redirect_uri}?code=${code}&state=${state}`);
-			};
-
-			const handleError = () => {
-				errorLog(schemaErrors);
-				res.render("error");
-			};
-
-			// schemaErrors.isEmpty() ? sendAuthCode() :handleError();
-
-			// res.send("The user is Authenticated");
-			console.log("The user is Authenticated");
-			res.redirect("/account/logout");
-		};
-
-		req.isAuthenticated()
-			? createAuthCode()
-			: res.redirect("/account/login");
+		!req.isAuthenticated()
+			? res.redirect("/account/login")
+			: res.redirect(`${process.env.CLIENT_URL}/posts?sessionID=123`);
 	}),
+	// asyncHandler(async (req, res, next) => {
+	// 	const user = await User.findById(req.user.id, {
+	// 		name: 1,
+	// 		isAdmin: 1,
+	// 		email: 1,
+	// 	}).exec();
+
+	// 	res.json({
+	// 		success: true,
+	// 		message: "Get user successfully.",
+	// 		data: user,
+	// 	});
+	// }),
 ];
 const userLoginGet = [
+	asyncHandler((req, res, next) => {
+		// console.log(req.isAuthenticated());
+		console.log(req.sessionID);
+		next();
+
+		const sentCookie = () => {
+			res.cookie("token", "123", {
+				sameSite: "None",
+				secure: true,
+				domain: process.env.CLIENT_URL,
+			});
+			res.redirect(`${process.env.CLIENT_URL}/`);
+		};
+		// req.isAuthenticated() ? sentCookie() : next();
+	}),
 	asyncHandler((req, res, next) => {
 		res.render("login");
 	}),
 ];
 const userLoginPost = [
+	// asyncHandler((req, res, next) => {
+	// 	req.isAuthenticated() ? res.redirect("/account/auth") : next();
+	// }),
 	verifySchema({
 		email: {
 			trim: true,
@@ -210,14 +171,6 @@ const userLoginPost = [
 				bail: true,
 			},
 			escape: true,
-			// custom: {
-			// 	options: (email, { req }) =>
-			// 		new Promise(async (resolve, reject) => {
-			// 			const user = await User.findOne({ email }).exec();
-			// 			user ? resolve((req.user = user)) : reject();
-			// 		}),
-			// 	errorMessage: "The account could not be found.",
-			// },
 		},
 		password: {
 			trim: true,
@@ -233,31 +186,49 @@ const userLoginPost = [
 		},
 	}),
 	asyncHandler((req, res, next) => {
-		const authenticate = passport.authenticate(
+		const authenticateFn = passport.authenticate(
 			"local",
 			(err, userId, failInfo) => {
+				console.log(userId);
 				err && next(err);
 				failInfo &&
-					res.render("userLogin", {
+					res.render("login", {
 						user: req.data,
 						inputErrors: {
 							email: failInfo,
 						},
 					});
 				userId &&
-					req.login(userId, () => res.redirect("/account/auth"));
+					req.login(userId, () => {
+						// 	res.cookie("token", "123", {
+						// 		sameSite: "None",
+						// 		secure: true,
+						// 		domain: process.env.CLIENT_URL,
+						// 	});
+						// 	res.redirect(`${process.env.CLIENT_URL}/`);
+						res.redirect(`/account/login`);
+					});
 			}
 		);
-
-		authenticate(req, res, next);
+		authenticateFn(req, res, next);
 	}),
 ];
 const userRegisterGet = [
+	asyncHandler((req, res, next) => {
+		req.isAuthenticated()
+			? res.redirect(`${process.env.CLIENT_URL}`)
+			: next();
+	}),
 	asyncHandler((req, res, next) => {
 		res.render("register");
 	}),
 ];
 const userRegisterPost = [
+	asyncHandler((req, res, next) => {
+		req.isAuthenticated()
+			? res.redirect(`${process.env.CLIENT_URL}`)
+			: next();
+	}),
 	verifySchema({
 		name: {
 			trim: true,
@@ -387,11 +358,12 @@ const userLogout = [
 			  });
 	}),
 ];
-module.exports = {
-	// userDetail,
+
+export {
+	userAuth,
 	// userUpdate,
 	// userDelete,
-	userAuth,
+	// userDetail,
 	userLoginPost,
 	userRegisterPost,
 	userLoginGet,

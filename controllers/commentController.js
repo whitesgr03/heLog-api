@@ -21,6 +21,11 @@ const commentList = [
 			.sort({ createdAt: -1 })
 			.exec();
 
+		res.header({
+			"Cache-Control": "no-store",
+			"Content-Type": "application/json; charset=UTF-8",
+		});
+
 		res.json({
 			success: true,
 			message: "Get all comments successfully.",

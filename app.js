@@ -11,6 +11,7 @@ import session from "express-session";
 import compression from "compression";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 // config
 import passport from "./config/passport.js";
@@ -34,14 +35,21 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-	origin: JSON.parse(process.env.ORIGIN),
+	origin: JSON.parse(process.env.ORIGINS),
+	credentials: true,
 	optionsSuccessStatus: 200,
 };
 const helmetOptions = {
 	contentSecurityPolicy: {
 		directives: {
+			defaultSrc: ["'none'"],
 			imgSrc: ["'self'", "data:", "blob:"],
-			styleSrc: ["'self'", "fonts.googleapis.com", "necolas.github.io"],
+			styleSrc: [
+				"'self'",
+				"fonts.googleapis.com",
+				"necolas.github.io",
+				(req, res) => `'nonce-${res.locals.cspNonce}'`,
+			],
 			frameAncestors: ["'none'"],
 			baseUri: ["'none'"],
 			objectSrc: ["'none'"],
@@ -51,21 +59,25 @@ const helmetOptions = {
 			],
 		},
 	},
+	xFrameOptions: { action: "deny" },
+	referrerPolicy: {
+		policy: ["no-referrer", "strict-origin-when-cross-origin"],
+	},
 };
 const sessionOptions = {
-	secret: JSON.parse(process.env.SESSION_SECRET),
+	secret: JSON.parse(process.env.SESSION_SECRETS),
 	resave: false,
 	saveUninitialized: false,
 	store: MongoStore.create({
 		client: db.getClient(),
 	}),
 	cookie: {
-		sameSite: true,
-		secure: process.env.NODE_ENV === "production",
+		sameSite: "strict",
+		httpOnly: true,
+		secure: true,
 		maxAge: 7 * 24 * 60 * 60 * 1000,
 	},
 };
-
 const staticOptions = {
 	index: false,
 	maxAge: "1d",
@@ -76,9 +88,10 @@ const staticOptions = {
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public"), staticOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(rateLimiter);
 app.use(morgan("dev"));
@@ -89,7 +102,7 @@ app.use(passport.session());
 app.use(compression());
 
 // index route
-app.get("/", (req, res) => res.redirect("/account/auth"));
+app.get("/", (req, res) => res.redirect("/account/login"));
 
 app.use("/account", accountRouter);
 app.use("/blog", blogRouter);

@@ -9,6 +9,9 @@ import verifySchema from "../middlewares/verifySchema.js";
 import Post from "../models/post.js";
 
 const postList = [
+	asyncHandler((req, res, next) => {
+		req.isAuthenticated() ? next() : res.json({ message: "error" });
+	}),
 	asyncHandler(async (req, res, next) => {
 		const { limit = 0, author = false } = req.query;
 
@@ -20,6 +23,11 @@ const postList = [
 			.sort({ createdAt: -1 })
 			.limit(limit)
 			.exec();
+
+		res.header({
+			"Cache-Control": "no-store",
+			"Content-Type": "application/json; charset=UTF-8",
+		});
 
 		res.json({
 			success: true,
@@ -37,6 +45,11 @@ const postDetail = [
 				_id: 0,
 			})
 			.exec();
+
+		res.header({
+			"Cache-Control": "no-store",
+			"Content-Type": "application/json; charset=UTF-8",
+		});
 
 		post
 			? res.json({
