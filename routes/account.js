@@ -1,29 +1,32 @@
 import express from "express";
 
 import * as userControllers from "../controllers/userController.js";
+import * as codeControllers from "../controllers/acthCodeController.js";
 
 const router = express.Router();
 
-router.get("/auth", userControllers.userAuth);
-router.get("/logout", userControllers.userLogout);
+router.get("/auth/code", codeControllers.authCode);
+
+router
+	.route("/auth/token")
+	.get(codeControllers.authToken)
+	.post(express.json(), codeControllers.tokenCreate);
 
 router
 	.route("/login")
 	.get(userControllers.userLoginGet)
-	.post(userControllers.userLoginPost);
+	.post(
+		express.urlencoded({ extended: false }),
+		userControllers.userLoginPost
+	);
 router
 	.route("/register")
 	.get(userControllers.userRegisterGet)
-	.post(userControllers.userRegisterPost);
+	.post(
+		express.urlencoded({ extended: false }),
+		userControllers.userRegisterPost
+	);
 
-// router.get("/users/login", userControllers.userLogin);
-// router.get("/users/register", userControllers.userRegister);
-// router.post("/users", userControllers.userRegister);
-
-// router
-// 	.route("/users/:userId")
-// 	.get(userControllers.userDetail)
-// 	.put(userControllers.userUpdate)
-// 	.delete(userControllers.userDelete);
+router.get("/logout", userControllers.userLogout);
 
 export default router;
