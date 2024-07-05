@@ -11,15 +11,14 @@ html(lang="en")
         //- link(rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png")
         //- link(rel="shortcut icon" href="/images/favicon.ico")
         title HeLog
-        script(type='text/javascript', src='/javascripts/index.js', nonce=cspNonce, defer)
         link(rel='stylesheet', href='/stylesheets/index.css')
         link(rel='stylesheet', href='/stylesheets/header.css')
         link(rel='stylesheet', href='/stylesheets/footer.css')
         style(type='text/css' id="antiClickjack" nonce=cspNonce).
             body { display: none !important;}
+        script(type='text/javascript', src='/javascripts/index.js', nonce=cspNonce, defer)
         block head
     body(class= darkScheme ? 'dark' : '')
-        script(type='text/javascript', src='/javascripts/handleColorScheme.js', nonce=cspNonce)
 
         div.app
             header.content
@@ -48,5 +47,3 @@ html(lang="en")
                             span.icon.email
                             em whitesgr03@gmail.com
                     p &copy; 2024 Designed &amp; coded by Weiss Bai
-
-        script(type='text/javascript', src='/javascripts/antiClickjack.js', nonce=cspNonce)
