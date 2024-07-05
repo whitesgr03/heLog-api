@@ -1,5 +1,6 @@
 import debug from "debug";
 import mongoose from "mongoose";
+import MongoStore from "connect-mongo";
 
 const databaseLog = debug("Mongoose");
 
@@ -18,4 +19,6 @@ mongoose
 	.connect(process.env.DATABASE_STRING, { dbName: process.env.DATABASE_NAME })
 	.catch(err => handleError(err));
 
-export default db;
+const sessionStore = MongoStore.create(db);
+
+export { db as default, sessionStore };
