@@ -12,12 +12,12 @@ passport.use(
 		{ usernameField: "email" },
 		async (email, password, done) => {
 			try {
-				const user = await User.findOne({ email });
+				const user = await User.findOne({ email }, { password: 1 });
 				const match =
 					user && (await bcrypt.compare(password, user.password));
 
 				match
-					? done(null, user.id)
+					? done(null, user)
 					: done(null, false, "The account could not be found.");
 			} catch (err) {
 				done(err);
@@ -26,12 +26,12 @@ passport.use(
 	)
 );
 
-passport.serializeUser((id, done) => {
-	done(null, id);
+passport.serializeUser((user, done) => {
+	done(null, user);
 });
 
 passport.deserializeUser(async (id, done) => {
-	const user = await User.findById(id, { password: 0 }).catch(err => {
+	const user = await User.findById(id, { isAdmin: 1 }).catch(err => {
 		errorLog(`deserializeUser ${err.name}: ${err.message}`);
 		done(null, false);
 	});
