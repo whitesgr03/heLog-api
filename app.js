@@ -108,7 +108,7 @@ app.use((req, res, next) => {
 
 // Errors handler
 app.use((err, req, res, next) => {
-	errorLog(`${err.name}: ${err.message}`);
+	errorLog(err);
 
 	const path = req.path.split("/")[2];
 
