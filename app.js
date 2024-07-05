@@ -6,7 +6,6 @@ import express from "express";
 import createError from "http-errors";
 import morgan from "morgan";
 import debug from "debug";
-import MongoStore from "connect-mongo";
 import session from "express-session";
 import compression from "compression";
 import helmet from "helmet";
@@ -15,7 +14,7 @@ import cookieParser from "cookie-parser";
 
 // config
 import passport from "./config/passport.js";
-import db from "./config/database.js";
+import { sessionStore } from "./config/database.js";
 
 // middleware
 import rateLimiter from "./middlewares/rateLimiter.js";
@@ -71,15 +70,14 @@ const sessionOptions = {
 	secret: JSON.parse(process.env.SESSION_SECRETS),
 	resave: false,
 	saveUninitialized: false,
-	store: MongoStore.create({
-		client: db.getClient(),
-	}),
+	store: sessionStore,
 	cookie: {
-		sameSite: "strict",
+		sameSite: "Lax",
 		httpOnly: true,
-		secure: true,
+		secure: !process.env.NODE_ENV === "development",
 		maxAge: 7 * 24 * 60 * 60 * 1000,
 	},
+	name: "helog.connect.sid",
 };
 const staticOptions = {
 	index: false,
