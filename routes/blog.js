@@ -2,8 +2,16 @@ import express from "express";
 
 import * as postControllers from "../controllers/postController.js";
 import * as commentControllers from "../controllers/commentController.js";
+import * as userControllers from "../controllers/userController.js";
 
 const router = express.Router();
+router.use(express.json());
+
+router
+	.route("/users")
+	.get(userControllers.userInfo)
+	.put(userControllers.userUpdate)
+	.delete(userControllers.userDelete);
 
 router
 	.route("/posts")
