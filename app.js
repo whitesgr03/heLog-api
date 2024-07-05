@@ -98,9 +98,6 @@ app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(compression());
 
-// index route
-app.get("/", (req, res) => res.redirect("/account/login"));
-
 app.use("/account", accountRouter);
 app.use("/blog", blogRouter);
 
