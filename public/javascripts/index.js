@@ -1,12 +1,6 @@
 "use strict";
 
-const themeBtn = document.querySelector(".themeBtn");
-
-const handleChangeTheme = () => {
-	localStorage.setItem(
-		"darkScheme",
-		JSON.stringify(document.body.classList.toggle("dark"))
-	);
-};
-
-themeBtn.addEventListener("click", handleChangeTheme);
+const antiClickjack = document.getElementById("antiClickjack");
+self === top
+	? antiClickjack.parentNode.removeChild(antiClickjack)
+	: (top.location = self.location);
