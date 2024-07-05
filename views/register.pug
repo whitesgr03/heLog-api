@@ -61,5 +61,8 @@ block content
                         span.icon.alert
                         p= inputErrors && inputErrors.confirmPassword  ? inputErrors.confirmPassword.msg : "Message placeholder"
                 button(class= loading ? btnLoading : "" type="submit")
-                    span.text Login
+                    span.text  Register
                         span.icon.loadIcon
+            div.linkWrap
+                p Already have an account?
+                a(href=`/account/login?state=${state}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}&scope=${scope}&darkTheme=${darkTheme}`) Login in
