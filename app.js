@@ -81,7 +81,7 @@ const sessionOptions = {
 };
 const staticOptions = {
 	index: false,
-	maxAge: "1d",
+	maxAge: "3d",
 	redirect: false,
 };
 
