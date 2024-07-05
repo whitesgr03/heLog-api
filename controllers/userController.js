@@ -1,160 +1,162 @@
 import asyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
+import { Types } from "mongoose";
 
-import passport from "../config/passport.js";
+import { sessionStore } from "../config/database.js";
 
-import verifySchema from "../middlewares/verifySchema.js";
+import verifyFormSchema from "../middlewares/verifyFormSchema.js";
+import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
+import verifyToken from "../middlewares/verifyToken.js";
+import verifyScope from "../middlewares/verifyScope.js";
+import verifyQuery from "../middlewares/verifyQuery.js";
+import verifyAuthenticated from "../middlewares/verifyAuthenticated.js";
+import handleLogin from "../middlewares/handleLogin.js";
 
 import User from "../models/user.js";
 
-// const userDetail = [
-// 	// asyncHandler(async (req, res, next) => {
-// 	// 	const user = await User.findById(req.user.id, {
-// 	// 		name: 1,
-// 	// 		isAdmin: 1,
-// 	// 		email: 1,
-// 	// 	}).exec();
-// 	// 	user
-// 	// 		? res.json({
-// 	// 				success: true,
-// 	// 				message: "Get user successfully.",
-// 	// 				data: user,
-// 	// 		  })
-// 	// 		: res.status(404).json({
-// 	// 				success: false,
-// 	// 				message: "The user could not be found.",
-// 	// 		  });
-// 	// }),
-// ];
-// const userUpdate = [
-// 	verifyToken,
-// 	verifyId("user"),
-// 	asyncHandler(async (req, res, next) => {
-// 		req.params.userId === req.user.id
-// 			? next()
-// 			: res.status(404).json({
-// 					success: false,
-// 					message: `The user could not be found.`,
-// 			  });
-// 	}),
-// 	verifySchema({
-// 		name: {
-// 			trim: true,
-// 			notEmpty: {
-// 				errorMessage: "The name is required.",
-// 				bail: true,
-// 			},
-// 			isLength: {
-// 				options: { max: 30 },
-// 				errorMessage: "The name must be less than 30 long.",
-// 				bail: true,
-// 			},
-// 			custom: {
-// 				options: name => name.match(/^[a-zA-Z]\w*$/),
-// 				errorMessage: "The name must be alphanumeric and underscore.",
-// 				bail: true,
-// 			},
-// 			escape: true,
-// 			custom: {
-// 				options: (name, { req }) =>
-// 					new Promise(async (resolve, reject) => {
-// 						const existingName = await User.findOne({
-// 							$and: [
-// 								{ name },
-// 								{
-// 									_id: {
-// 										$ne: Types.ObjectId.createFromHexString(
-// 											req.user.id
-// 										),
-// 									},
-// 								},
-// 							],
-// 						}).exec();
-// 						existingName
-// 							? reject((req.schema = { isConflict: true }))
-// 							: resolve();
-// 					}),
-// 				errorMessage: "The name is been used.",
-// 			},
-// 		},
-// 	}),
-// 	asyncHandler(async (req, res, next) => {
-// 		const newUser = {
-// 			...req.data,
-// 			lastModified: new Date(),
-// 		};
-// 		await User.findByIdAndUpdate(req.user.id, newUser).exec();
-
-// 		res.json({
-// 			success: true,
-// 			message: "Update post successfully.",
-// 		});
-// 	}),
-// ];
-// const userDelete = [
-// 	verifyToken,
-// 	verifyId("user"),
-// 	asyncHandler(async (req, res, next) => {
-// 		req.params.userId === req.user.id
-// 			? next()
-// 			: res.status(404).json({
-// 					success: false,
-// 					message: `The user could not be found.`,
-// 			  });
-// 	}),
-// 	asyncHandler(async (req, res, next) => {
-// 		await User.findByIdAndDelete(req.params.userId).exec();
-// 		res.json({
-// 			success: true,
-// 			message: "Delete user successfully.",
-// 		});
-// 	}),
-// ];
-const userAuth = [
-	asyncHandler((req, res, next) => {
-		!req.isAuthenticated()
-			? res.redirect("/account/login")
-			: res.redirect(`${process.env.CLIENT_URL}/posts?sessionID=123`);
+const userUpdate = [
+	verifyToken,
+	verifyScope("write_user"),
+	asyncHandler(async (req, res, next) => {
+		req.user.id
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `The user could not be found.`,
+			  });
 	}),
-	// asyncHandler(async (req, res, next) => {
-	// 	const user = await User.findById(req.user.id, {
-	// 		name: 1,
-	// 		isAdmin: 1,
-	// 		email: 1,
-	// 	}).exec();
+	verifyJSONSchema({
+		name: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The name is required.",
+				bail: true,
+			},
+			isLength: {
+				options: { max: 30 },
+				errorMessage: "The name must be less than 30 long.",
+				bail: true,
+			},
+			custom: {
+				options: name => name.match(/^[a-zA-Z]\w*$/),
+				errorMessage: "The name must be alphanumeric and underscore.",
+				bail: true,
+			},
+			escape: true,
+			custom: {
+				options: (name, { req }) =>
+					new Promise(async (resolve, reject) => {
+						const existingName = await User.findOne({
+							$and: [
+								{ name },
+								{
+									_id: {
+										$ne: Types.ObjectId.createFromHexString(
+											req.user.id
+										),
+									},
+								},
+							],
+						}).exec();
+						existingName
+							? reject((req.schema = { isConflict: true }))
+							: resolve();
+					}),
+				errorMessage: "The name is been used.",
+			},
+		},
+	}),
+	asyncHandler(async (req, res, next) => {
+		const newUser = {
+			...req.data,
+			lastModified: new Date(),
+		};
+		await User.findByIdAndUpdate(req.user.id, newUser).exec();
 
-	// 	res.json({
-	// 		success: true,
-	// 		message: "Get user successfully.",
-	// 		data: user,
-	// 	});
-	// }),
+		res.json({
+			success: true,
+			message: "Update post successfully.",
+		});
+	}),
+];
+const userDelete = [
+	verifyToken,
+	verifyScope("write_user"),
+	asyncHandler(async (req, res, next) => {
+		req.user.id
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `The user could not be found.`,
+			  });
+	}),
+	asyncHandler(async (req, res, next) => {
+		await User.findByIdAndDelete(req.user.id).exec();
+		sessionStore.destroy(req.payload.sid, err =>
+			err
+				? next(err)
+				: res.clearCookie("helog.connect.sid").json({
+						success: true,
+						message: "Delete user successfully.",
+				  })
+		);
+	}),
+];
+const userInfo = [
+	verifyToken,
+	verifyScope("read"),
+	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, {
+			name: 1,
+			isAdmin: 1,
+			email: 1,
+			_id: 0,
+		}).exec();
+		user
+			? res.json({
+					success: true,
+					message: "Get user info successfully.",
+					data: user,
+			  })
+			: res.status(404).json({
+					success: false,
+					message: "The user could not be found.",
+			  });
+	}),
 ];
 const userLoginGet = [
+	verifyAuthenticated,
+	verifyQuery,
 	asyncHandler((req, res, next) => {
-		// console.log(req.isAuthenticated());
-		console.log(req.sessionID);
-		next();
-
-		const sentCookie = () => {
-			res.cookie("token", "123", {
-				sameSite: "None",
-				secure: true,
-				domain: process.env.CLIENT_URL,
-			});
-			res.redirect(`${process.env.CLIENT_URL}/`);
-		};
-		// req.isAuthenticated() ? sentCookie() : next();
-	}),
-	asyncHandler((req, res, next) => {
-		res.render("login");
+		const {
+			state,
+			code_challenge,
+			code_challenge_method,
+			scope,
+			darkTheme,
+		} = req.query;
+		res.render("login", {
+			state,
+			code_challenge,
+			code_challenge_method,
+			scope,
+			darkTheme,
+		});
 	}),
 ];
 const userLoginPost = [
-	// asyncHandler((req, res, next) => {
-	// 	req.isAuthenticated() ? res.redirect("/account/auth") : next();
-	// }),
-	verifySchema({
+	asyncHandler((req, res, next) => {
+		console.log(req.isAuthenticated());
+		req.is("application/x-www-form-urlencoded")
+			? next()
+			: res.status(400).json({
+					success: false,
+					message: "The content type is invalid",
+			  });
+	}),
+	verifyAuthenticated,
+	verifyQuery,
+	verifyFormSchema({
 		email: {
 			trim: true,
 			toLowerCase: true,
@@ -185,51 +187,39 @@ const userLoginPost = [
 			escape: true,
 		},
 	}),
-	asyncHandler((req, res, next) => {
-		const authenticateFn = passport.authenticate(
-			"local",
-			(err, userId, failInfo) => {
-				console.log(userId);
-				err && next(err);
-				failInfo &&
-					res.render("login", {
-						user: req.data,
-						inputErrors: {
-							email: failInfo,
-						},
-					});
-				userId &&
-					req.login(userId, () => {
-						// 	res.cookie("token", "123", {
-						// 		sameSite: "None",
-						// 		secure: true,
-						// 		domain: process.env.CLIENT_URL,
-						// 	});
-						// 	res.redirect(`${process.env.CLIENT_URL}/`);
-						res.redirect(`/account/login`);
-					});
-			}
-		);
-		authenticateFn(req, res, next);
-	}),
+	handleLogin,
 ];
 const userRegisterGet = [
+	verifyQuery,
 	asyncHandler((req, res, next) => {
-		req.isAuthenticated()
-			? res.redirect(`${process.env.CLIENT_URL}`)
-			: next();
-	}),
-	asyncHandler((req, res, next) => {
-		res.render("register");
+		const {
+			state,
+			code_challenge,
+			code_challenge_method,
+			scope,
+			darkTheme,
+		} = req.query;
+
+		res.render("register", {
+			state,
+			code_challenge,
+			code_challenge_method,
+			scope,
+			darkTheme,
+		});
 	}),
 ];
 const userRegisterPost = [
 	asyncHandler((req, res, next) => {
-		req.isAuthenticated()
-			? res.redirect(`${process.env.CLIENT_URL}`)
-			: next();
+		req.is("application/x-www-form-urlencoded")
+			? next()
+			: res.status(400).json({
+					success: false,
+					message: "The content type is invalid",
+			  });
 	}),
-	verifySchema({
+	verifyQuery,
+	verifyFormSchema({
 		name: {
 			trim: true,
 			notEmpty: {
@@ -332,38 +322,37 @@ const userRegisterPost = [
 						createdAt: currentTime,
 					});
 					await newUser.save();
-					req.register = "User register successfully.";
 					next();
 				};
 				err ? next(err) : handleAddUser();
 			}
 		);
 	}),
-	userLoginPost,
+	handleLogin,
 ];
 const userLogout = [
+	asyncHandler((req, res, next) => {
+		!req.isAuthenticated() ? res.redirect(process.env.CLIENT_URL) : next();
+	}),
 	asyncHandler(async (req, res, next) => {
-		req.user
-			? req.logout(err =>
-					err
-						? next(err)
-						: res.json({
-								success: true,
-								message: "User logged out successfully.",
-						  })
-			  )
-			: res.json({
-					success: false,
-					message: "User has not logged in yet.",
-			  });
+		req.logout(err =>
+			err
+				? next(err)
+				: req.session.destroy(err => {
+						err
+							? next(err)
+							: res
+									.clearCookie("helog.connect.sid")
+									.redirect(process.env.REDIRECT_URL);
+				  })
+		);
 	}),
 ];
 
 export {
-	userAuth,
-	// userUpdate,
-	// userDelete,
-	// userDetail,
+	userUpdate,
+	userDelete,
+	userInfo,
 	userLoginPost,
 	userRegisterPost,
 	userLoginGet,
