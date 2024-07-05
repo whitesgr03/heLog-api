@@ -35,9 +35,8 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-	origin: JSON.parse(process.env.ORIGINS),
-	credentials: true,
-	optionsSuccessStatus: 200,
+	origin: JSON.parse(process.env.ALLOW_CLIENT_ORIGINS),
+	maxAge: 60,
 };
 const helmetOptions = {
 	contentSecurityPolicy: {
