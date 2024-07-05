@@ -1,16 +1,16 @@
 import express from "express";
 
 import * as userControllers from "../controllers/userController.js";
-import * as codeControllers from "../controllers/acthCodeController.js";
+import * as authCodeControllers from "../controllers/authCodeController.js";
 
 const router = express.Router();
 
-router.get("/auth/code", codeControllers.authCode);
+router.get("/auth/code", authCodeControllers.authCode);
 
 router
 	.route("/auth/token")
-	.get(codeControllers.authToken)
-	.post(express.json(), codeControllers.tokenCreate);
+	.get(authCodeControllers.authToken)
+	.post(express.json(), authCodeControllers.tokenCreate);
 
 router
 	.route("/login")
