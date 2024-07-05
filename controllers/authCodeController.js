@@ -68,3 +68,12 @@ const authCode = [
 		res.redirect(`${process.env.REDIRECT_URL}?state=${state}&code=${code}`);
 	}),
 ];
+const authToken = [
+	verifyToken,
+	asyncHandler((req, res, next) => {
+		res.json({
+			success: true,
+			message: "The token verify successfully ",
+		});
+	}),
+];
