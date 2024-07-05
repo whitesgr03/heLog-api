@@ -11,6 +11,7 @@ const handleError = err => {
 const db = mongoose.connection;
 
 db.on("connecting", () => databaseLog("Starting connect to MongoDB"));
+db.on("disconnected", () => databaseLog("Disconnected to MongoDB"));
 db.on("error", err => handleError(err));
 
 mongoose
