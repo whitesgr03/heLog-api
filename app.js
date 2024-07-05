@@ -49,6 +49,10 @@ const helmetOptions = {
 				"necolas.github.io",
 				(req, res) => `'nonce-${res.locals.cspNonce}'`,
 			],
+			formAction: [
+				"'self'",
+				`${process.env.NODE_ENV === "development" ? "http" : "https"}:`,
+			],
 			frameAncestors: ["'none'"],
 			baseUri: ["'none'"],
 			objectSrc: ["'none'"],
