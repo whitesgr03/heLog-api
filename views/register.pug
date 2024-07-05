@@ -13,10 +13,11 @@ block content
                         input#name(
                             type="text" 
                             name="name" 
-                            value != user ? user.name : '' 
+                            value='Admin'
                             title="The name must be less than 30 long." 
                             required
                         )
+                        //- value != user ? user.name : '' 
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.name ? inputErrors.name.msg  : "Message placeholder"
@@ -25,10 +26,11 @@ block content
                         input#email(
                             type="text" 
                             name="email" 
-                            value != user ? user.email : '' 
+                            value='admin@gmail.com'
                             title="The email is required and must be standard format." 
                             required
                         )
+                        //-  value != user ? user.email : '' 
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.email ? inputErrors.email.msg : "Message placeholder"
@@ -37,10 +39,11 @@ block content
                         input#password(
                             type="password" 
                             name="password" 
-                            value != user ? user.password : '' 
+                            value='1!Qwerty'
                             title="The password is required." 
                             required
                         )
+                        //-  value != user ? user.password : '' 
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.password  ? inputErrors.password.msg : "Message placeholder"
@@ -49,10 +52,11 @@ block content
                         input#confirmPassword(
                             type="password" 
                             name="confirmPassword" 
-                            value != user ? user.confirmPassword : '' 
+                            value='1!Qwerty'
                             title="The confirm password must be the same as the password." 
                             required
                         )
+                        //- value != user ? user.confirmPassword : '' 
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.confirmPassword  ? inputErrors.confirmPassword.msg : "Message placeholder"
