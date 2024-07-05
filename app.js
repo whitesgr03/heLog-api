@@ -10,7 +10,6 @@ import session from "express-session";
 import compression from "compression";
 import helmet from "helmet";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 
 // config
 import passport from "./config/passport.js";
@@ -89,10 +88,7 @@ const staticOptions = {
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public"), staticOptions));
-app.use(express.json());
-app.use(cookieParser());
 
 app.use(rateLimiter);
 app.use(morgan("dev"));
