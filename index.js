@@ -7,27 +7,27 @@ import db from "./config/database.js";
 const databaseLog = debug("Mongoose");
 const serverLog = debug("Server");
 
-const PORT = process.env.PORT || "3000";
+const port = process.env.PORT || "3000";
 
 const handleListening = async () => {
 	const handlePrintNetwork = () => {
 		const IP_Address = os
 			.networkInterfaces()
 			.en0.find(internet => internet.family === "IPv4").address;
-		serverLog(`Listening on Your Network:  http://${IP_Address}:${PORT}`);
+		serverLog(`Listening on Your Network:  http://${IP_Address}:${port}`);
 	};
 
-	serverLog(`Listening on Local:         http://localhost:${PORT}`);
+	serverLog(`Listening on Local:         http://localhost:${port}`);
 	process.env.NODE_ENV === "development" && handlePrintNetwork();
 };
 
 const handleError = error => {
 	switch (error.code) {
 		case "EACCES":
-			serverLog(`Port ${PORT} requires elevated privileges`);
+			serverLog(`Port ${port} requires elevated privileges`);
 			process.exit(1);
 		case "EADDRINUSE":
-			serverLog(`Port ${PORT} is already in use`);
+			serverLog(`Port ${port} is already in use`);
 			process.exit(1);
 		default:
 			throw error;
@@ -36,5 +36,5 @@ const handleError = error => {
 
 db.on("connected", () => {
 	databaseLog("Connecting successfully");
-	app.listen(PORT, handleListening).on("error", handleError);
+	app.listen(port, handleListening).on("error", handleError);
 });
