@@ -48,19 +48,11 @@ const postDetail = [
 
 		res.header({
 			"Cache-Control": "no-store",
-			"Content-Type": "application/json; charset=UTF-8",
+		}).json({
+			success: true,
+			message: "Get post successfully.",
+			data: post,
 		});
-
-		post
-			? res.json({
-					success: true,
-					message: "Get post successfully.",
-					data: post,
-			  })
-			: res.status(404).json({
-					success: false,
-					message: "The post could not be found.",
-			  });
 	}),
 ];
 const postCreate = [
