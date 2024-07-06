@@ -16,7 +16,6 @@ import User from "../models/user.js";
 
 const userUpdate = [
 	verifyToken,
-	verifyScope("write_user"),
 	asyncHandler(async (req, res, next) => {
 		req.user.id
 			? next()
@@ -25,6 +24,7 @@ const userUpdate = [
 					message: `The user could not be found.`,
 			  });
 	}),
+	verifyScope("update_user"),
 	verifyJSONSchema({
 		name: {
 			trim: true,
@@ -81,7 +81,6 @@ const userUpdate = [
 ];
 const userDelete = [
 	verifyToken,
-	verifyScope("write_user"),
 	asyncHandler(async (req, res, next) => {
 		req.user.id
 			? next()
@@ -90,6 +89,7 @@ const userDelete = [
 					message: `The user could not be found.`,
 			  });
 	}),
+	verifyScope("delete_user"),
 	asyncHandler(async (req, res, next) => {
 		await User.findByIdAndDelete(req.user.id).exec();
 		sessionStore.destroy(req.payload.sid, err =>
@@ -104,7 +104,7 @@ const userDelete = [
 ];
 const userInfo = [
 	verifyToken,
-	verifyScope("read"),
+	verifyScope("read_user"),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user.id, {
 			name: 1,
