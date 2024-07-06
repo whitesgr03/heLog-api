@@ -106,7 +106,8 @@ const commentUpdate = [
 const commentDelete = [
 	verifyToken,
 	verifyId("comment"),
-	verifyPermission,
+	verifyId("post"),
+	verifyScope("delete_comment"),
 	asyncHandler(async (req, res, next) => {
 		await Comment.findByIdAndDelete(req.params.commentId).exec();
 
