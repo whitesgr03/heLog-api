@@ -8,6 +8,7 @@ block content
         h3.title User Sign In
         div.formWrap
             form(method="POST")
+                input(name="csrfToken"  type="hidden" value= csrfToken)
                 div 
                     label(for='email' class= inputErrors && inputErrors.email ? 'error' : "") Email
                         input#email(

@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
+import Csrf from "csrf";
 
 import { sessionStore } from "../config/database.js";
 
@@ -13,6 +14,8 @@ import verifyAuthenticated from "../middlewares/verifyAuthenticated.js";
 import handleLogin from "../middlewares/handleLogin.js";
 
 import User from "../models/user.js";
+
+const csrf = new Csrf();
 
 const userUpdate = [
 	verifyToken,
@@ -132,7 +135,7 @@ const userInfo = [
 const userLoginGet = [
 	verifyAuthenticated,
 	verifyQuery,
-	asyncHandler((req, res, next) => {
+	asyncHandler(async (req, res, next) => {
 		const {
 			state,
 			code_challenge,
@@ -140,16 +143,33 @@ const userLoginGet = [
 			scope,
 			darkTheme,
 		} = req.query;
+
+		const secret = await csrf.secret();
+		req.session.csrf = secret;
+
 		res.render("login", {
 			state,
 			code_challenge,
 			code_challenge_method,
 			scope,
 			darkTheme,
+			csrfToken: csrf.create(secret),
 		});
 	}),
 ];
 const userLoginPost = [
+	asyncHandler((req, res, next) => {
+		const setSession = () => {
+			delete req.session.csrf;
+			next();
+		};
+
+		csrf.verify(req.session.csrf, req.body.csrfToken)
+			? setSession()
+			: res.render("error", {
+					message: "The csrf token is invalid",
+			  });
+	}),
 	asyncHandler((req, res, next) => {
 		req.is("application/x-www-form-urlencoded")
 			? next()
@@ -196,7 +216,7 @@ const userLoginPost = [
 const userRegisterGet = [
 	verifyAuthenticated,
 	verifyQuery,
-	asyncHandler((req, res, next) => {
+	asyncHandler(async (req, res, next) => {
 		const {
 			state,
 			code_challenge,
@@ -205,16 +225,34 @@ const userRegisterGet = [
 			darkTheme,
 		} = req.query;
 
+		const secret = await csrf.secret();
+		req.session.csrf = secret;
+
 		res.render("register", {
 			state,
 			code_challenge,
 			code_challenge_method,
 			scope,
 			darkTheme,
+			csrfToken: csrf.create(secret),
 		});
 	}),
 ];
 const userRegisterPost = [
+	asyncHandler((req, res, next) => {
+		const setSession = () => {
+			delete req.session.csrf;
+			next();
+		};
+		csrf.verify(req.session.csrf, req.body.csrfToken)
+			? setSession()
+			: res.render("error", {
+					message: "The csrf token is invalid",
+			  });
+	}),
+	asyncHandler((req, res, next) => {
+		res.send("8888");
+	}),
 	asyncHandler((req, res, next) => {
 		req.is("application/x-www-form-urlencoded")
 			? next()
