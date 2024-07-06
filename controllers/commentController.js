@@ -1,9 +1,9 @@
 import asyncHandler from "express-async-handler";
 
 import verifyToken from "../middlewares/verifyToken.js";
-import verifyPermission from "../middlewares/verifyPermission.js";
+import verifyScope from "../middlewares/verifyScope.js";
+import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
-import verifySchema from "../middlewares/verifySchema.js";
 
 import Comment from "../models/comment.js";
 
@@ -23,10 +23,7 @@ const commentList = [
 
 		res.header({
 			"Cache-Control": "no-store",
-			"Content-Type": "application/json; charset=UTF-8",
-		});
-
-		res.json({
+		}).json({
 			success: true,
 			message: "Get all comments successfully.",
 			data: comments,
@@ -36,7 +33,8 @@ const commentList = [
 const commentCreate = [
 	verifyToken,
 	verifyId("post"),
-	verifySchema({
+	verifyScope("write_comment"),
+	verifyJSONSchema({
 		content: {
 			trim: true,
 			notEmpty: {
