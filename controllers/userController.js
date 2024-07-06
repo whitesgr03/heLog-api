@@ -194,6 +194,7 @@ const userLoginPost = [
 	handleLogin,
 ];
 const userRegisterGet = [
+	verifyAuthenticated,
 	verifyQuery,
 	asyncHandler((req, res, next) => {
 		const {
@@ -223,6 +224,7 @@ const userRegisterPost = [
 			  });
 	}),
 	verifyQuery,
+	verifyAuthenticated,
 	verifyFormSchema({
 		name: {
 			trim: true,
