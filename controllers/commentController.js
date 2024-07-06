@@ -69,9 +69,10 @@ const commentCreate = [
 ];
 const commentUpdate = [
 	verifyToken,
+	verifyId("post"),
 	verifyId("comment"),
-	verifyPermission,
-	verifySchema({
+	verifyScope("update_comment"),
+	verifyJSONSchema({
 		content: {
 			trim: true,
 			notEmpty: {
