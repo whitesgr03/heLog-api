@@ -151,7 +151,6 @@ const userLoginGet = [
 ];
 const userLoginPost = [
 	asyncHandler((req, res, next) => {
-		console.log(req.isAuthenticated());
 		req.is("application/x-www-form-urlencoded")
 			? next()
 			: res.status(400).json({
@@ -159,8 +158,8 @@ const userLoginPost = [
 					message: "The content type is invalid",
 			  });
 	}),
-	verifyAuthenticated,
 	verifyQuery,
+	verifyAuthenticated,
 	verifyFormSchema({
 		email: {
 			trim: true,
