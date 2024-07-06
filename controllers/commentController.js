@@ -121,7 +121,8 @@ const commentReplyCreate = [
 	verifyToken,
 	verifyId("post"),
 	verifyId("comment"),
-	verifySchema({
+	verifyScope("write_comment"),
+	verifyJSONSchema({
 		content: {
 			trim: true,
 			notEmpty: {
