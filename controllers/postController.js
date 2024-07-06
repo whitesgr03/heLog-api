@@ -2,9 +2,9 @@ import asyncHandler from "express-async-handler";
 import { Types } from "mongoose";
 
 import verifyToken from "../middlewares/verifyToken.js";
-import verifyPermission from "../middlewares/verifyPermission.js";
+import verifyScope from "../middlewares/verifyScope.js";
+import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
-import verifySchema from "../middlewares/verifySchema.js";
 
 import Post from "../models/post.js";
 
@@ -57,8 +57,8 @@ const postDetail = [
 ];
 const postCreate = [
 	verifyToken,
-	verifyPermission,
-	verifySchema({
+	verifyScope("write_post"),
+	verifyJSONSchema({
 		title: {
 			trim: true,
 			notEmpty: {
