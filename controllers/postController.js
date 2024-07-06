@@ -9,9 +9,6 @@ import verifySchema from "../middlewares/verifySchema.js";
 import Post from "../models/post.js";
 
 const postList = [
-	asyncHandler((req, res, next) => {
-		req.isAuthenticated() ? next() : res.json({ message: "error" });
-	}),
 	asyncHandler(async (req, res, next) => {
 		const { limit = 0, author = false } = req.query;
 
@@ -19,17 +16,20 @@ const postList = [
 
 		!author && (filter.publish = true);
 
-		const posts = await Post.find(filter, { author: 0 })
+		author && (filter.author = new Types.ObjectId(author));
+
+		const posts = await Post.find(filter, { publish: 0 })
+			.populate("author", {
+				name: 1,
+				_id: 0,
+			})
 			.sort({ createdAt: -1 })
 			.limit(limit)
 			.exec();
 
 		res.header({
 			"Cache-Control": "no-store",
-			"Content-Type": "application/json; charset=UTF-8",
-		});
-
-		res.json({
+		}).json({
 			success: true,
 			message: "Get all posts successfully.",
 			data: posts,
