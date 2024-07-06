@@ -125,8 +125,8 @@ const postCreate = [
 const postUpdate = [
 	verifyToken,
 	verifyId("post"),
-	verifyPermission,
-	verifySchema({
+	verifyScope("update_post"),
+	verifyJSONSchema({
 		title: {
 			trim: true,
 			notEmpty: {
