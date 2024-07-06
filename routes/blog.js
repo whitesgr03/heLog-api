@@ -7,6 +7,13 @@ import * as userControllers from "../controllers/userController.js";
 const router = express.Router();
 router.use(express.json());
 
+router.use((req, res, next) => {
+	res.header({
+		"Content-Type": "application/json; charset=UTF-8",
+	});
+	next();
+});
+
 router
 	.route("/users")
 	.get(userControllers.userInfo)
