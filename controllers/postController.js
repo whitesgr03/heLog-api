@@ -198,7 +198,7 @@ const postUpdate = [
 const postDelete = [
 	verifyToken,
 	verifyId("post"),
-	verifyPermission,
+	verifyScope("delete_post"),
 	asyncHandler(async (req, res, next) => {
 		await Post.findByIdAndDelete(req.params.postId).exec();
 
