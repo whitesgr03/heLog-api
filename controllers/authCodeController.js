@@ -32,12 +32,24 @@ const authCode = [
 	}),
 	asyncHandler((req, res, next) => {
 		const adminScopes = [
-			"read",
-			"write_user",
+			"read_user",
+			"update_user",
+			"delete_user",
 			"write_post",
+			"delete_post",
+			"update_post",
 			"write_comment",
+			"delete_comment",
+			"update_comment",
 		];
-		const memberScopes = ["read", "write_user", "write_comment"];
+		const memberScopes = [
+			"read_user",
+			"update_user",
+			"delete_user",
+			"write_comment",
+			"delete_comment",
+			"update_comment",
+		];
 
 		const userScopes = req.query.scope.split(" ");
 
