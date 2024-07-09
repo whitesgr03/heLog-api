@@ -141,6 +141,7 @@ const userLoginGet = [
 			code_challenge,
 			code_challenge_method,
 			scope,
+			redirect_url,
 			darkTheme,
 		} = req.query;
 
@@ -152,6 +153,7 @@ const userLoginGet = [
 			code_challenge,
 			code_challenge_method,
 			scope,
+			redirect_url,
 			darkTheme,
 			csrfToken: csrf.create(secret),
 		});
@@ -222,6 +224,7 @@ const userRegisterGet = [
 			code_challenge,
 			code_challenge_method,
 			scope,
+			redirect_url,
 			darkTheme,
 		} = req.query;
 
@@ -233,6 +236,7 @@ const userRegisterGet = [
 			code_challenge,
 			code_challenge_method,
 			scope,
+			redirect_url,
 			darkTheme,
 			csrfToken: csrf.create(secret),
 		});
