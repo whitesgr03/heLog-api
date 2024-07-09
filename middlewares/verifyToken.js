@@ -30,7 +30,9 @@ const verifyToken = [
 	asyncHandler((req, res, next) => {
 		sessionStore.get(req.payload.sid, (err, session) => {
 			const handleSetLocals = () => {
-				req.user = { id: session.passport.user._id };
+				req.user = {
+					id: session.passport.user._id,
+				};
 				next();
 			};
 			err
