@@ -13,6 +13,14 @@ import RefreshToken from "../models/refreshToken.js";
 const authCode = [
 	verifyQuery,
 	asyncHandler((req, res, next) => {
+		const { redirect_url } = req.query;
+		JSON.parse(process.env.REDIRECT_URL).includes(redirect_url)
+			? next()
+			: res.render("error", {
+					message: "The redirect url provided is invalid.",
+			  });
+	}),
+	asyncHandler((req, res, next) => {
 		const {
 			state,
 			code_challenge,
