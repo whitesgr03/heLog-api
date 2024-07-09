@@ -73,15 +73,19 @@ const authCode = [
 
 		result
 			? next()
-			: res.status(400).json({
-					success: false,
+			: res.render("error", {
 					message: "The scope provided is invalid.",
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
 		const code = randomBytes(16).toString("hex");
-		const { state, code_challenge, code_challenge_method, scope } =
-			req.query;
+		const {
+			state,
+			code_challenge,
+			code_challenge_method,
+			scope,
+			redirect_url,
+		} = req.query;
 
 		const newAuthCode = new AuthCode({
 			session: req.session.id,
@@ -93,7 +97,7 @@ const authCode = [
 
 		await newAuthCode.save();
 
-		res.redirect(`${process.env.REDIRECT_URL}?state=${state}&code=${code}`);
+		res.redirect(`${redirect_url}?state=${state}&code=${code}`);
 	}),
 ];
 const tokenVerify = [
