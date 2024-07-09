@@ -10,6 +10,7 @@ const handleLogin = asyncHandler((req, res, next) => {
 				code_challenge,
 				code_challenge_method,
 				scope,
+				redirect_url,
 				darkTheme,
 			} = req.query;
 			err && next(err);
@@ -23,11 +24,12 @@ const handleLogin = asyncHandler((req, res, next) => {
 			user &&
 				req.login(user, () => {
 					res.redirect(
-						"/account/auth/code" +
+						"/auth/code" +
 							`?state=${state}` +
 							`&code_challenge=${code_challenge}` +
 							`&code_challenge_method=${code_challenge_method}` +
 							`&scope=${scope}` +
+							`&redirect_url=${redirect_url}` +
 							`&darkTheme=${darkTheme}`
 					);
 				});
