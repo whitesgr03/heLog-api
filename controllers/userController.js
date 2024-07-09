@@ -255,9 +255,6 @@ const userRegisterPost = [
 			  });
 	}),
 	asyncHandler((req, res, next) => {
-		res.send("8888");
-	}),
-	asyncHandler((req, res, next) => {
 		req.is("application/x-www-form-urlencoded")
 			? next()
 			: res.status(400).json({
