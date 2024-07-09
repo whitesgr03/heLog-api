@@ -7,22 +7,24 @@ const verifyToken = [
 	asyncHandler((req, res, next) => {
 		const { authorization } = req.headers;
 		const token = authorization && authorization.split(" ")[1];
-		const handleSetLocals = () => {
-			const decode = jwt.decode(token);
+		const decode = token && jwt.decode(token);
 
+		const handleSetLocals = () => {
+			const { sid, scope } = decode;
 			req.payload = {
-				sid: decode?.sid,
-				scope: decode?.scope,
+				sid,
 			};
+			scope && (req.payload.scope = scope);
+
 			req.token = token;
 			next();
 		};
 
-		token
+		token && decode?.sid && decode?.scope
 			? handleSetLocals()
 			: res.status(400).json({
 					success: false,
-					message: "The access token provided is malformed.",
+					message: "The token provided is malformed.",
 			  });
 	}),
 	asyncHandler((req, res, next) => {
