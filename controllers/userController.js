@@ -388,7 +388,7 @@ const userLogout = [
 							? next(err)
 							: res
 									.clearCookie("helog.connect.sid")
-									.redirect(process.env.REDIRECT_URL);
+									.redirect(process.env.CLIENT_URL);
 				  })
 		);
 	}),
