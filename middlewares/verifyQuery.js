@@ -1,9 +1,14 @@
 import asyncHandler from "express-async-handler";
 
 const verifyQuery = asyncHandler((req, res, next) => {
-	const { state, code_challenge, code_challenge_method, scope } = req.query;
-
-	state && code_challenge && code_challenge_method && scope
+	const {
+		state,
+		code_challenge,
+		code_challenge_method,
+		scope,
+		redirect_url,
+	} = req.query;
+	state && code_challenge && code_challenge_method && scope && redirect_url
 		? next()
 		: res.render("error", {
 				message: "The request is missing a required parameter.",
