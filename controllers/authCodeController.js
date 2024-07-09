@@ -251,7 +251,12 @@ const tokenCreate = [
 	asyncHandler((req, res, next) => {
 		sessionStore.get(req.authCode.session, (err, session) => {
 			const handleSetLocals = async () => {
-				req.user = { id: session.passport.user._id };
+				req.user = {
+					id: session.passport.user._id,
+					session: {
+						exp: session.cookie.expires,
+					},
+				};
 				next();
 			};
 			err
@@ -274,19 +279,59 @@ const tokenCreate = [
 					message: "PKCE authentication failed.",
 			  });
 	}),
-	asyncHandler((req, res, next) => {
-		const oneMinute = 60 * 1000;
+	asyncHandler(async (req, res, next) => {
+		const oneMinute = Date.now();
 
-		const token = jwt.sign(
+		const newRefreshToken = new RefreshToken({
+			user: req.user.id,
+			notBefore: new Date(oneMinute + 60 * 1000),
+			expiresAfter: req.user.session.exp,
+		});
+
+		await newRefreshToken.save();
+
+		await RefreshToken.deleteOne({
+			$and: [
+				{ user: req.user.id },
+				{
+					_id: {
+						$ne: newRefreshToken._id,
+					},
+				},
+			],
+		}).exec();
+
+		req.refreshToken = {
+			id: newRefreshToken._id,
+			nbf: oneMinute + 60 / 1000,
+		};
+
+		next();
+	}),
+	asyncHandler((req, res, next) => {
+		const access_token = jwt.sign(
 			{
 				sid: req.authCode.session,
 				scope: req.authCode.scope,
+				exp: req.refreshToken.nbf,
 			},
 			process.env.JWT_SECRET,
 			{
 				subject: req.user.id.toString(),
 				issuer: process.env.ORIGIN,
-				expiresIn: oneMinute,
+			}
+		);
+		const refresh_token = jwt.sign(
+			{
+				sid: req.authCode.session,
+				rid: req.refreshToken.id,
+				scope: req.authCode.scope,
+				exp: +new Date(req.user.session.exp) / 1000,
+			},
+			process.env.JWT_SECRET,
+			{
+				subject: req.user.id.toString(),
+				issuer: process.env.ORIGIN,
 			}
 		);
 
@@ -294,10 +339,14 @@ const tokenCreate = [
 			success: true,
 			message: "Get token successfully.",
 			data: {
-				access_token: token,
+				session: {
+					exp: req.user.session.exp,
+				},
+				access_token,
+				refresh_token,
 			},
 		});
 	}),
 ];
 
-export { authCode, authToken, tokenCreate };
+export { authCode, tokenCreate, tokenVerify, tokenExChange };
