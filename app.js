@@ -19,8 +19,9 @@ import { sessionStore } from "./config/database.js";
 import rateLimiter from "./middlewares/rateLimiter.js";
 
 // routes
-import accountRouter from "./routes/account.js";
+import userRouter from "./routes/user.js";
 import blogRouter from "./routes/blog.js";
+import authRouter from "./routes/auth.js";
 
 const app = express();
 const errorLog = debug("HandleErrorRouter");
@@ -98,7 +99,8 @@ app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(compression());
 
-app.use("/account", accountRouter);
+app.use("/user", userRouter);
+app.use("/auth", authRouter);
 app.use("/blog", blogRouter);
 
 // Unknown routes handler
