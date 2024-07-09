@@ -55,12 +55,16 @@ const verifyToken = [
 				issuer: process.env.ORIGIN,
 			},
 			err => {
-				err || !req.payload.scope
-					? res.status(401).json({
-							success: false,
-							message:
-								"The access token provided is expired, or invalid for other reasons.",
-					  })
+				err
+					? err.name === "TokenExpiredError"
+						? res.status(401).json({
+								success: false,
+								message: "The token provided is expired.",
+						  })
+						: res.status(401).json({
+								success: false,
+								message: "The token provided is invalid.",
+						  })
 					: next();
 			}
 		);
