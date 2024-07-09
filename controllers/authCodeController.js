@@ -94,6 +94,131 @@ const authToken = [
 		});
 	}),
 ];
+
+const tokenExChange = [
+	asyncHandler((req, res, next) => {
+		const { authorization } = req.headers;
+		const token = authorization && authorization.split(" ")[1];
+		const decode = token && jwt.decode(token);
+
+		const handleSetLocals = () => {
+			const { sid, rid, scope } = decode;
+			req.payload = {
+				sid,
+			};
+			rid && (req.payload.rid = rid);
+			scope && (req.payload.scope = scope);
+
+			req.token = token;
+			next();
+		};
+
+		token && decode?.sid && decode?.rid && decode?.scope
+			? handleSetLocals()
+			: res.status(400).json({
+					success: false,
+					message: "The token provided is malformed.",
+			  });
+	}),
+	asyncHandler((req, res, next) => {
+		sessionStore.get(req.payload.sid, (err, session) => {
+			const handleSetLocals = () => {
+				req.user = {
+					id: session.passport.user._id,
+				};
+				next();
+			};
+			err
+				? next(err)
+				: session
+				? handleSetLocals()
+				: res.status(401).json({
+						success: false,
+						message: "The request requires higher privileges.",
+				  });
+		});
+	}),
+	asyncHandler(async (req, res, next) => {
+		const refreshToken = await RefreshToken.findById(
+			req.payload.rid
+		).exec();
+
+		refreshToken
+			? next()
+			: res.status(401).json({
+					success: false,
+					message: "The token provided is revoked.",
+			  });
+	}),
+	asyncHandler(async (req, res, next) => {
+		const refreshToken = await RefreshToken.findById(
+			req.payload.rid
+		).exec();
+
+		const handleLogout = async () => {
+			await RefreshToken.findByIdAndDelete(req.payload.rid).exec();
+			sessionStore.destroy(req.payload.sid, err =>
+				err
+					? next(err)
+					: res.clearCookie("helog.connect.sid").status(429).json({
+							success: false,
+							message: "Too many token exchange requests.",
+					  })
+			);
+		};
+
+		Date.now() > +new Date(refreshToken.notBefore)
+			? next()
+			: handleLogout();
+	}),
+	asyncHandler((req, res, next) => {
+		jwt.verify(
+			req.token,
+			process.env.JWT_SECRET,
+			{
+				subject: req.user.id,
+				issuer: process.env.ORIGIN,
+			},
+			err => {
+				err
+					? res.status(401).json({
+							success: false,
+							message:
+								"The token provided is expired, or invalid.",
+					  })
+					: next();
+			}
+		);
+	}),
+	asyncHandler(async (req, res, next) => {
+		const oneMinute = Date.now() + 60;
+		await RefreshToken.findByIdAndUpdate(req.payload.rid, {
+			notBefore: new Date(oneMinute * 1000),
+		}).exec();
+
+		const access_token = jwt.sign(
+			{
+				sid: req.payload.session,
+				scope: req.payload.scope,
+				exp: oneMinute / 1000,
+			},
+			process.env.JWT_SECRET,
+			{
+				subject: req.user.id.toString(),
+				issuer: process.env.ORIGIN,
+			}
+		);
+
+		res.json({
+			success: true,
+			message: "Get access_token successfully.",
+			data: {
+				access_token,
+			},
+		});
+	}),
+];
+
 const tokenCreate = [
 	asyncHandler((req, res, next) => {
 		const { code, code_verifier } = req.body;
