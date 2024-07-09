@@ -26,16 +26,18 @@ const authCode = [
 			code_challenge,
 			code_challenge_method,
 			scope,
+			redirect_url,
 			darkTheme,
 		} = req.query;
 
 		req.isAuthenticated()
 			? next()
 			: res.redirect(
-					`/account/login?state=${state}` +
+					`/user/login?state=${state}` +
 						`&code_challenge=${code_challenge}` +
 						`&code_challenge_method=${code_challenge_method}` +
 						`&scope=${scope}` +
+						`&redirect_url=${redirect_url}` +
 						`&darkTheme=${darkTheme}`
 			  );
 	}),
