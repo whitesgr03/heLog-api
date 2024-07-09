@@ -8,6 +8,7 @@ import verifyToken from "../middlewares/verifyToken.js";
 import verifyQuery from "../middlewares/verifyQuery.js";
 
 import AuthCode from "../models/authCode.js";
+import RefreshToken from "../models/refreshToken.js";
 
 const authCode = [
 	verifyQuery,
