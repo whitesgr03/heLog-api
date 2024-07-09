@@ -78,7 +78,7 @@ const userUpdate = [
 
 		res.json({
 			success: true,
-			message: "Update post successfully.",
+			message: "Update user successfully.",
 		});
 	}),
 ];
