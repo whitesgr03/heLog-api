@@ -3,7 +3,6 @@ import express from "express";
 import * as userControllers from "../controllers/userController.js";
 
 const router = express.Router();
-
 router.use(express.urlencoded({ extended: false }));
 
 router.use((req, res, next) => {
