@@ -45,7 +45,6 @@ const verifyToken = [
 				  });
 		});
 	}),
-
 	asyncHandler((req, res, next) => {
 		jwt.verify(
 			req.token,
