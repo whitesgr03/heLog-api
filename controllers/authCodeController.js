@@ -33,7 +33,7 @@ const authCode = [
 		req.isAuthenticated()
 			? next()
 			: res.redirect(
-					`/user/login?state=${state}` +
+					`/account/login?state=${state}` +
 						`&code_challenge=${code_challenge}` +
 						`&code_challenge_method=${code_challenge_method}` +
 						`&scope=${scope}` +
