@@ -74,11 +74,17 @@ const userUpdate = [
 			...req.data,
 			lastModified: new Date(),
 		};
-		await User.findByIdAndUpdate(req.user.id, newUser).exec();
+		const user = await User.findByIdAndUpdate(req.user.id, newUser, {
+			new: true,
+			select: {
+				name: 1,
+			},
+		}).exec();
 
 		res.json({
 			success: true,
 			message: "Update user successfully.",
+			data: user,
 		});
 	}),
 ];
