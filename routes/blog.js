@@ -15,7 +15,7 @@ router.use((req, res, next) => {
 });
 
 router
-	.route("/users")
+	.route("/user")
 	.get(userControllers.userInfo)
 	.put(userControllers.userUpdate)
 	.delete(userControllers.userDelete);
