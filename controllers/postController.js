@@ -51,7 +51,6 @@ const postDetail = [
 		const post = await Post.findById(req.params.postId)
 			.populate("author", {
 				name: 1,
-				_id: 0,
 			})
 			.exec();
 
