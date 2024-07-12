@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import { isValidObjectId } from "mongoose";
 
 import verifyToken from "../middlewares/verifyToken.js";
 import verifyScope from "../middlewares/verifyScope.js";
@@ -8,7 +9,16 @@ import verifyId from "../middlewares/verifyId.js";
 import Comment from "../models/comment.js";
 
 const commentList = [
-	verifyId("post"),
+	asyncHandler((req, res, next) => {
+		const { postId = null } = req.query;
+
+		!postId || isValidObjectId(postId)
+			? next()
+			: res.status(400).json({
+					success: false,
+					message: "The postId query is invalid object ID.",
+			  });
+	}),
 	asyncHandler(async (req, res, next) => {
 		const comments = await Comment.find(
 			{ post: req.params.postId },
