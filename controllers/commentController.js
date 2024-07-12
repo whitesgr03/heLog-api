@@ -158,50 +158,5 @@ const commentDelete = [
 		});
 	}),
 ];
-const commentReplyCreate = [
-	verifyToken,
-	verifyId("post"),
-	verifyId("comment"),
-	verifyScope("write_comment"),
-	verifyJSONSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "The content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "The content must be less than 500 long.",
-			},
-			escape: true,
-		},
-	}),
-	asyncHandler(async (req, res, next) => {
-		const currentTime = new Date();
 
-		const newComment = new Comment({
-			...req.data,
-			author: req.user.id,
-			post: req.params.postId,
-			lastModified: currentTime,
-			createdAt: currentTime,
-			reply: req.params.commentId,
-		});
-
-		await newComment.save();
-
-		res.json({
-			success: true,
-			message: "Create comment reply successfully.",
-		});
-	}),
-];
-
-export {
-	commentList,
-	commentCreate,
-	commentUpdate,
-	commentDelete,
-	commentReplyCreate,
-};
+export { commentList, commentCreate, commentUpdate, commentDelete };
