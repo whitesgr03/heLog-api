@@ -2,9 +2,9 @@ import asyncHandler from "express-async-handler";
 import { isValidObjectId, Types } from "mongoose";
 
 import verifyToken from "../middlewares/verifyToken.js";
-import verifyScope from "../middlewares/verifyScope.js";
 import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
+import verifyPermission from "../middlewares/verifyPermission.js";
 
 import Post from "../models/post.js";
 import Comment from "../models/comment.js";
@@ -101,9 +101,8 @@ const commentCreate = [
 ];
 const commentUpdate = [
 	verifyToken,
-	verifyId("post"),
 	verifyId("comment"),
-	verifyScope("update_comment"),
+	verifyPermission("comment"),
 	verifyJSONSchema({
 		content: {
 			trim: true,
