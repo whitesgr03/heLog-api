@@ -18,7 +18,7 @@ const CommentSchema = new Schema({
 	content: { type: String, required: true },
 	lastModified: { type: Date, required: true },
 	createdAt: { type: Date, immutable: true },
-	reply: { type: Schema.Types.ObjectId, ref: "Comment", immutable: true },
+	deleted: { type: Boolean },
 });
 
 const CommentModel = mongoose.model("Comment", CommentSchema);
