@@ -155,7 +155,7 @@ const postUpdate = [
 								{ title },
 								{
 									_id: {
-										$ne: Types.ObjectId.createFromHexString(
+										$ne: new Types.ObjectId.createFromHexString(
 											req.params.postId
 										),
 									},
