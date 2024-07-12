@@ -133,7 +133,7 @@ const postCreate = [
 const postUpdate = [
 	verifyToken,
 	verifyId("post"),
-	verifyScope("update_post"),
+	verifyPermission("post"),
 	verifyJSONSchema({
 		title: {
 			trim: true,
@@ -206,7 +206,7 @@ const postUpdate = [
 const postDelete = [
 	verifyToken,
 	verifyId("post"),
-	verifyScope("delete_post"),
+	verifyPermission("post"),
 	asyncHandler(async (req, res, next) => {
 		await Post.findByIdAndDelete(req.params.postId).exec();
 
