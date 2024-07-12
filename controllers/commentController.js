@@ -137,10 +137,20 @@ const commentUpdate = [
 const commentDelete = [
 	verifyToken,
 	verifyId("comment"),
-	verifyId("post"),
-	verifyScope("delete_comment"),
+	verifyPermission("comment"),
 	asyncHandler(async (req, res, next) => {
-		await Comment.findByIdAndDelete(req.params.commentId).exec();
+		const currentTime = new Date();
+
+		const newComment = {
+			content: "Comment deleted by user",
+			lastModified: currentTime,
+			deleted: true,
+		};
+
+		await Comment.findByIdAndUpdate(
+			req.params.commentId,
+			newComment
+		).exec();
 
 		res.json({
 			success: true,
