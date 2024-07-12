@@ -1,33 +1,51 @@
 import asyncHandler from "express-async-handler";
 import { isValidObjectId } from "mongoose";
+
 import Post from "../models/post.js";
 import Comment from "../models/comment.js";
+import Reply from "../models/reply.js";
 
-const verifyId = name => [
+const verifyId = type => [
 	asyncHandler(async (req, res, next) => {
-		req.params[`${name}Id`]
+		req.params[`${type}Id`]
 			? next()
-			: res.status(404).json({
+			: res.status(400).json({
 					success: false,
 					message: "The request is missing a required parameter.",
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		isValidObjectId(req.params[`${name}Id`])
+		isValidObjectId(req.params[`${type}Id`])
 			? next()
-			: res.status(404).json({
+			: res.status(400).json({
 					success: false,
-					message: `The ${name} could not be found.`,
+					message: 'The parameter is invalid object ID.'
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const Model = name === "post" ? Post : Comment;
+		const models = {
+			post: Post,
+			comment: Comment,
+			reply: Reply,
+		};
 
-		(await Model.findById(req.params[`${name}Id`]).exec())
-			? next()
+		const data = await models[`${type}`]
+			.findById(req.params[`${type}Id`])
+			.populate("author", {
+				_id: 1,
+			})
+			.exec();
+
+		const setLocals = () => {
+			req[type] = { authorId: data._id };
+			next();
+		};
+
+		data
+			? setLocals()
 			: res.status(404).json({
 					success: false,
-					message: `The ${name} could not be found.`,
+					message: `The ${type} could not be found.`,
 			  });
 	}),
 ];
