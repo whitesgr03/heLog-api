@@ -99,23 +99,15 @@ const userInfo = [
 			name: 1,
 			isAdmin: 1,
 			email: 1,
-			_id: 0,
 		}).exec();
 
-		user
-			? res
-					.header({
-						"Cache-Control": "no-store",
-					})
-					.json({
-						success: true,
-						message: "Get user info successfully.",
-						data: user,
-					})
-			: res.status(404).json({
-					success: false,
-					message: "The user could not be found.",
-			  });
+		res.header({
+			"Cache-Control": "no-store",
+		}).json({
+			success: true,
+			message: "Get user info successfully.",
+			data: user,
+		});
 	}),
 ];
 const userLoginGet = [
