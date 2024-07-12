@@ -40,7 +40,7 @@ const verifyToken = [
 				? handleSetLocals()
 				: res.status(401).json({
 						success: false,
-						message: "The request requires higher privileges.",
+						message: "The user is unauthenticated.",
 				  });
 		});
 	}),
