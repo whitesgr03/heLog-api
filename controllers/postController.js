@@ -20,18 +20,17 @@ const postList = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const { limit = 0, author = false } = req.query;
+		const { limit = 0, userId = null } = req.query;
 
 		const filter = {};
 
-		!author && (filter.publish = true);
+		!userId && (filter.publish = true);
 
-		author && (filter.author = new Types.ObjectId(author));
+		userId && (filter.author = new Types.ObjectId(userId));
 
 		const posts = await Post.find(filter, { publish: 0 })
 			.populate("author", {
 				name: 1,
-				_id: 0,
 			})
 			.sort({ createdAt: -1 })
 			.limit(limit)
