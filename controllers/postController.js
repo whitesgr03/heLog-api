@@ -9,6 +9,16 @@ import verifyId from "../middlewares/verifyId.js";
 import Post from "../models/post.js";
 
 const postList = [
+	asyncHandler((req, res, next) => {
+		const { userId = null } = req.query;
+
+		!userId || isValidObjectId(userId)
+			? next()
+			: res.status(400).json({
+					success: false,
+					message: "The query is invalid object ID.",
+			  });
+	}),
 	asyncHandler(async (req, res, next) => {
 		const { limit = 0, author = false } = req.query;
 
