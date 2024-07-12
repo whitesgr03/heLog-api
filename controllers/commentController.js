@@ -6,6 +6,7 @@ import verifyScope from "../middlewares/verifyScope.js";
 import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
 
+import Post from "../models/post.js";
 import Comment from "../models/comment.js";
 
 const commentList = [
@@ -58,6 +59,27 @@ const commentCreate = [
 			},
 			escape: true,
 		},
+		post: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The post is required.",
+				bail: true,
+			},
+			custom: {
+				options: id => isValidObjectId(id),
+				errorMessage: "The post is invalid object ID.",
+				bail: true,
+			},
+			custom: {
+				options: id =>
+					new Promise(async (resolve, reject) => {
+						const isExisting = await Post.findById(id).exec();
+						isExisting ? resolve() : reject();
+					}),
+				errorMessage: "The post could not be found.",
+			},
+			escape: true,
+		},
 	}),
 	asyncHandler(async (req, res, next) => {
 		const currentTime = new Date();
@@ -65,7 +87,6 @@ const commentCreate = [
 		const newComment = new Comment({
 			...req.data,
 			author: req.user.id,
-			post: req.params.postId,
 			lastModified: currentTime,
 			createdAt: currentTime,
 		});
