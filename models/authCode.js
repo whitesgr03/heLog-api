@@ -23,11 +23,6 @@ const AuthCodeSchema = new Schema({
 		required: true,
 		immutable: true,
 	},
-	scope: {
-		type: String,
-		required: true,
-		immutable: true,
-	},
 	expiresAfter: {
 		type: Date,
 		required: true,
