@@ -3,6 +3,7 @@ import express from "express";
 import * as postControllers from "../controllers/postController.js";
 import * as commentControllers from "../controllers/commentController.js";
 import * as userControllers from "../controllers/userController.js";
+import * as replyControllers from "../controllers/replyController.js";
 
 const router = express.Router();
 router.use(express.json());
@@ -24,7 +25,6 @@ router
 	.route("/posts")
 	.get(postControllers.postList)
 	.post(postControllers.postCreate);
-
 router
 	.route("/posts/:postId")
 	.get(postControllers.postDetail)
@@ -41,5 +41,14 @@ router
 	.post(commentControllers.commentReplyCreate)
 	.put(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
+
+router
+	.route("/replies")
+	.get(replyControllers.replyList)
+	.post(replyControllers.replyCreate);
+router
+	.route("/replies/:replyId")
+	.put(replyControllers.replyUpdate)
+	.delete(replyControllers.replyDelete);
 
 export default router;
