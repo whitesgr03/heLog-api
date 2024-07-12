@@ -32,13 +32,11 @@ router
 	.delete(postControllers.postDelete);
 
 router
-	.route("/posts/:postId/comments")
+	.route("/comments")
 	.get(commentControllers.commentList)
 	.post(commentControllers.commentCreate);
-
 router
-	.route("/posts/:postId/comments/:commentId")
-	.post(commentControllers.commentReplyCreate)
+	.route("/comments/:commentId")
 	.put(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
