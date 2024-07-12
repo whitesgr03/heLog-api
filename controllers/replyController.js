@@ -202,5 +202,3 @@ const replyDelete = [
 ];
 
 export { replyList, replyCreate, replyUpdate, replyDelete };
-
-// 查一下為何刪除 comment 後 reply 無法回復其他 reply, verifyJSONSchema comment could not be found
