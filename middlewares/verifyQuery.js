@@ -5,10 +5,9 @@ const verifyQuery = asyncHandler((req, res, next) => {
 		state,
 		code_challenge,
 		code_challenge_method,
-		scope,
 		redirect_url,
 	} = req.query;
-	state && code_challenge && code_challenge_method && scope && redirect_url
+	state && code_challenge && code_challenge_method  && redirect_url
 		? next()
 		: res.render("error", {
 				message: "The request is missing a required parameter.",

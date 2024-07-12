@@ -25,7 +25,6 @@ const authCode = [
 			state,
 			code_challenge,
 			code_challenge_method,
-			scope,
 			redirect_url,
 			darkTheme,
 		} = req.query;
@@ -36,63 +35,20 @@ const authCode = [
 					`/account/login?state=${state}` +
 						`&code_challenge=${code_challenge}` +
 						`&code_challenge_method=${code_challenge_method}` +
-						`&scope=${scope}` +
 						`&redirect_url=${redirect_url}` +
 						`&darkTheme=${darkTheme}`
 			  );
 	}),
-	asyncHandler((req, res, next) => {
-		const adminScopes = [
-			"read_user",
-			"update_user",
-			"delete_user",
-			"write_post",
-			"delete_post",
-			"update_post",
-			"write_comment",
-			"delete_comment",
-			"update_comment",
-		];
-		const memberScopes = [
-			"read_user",
-			"update_user",
-			"delete_user",
-			"write_comment",
-			"delete_comment",
-			"update_comment",
-		];
-
-		const userScopes = req.query.scope.split(" ");
-
-		const checkScopes = (defaultScopes, targetScopes) =>
-			targetScopes.every(value => defaultScopes.includes(value));
-
-		const result = req.user.isAdmin
-			? checkScopes(adminScopes, userScopes)
-			: checkScopes(memberScopes, userScopes);
-
-		result
-			? next()
-			: res.render("error", {
-					message: "The scope provided is invalid.",
-			  });
-	}),
 	asyncHandler(async (req, res, next) => {
 		const code = randomBytes(16).toString("hex");
-		const {
-			state,
-			code_challenge,
-			code_challenge_method,
-			scope,
-			redirect_url,
-		} = req.query;
+		const { state, code_challenge, code_challenge_method, redirect_url } =
+			req.query;
 
 		const newAuthCode = new AuthCode({
 			session: req.session.id,
 			code,
 			code_challenge,
 			code_challenge_method,
-			scope,
 		});
 
 		await newAuthCode.save();
@@ -109,7 +65,6 @@ const tokenVerify = [
 		});
 	}),
 ];
-
 const tokenExChange = [
 	asyncHandler((req, res, next) => {
 		const { authorization } = req.headers;
@@ -117,18 +72,17 @@ const tokenExChange = [
 		const decode = token && jwt.decode(token);
 
 		const handleSetLocals = () => {
-			const { sid, rid, scope } = decode;
+			const { sid, rid } = decode;
 			req.payload = {
 				sid,
 			};
 			rid && (req.payload.rid = rid);
-			scope && (req.payload.scope = scope);
 
 			req.token = token;
 			next();
 		};
 
-		token && decode?.sid && decode?.rid && decode?.scope
+		token && decode?.sid && decode?.rid
 			? handleSetLocals()
 			: res.status(400).json({
 					success: false,
@@ -214,7 +168,6 @@ const tokenExChange = [
 		const access_token = jwt.sign(
 			{
 				sid: req.payload.session,
-				scope: req.payload.scope,
 				exp: oneMinute / 1000,
 			},
 			process.env.JWT_SECRET,
@@ -233,7 +186,6 @@ const tokenExChange = [
 		});
 	}),
 ];
-
 const tokenCreate = [
 	asyncHandler((req, res, next) => {
 		const { code, code_verifier } = req.body;
@@ -327,7 +279,6 @@ const tokenCreate = [
 		const access_token = jwt.sign(
 			{
 				sid: req.authCode.session,
-				scope: req.authCode.scope,
 				exp: req.refreshToken.nbf,
 			},
 			process.env.JWT_SECRET,
@@ -340,7 +291,6 @@ const tokenCreate = [
 			{
 				sid: req.authCode.session,
 				rid: req.refreshToken.id,
-				scope: req.authCode.scope,
 				exp: +new Date(req.user.session.exp) / 1000,
 			},
 			process.env.JWT_SECRET,

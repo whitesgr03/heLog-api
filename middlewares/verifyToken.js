@@ -10,17 +10,16 @@ const verifyToken = [
 		const decode = token && jwt.decode(token);
 
 		const handleSetLocals = () => {
-			const { sid, scope } = decode;
+			const { sid } = decode;
 			req.payload = {
 				sid,
 			};
-			scope && (req.payload.scope = scope);
 
 			req.token = token;
 			next();
 		};
 
-		token && decode?.sid && decode?.scope
+		token && decode?.sid
 			? handleSetLocals()
 			: res.status(400).json({
 					success: false,

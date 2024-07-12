@@ -57,7 +57,6 @@ const postDetail = [
 ];
 const postCreate = [
 	verifyToken,
-	verifyScope("write_post"),
 	verifyJSONSchema({
 		title: {
 			trim: true,

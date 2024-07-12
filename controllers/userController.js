@@ -8,7 +8,6 @@ import { sessionStore } from "../config/database.js";
 import verifyFormSchema from "../middlewares/verifyFormSchema.js";
 import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyToken from "../middlewares/verifyToken.js";
-import verifyScope from "../middlewares/verifyScope.js";
 import verifyQuery from "../middlewares/verifyQuery.js";
 import verifyAuthenticated from "../middlewares/verifyAuthenticated.js";
 import handleLogin from "../middlewares/handleLogin.js";
@@ -19,15 +18,6 @@ const csrf = new Csrf();
 
 const userUpdate = [
 	verifyToken,
-	asyncHandler(async (req, res, next) => {
-		req.user.id
-			? next()
-			: res.status(404).json({
-					success: false,
-					message: `The user could not be found.`,
-			  });
-	}),
-	verifyScope("update_user"),
 	verifyJSONSchema({
 		name: {
 			trim: true,
@@ -91,15 +81,6 @@ const userUpdate = [
 const userDelete = [
 	verifyToken,
 	asyncHandler(async (req, res, next) => {
-		req.user.id
-			? next()
-			: res.status(404).json({
-					success: false,
-					message: `The user could not be found.`,
-			  });
-	}),
-	verifyScope("delete_user"),
-	asyncHandler(async (req, res, next) => {
 		await User.findByIdAndDelete(req.user.id).exec();
 		sessionStore.destroy(req.payload.sid, err =>
 			err
@@ -113,7 +94,6 @@ const userDelete = [
 ];
 const userInfo = [
 	verifyToken,
-	verifyScope("read_user"),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user.id, {
 			name: 1,
@@ -146,7 +126,6 @@ const userLoginGet = [
 			state,
 			code_challenge,
 			code_challenge_method,
-			scope,
 			redirect_url,
 			darkTheme,
 		} = req.query;
@@ -158,7 +137,6 @@ const userLoginGet = [
 			state,
 			code_challenge,
 			code_challenge_method,
-			scope,
 			redirect_url,
 			darkTheme,
 			csrfToken: csrf.create(secret),
@@ -229,19 +207,16 @@ const userRegisterGet = [
 			state,
 			code_challenge,
 			code_challenge_method,
-			scope,
 			redirect_url,
 			darkTheme,
 		} = req.query;
 
 		const secret = await csrf.secret();
 		req.session.csrf = secret;
-
 		res.render("register", {
 			state,
 			code_challenge,
 			code_challenge_method,
-			scope,
 			redirect_url,
 			darkTheme,
 			csrfToken: csrf.create(secret),
