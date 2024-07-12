@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import { Types } from "mongoose";
 
 import verifyToken from "../middlewares/verifyToken.js";
-import verifyScope from "../middlewares/verifyScope.js";
+import verifyPermission from "../middlewares/verifyPermission.js";
 import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
 
