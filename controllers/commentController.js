@@ -45,8 +45,6 @@ const commentList = [
 ];
 const commentCreate = [
 	verifyToken,
-	verifyId("post"),
-	verifyScope("write_comment"),
 	verifyJSONSchema({
 		content: {
 			trim: true,
