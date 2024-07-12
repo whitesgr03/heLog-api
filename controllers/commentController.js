@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 
 import verifyToken from "../middlewares/verifyToken.js";
 import verifyScope from "../middlewares/verifyScope.js";
@@ -20,15 +20,18 @@ const commentList = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const comments = await Comment.find(
-			{ post: req.params.postId },
-			{ post: 0 }
-		)
+		const { limit = 0, postId = null } = req.query;
+
+		const filter = {};
+
+		postId && (filter.post = new Types.ObjectId(postId));
+
+		const comments = await Comment.find(filter)
 			.populate("author", {
 				name: 1,
-				_id: 0,
 			})
 			.sort({ createdAt: -1 })
+			.limit(limit)
 			.exec();
 
 		res.header({
