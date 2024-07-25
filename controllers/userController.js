@@ -44,7 +44,7 @@ const userUpdate = [
 								{ name },
 								{
 									_id: {
-										$ne: new Types.ObjectId.createFromHexString(
+										$ne: Types.ObjectId.createFromHexString(
 											req.user.id
 										),
 									},
