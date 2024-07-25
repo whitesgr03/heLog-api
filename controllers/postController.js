@@ -139,6 +139,7 @@ const postCreate = [
 		const currentTime = new Date();
 
 		const newPost = new Post({
+			publish: false,
 			...req.data,
 			author: req.user.id,
 			lastModified: currentTime,
@@ -149,6 +150,9 @@ const postCreate = [
 
 		res.json({
 			success: true,
+			data: {
+				post: { id: newPost._id },
+			},
 			message: "Create post successfully.",
 		});
 	}),
