@@ -28,7 +28,7 @@ const postList = [
 
 		userId && (filter.author = new Types.ObjectId(userId));
 
-		const posts = await Post.find(filter, { publish: 0 })
+		const posts = await Post.find(filter)
 			.populate("author", {
 				name: 1,
 			})
