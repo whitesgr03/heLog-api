@@ -159,17 +159,13 @@ const postUpdate = [
 	verifyPermission("post"),
 	verifyJSONSchema({
 		title: {
+			optional: true,
 			trim: true,
-			notEmpty: {
-				errorMessage: "The title is required.",
-				bail: true,
-			},
 			isLength: {
 				options: { max: 100 },
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (title, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -178,7 +174,7 @@ const postUpdate = [
 								{ title },
 								{
 									_id: {
-										$ne: new Types.ObjectId.createFromHexString(
+										$ne: Types.ObjectId.createFromHexString(
 											req.params.postId
 										),
 									},
@@ -191,21 +187,47 @@ const postUpdate = [
 					}),
 				errorMessage: "The title is been used.",
 			},
-		},
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "The content is required.",
-			},
 			escape: true,
 		},
+		content: {
+			optional: true,
+			trim: true,
+		},
+		mainImage: {
+			optional: true,
+			trim: true,
+			custom: {
+				options: mainImage =>
+					new Promise((resolve, reject) => {
+						const source = mainImage.match(
+							/(?<=img src=")(.*?)(?=")/g
+						);
+
+						const handleMimeType = () => {
+							https
+								.request(source[0], res => {
+									const mimeType =
+										res.headers["content-type"];
+									res.statusCode === 200 &&
+									(mimeType === "image/jpeg" ||
+										mimeType === "image/png" ||
+										mimeType === "image/webp")
+										? resolve()
+										: reject();
+								})
+								.on("error", () => reject())
+								.end();
+						};
+
+						source ? handleMimeType() : reject();
+					}),
+				errorMessage: "The main image is invalid.",
+			},
+		},
 		publish: {
+			optional: true,
 			trim: true,
 			toLowerCase: true,
-			notEmpty: {
-				errorMessage: "The publish is required.",
-				bail: true,
-			},
 			isBoolean: {
 				errorMessage: "The publish must be boolean.",
 			},
