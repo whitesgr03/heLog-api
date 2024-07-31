@@ -19,7 +19,7 @@ const verifyToken = [
 			next();
 		};
 
-		token && decode?.sid
+		token && decode?.sid && !decode?.rid
 			? handleSetLocals()
 			: res.status(400).json({
 					success: false,
@@ -40,7 +40,7 @@ const verifyToken = [
 				? handleSetLocals()
 				: res.status(401).json({
 						success: false,
-						message: "The user is unauthenticated.",
+						message: "The request requires higher privileges.",
 				  });
 		});
 	}),
