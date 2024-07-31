@@ -262,11 +262,10 @@ const userRegisterPost = [
 				bail: true,
 			},
 			custom: {
-				options: name => name.match(/^[a-zA-Z]\w*$/),
-				errorMessage: "The name must be alphanumeric and underscore.",
+				options: name => name.match(/^[a-zA-Z0-9]\w*$/),
+				errorMessage: "The name must be alphanumeric.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (name, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -279,6 +278,7 @@ const userRegisterPost = [
 					}),
 				errorMessage: "The name is been used.",
 			},
+			escape: true,
 		},
 		email: {
 			trim: true,
@@ -327,7 +327,6 @@ const userRegisterPost = [
 				errorMessage: "The confirm password is required.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (confirmPassword, { req }) =>
 					confirmPassword === req.body.password,
