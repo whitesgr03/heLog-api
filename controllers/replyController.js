@@ -18,7 +18,7 @@ const replyList = [
 			? next()
 			: res.status(400).json({
 					success: false,
-					message: "The postId query is invalid object ID.",
+					message: "The postId query is invalid object id.",
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
