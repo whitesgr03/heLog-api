@@ -13,9 +13,9 @@ const PostSchema = new Schema(
 		title: { type: String },
 		mainImage: { type: String },
 		content: { type: String },
-		publish: { type: Boolean, required: true },
+		publish: { type: Boolean, default: false },
 		lastModified: { type: Date, required: true },
-		createdAt: { type: Date, immutable: true },
+		createdAt: { type: Date, required: true, immutable: true },
 	},
 	{
 		virtuals: {
