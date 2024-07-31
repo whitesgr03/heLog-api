@@ -13,9 +13,28 @@ import verifyAuthenticated from "../middlewares/verifyAuthenticated.js";
 import handleLogin from "../middlewares/handleLogin.js";
 
 import User from "../models/user.js";
+import RefreshToken from "../models/refreshToken.js";
 
 const csrf = new Csrf();
 
+const userInfo = [
+	verifyToken,
+	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, {
+			name: 1,
+			isAdmin: 1,
+			email: 1,
+		}).exec();
+
+		res.header({
+			"Cache-Control": "no-store",
+		}).json({
+			success: true,
+			message: "Get user info successfully.",
+			data: user,
+		});
+	}),
+];
 const userUpdate = [
 	verifyToken,
 	verifyJSONSchema({
@@ -81,7 +100,13 @@ const userUpdate = [
 const userDelete = [
 	verifyToken,
 	asyncHandler(async (req, res, next) => {
-		await User.findByIdAndDelete(req.user.id).exec();
+		await Promise.all([
+			User.findByIdAndDelete(req.user.id).exec(),
+			RefreshToken.findOneAndDelete({
+				user: req.user._id,
+			}).exec(),
+		]);
+
 		sessionStore.destroy(req.payload.sid, err =>
 			err
 				? next(err)
@@ -90,24 +115,6 @@ const userDelete = [
 						message: "Delete user successfully.",
 				  })
 		);
-	}),
-];
-const userInfo = [
-	verifyToken,
-	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, {
-			name: 1,
-			isAdmin: 1,
-			email: 1,
-		}).exec();
-
-		res.header({
-			"Cache-Control": "no-store",
-		}).json({
-			success: true,
-			message: "Get user info successfully.",
-			data: user,
-		});
 	}),
 ];
 const userLoginGet = [
