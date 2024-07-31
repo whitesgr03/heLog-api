@@ -49,18 +49,12 @@ const postList = [
 const postDetail = [
 	verifyId("post"),
 	asyncHandler(async (req, res, next) => {
-		const post = await Post.findById(req.params.postId)
-			.populate("author", {
-				name: 1,
-			})
-			.exec();
-
 		res.header({
 			"Cache-Control": "no-store",
 		}).json({
 			success: true,
 			message: "Get post successfully.",
-			data: post,
+			data: req.post,
 		});
 	}),
 ];
