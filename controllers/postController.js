@@ -17,7 +17,7 @@ const postList = [
 			? next()
 			: res.status(400).json({
 					success: false,
-					message: "The query is invalid object ID.",
+					message: "The query is invalid.",
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
@@ -25,9 +25,9 @@ const postList = [
 
 		const filter = {};
 
-		!userId && (filter.publish = true);
-
-		userId && (filter.author = new Types.ObjectId(userId));
+		userId
+			? (filter.author = new Types.ObjectId(userId))
+			: (filter.publish = true);
 
 		const posts = await Post.find(filter)
 			.populate("author", {
