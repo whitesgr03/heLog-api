@@ -11,7 +11,7 @@ const verifyId = type => [
 			? next()
 			: res.status(400).json({
 					success: false,
-					message: "The request is missing a required parameter.",
+					message: `The parameter is missing ${type}.`,
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
@@ -19,29 +19,29 @@ const verifyId = type => [
 			? next()
 			: res.status(400).json({
 					success: false,
-					message: 'The parameter is invalid object ID.'
+					message: `The ${type} is invalid object id.`,
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const models = {
+		const Models = {
 			post: Post,
 			comment: Comment,
 			reply: Reply,
 		};
 
-		const data = await models[`${type}`]
+		const document = await Models[`${type}`]
 			.findById(req.params[`${type}Id`])
 			.populate("author", {
-				_id: 1,
+				name: 1,
 			})
 			.exec();
 
 		const setLocals = () => {
-			req[type] = { authorId: data._id };
+			req[type] = document;
 			next();
 		};
 
-		data
+		document
 			? setLocals()
 			: res.status(404).json({
 					success: false,
