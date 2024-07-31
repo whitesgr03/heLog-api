@@ -10,16 +10,30 @@ const verifyFormSchema = schema => {
 
 		const handleSchemaErrors = () => {
 			const inputErrors = schemaErrors.mapped();
+			const {
+				state,
+				code_challenge,
+				code_challenge_method,
+				redirect_url,
+				darkTheme,
+			} = req.query;
+
+			const queries =
+				`state=${state}` +
+				`&code_challenge=${code_challenge}` +
+				`&code_challenge_method=${code_challenge_method}` +
+				`&redirect_url=${redirect_url}` +
+				`&darkTheme=${darkTheme}`;
 
 			res.render(req.path.split("/")[1], {
 				user: { ...req.body },
+				queries,
 				inputErrors,
 			});
 		};
 
 		const setMatchData = () => {
 			req.data = matchedData(req);
-
 			next();
 		};
 
