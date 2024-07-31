@@ -218,17 +218,26 @@ const tokenCreate = [
 			? handleSetLocals()
 			: res.status(400).json({
 					success: false,
-					message:
-						"The provided access grant is invalid, expired, or revoked.",
+					message: "The provided access grant is invalid or expired.",
+			  });
+	}),
+	asyncHandler((req, res, next) => {
+		const { code_verifier } = req.body;
+
+		generateCodeChallenge(code_verifier) === req.authCode.code_challenge
+			? next()
+			: res.status(400).json({
+					success: false,
+					message: "PKCE authentication failed.",
 			  });
 	}),
 	asyncHandler((req, res, next) => {
 		sessionStore.get(req.authCode.session, (err, session) => {
-			const handleSetLocals = async () => {
+			const handleSetLocals = () => {
 				req.user = {
 					id: session.passport.user._id,
 					session: {
-						exp: session.cookie.expires,
+						exp: new Date(session.cookie.expires),
 					},
 				};
 				next();
@@ -243,80 +252,84 @@ const tokenCreate = [
 				  });
 		});
 	}),
-	asyncHandler((req, res, next) => {
-		const { code_verifier } = req.body;
-
-		generateCodeChallenge(code_verifier) === req.authCode.code_challenge
-			? next()
-			: res.status(400).json({
-					success: false,
-					message: "PKCE authentication failed.",
-			  });
-	}),
 	asyncHandler(async (req, res, next) => {
-		const oneMinute = Date.now();
-
-		const newRefreshToken = new RefreshToken({
+		const refreshToken = await RefreshToken.findOne({
 			user: req.user.id,
-			notBefore: new Date(oneMinute + 60 * 1000),
-			expiresAfter: req.user.session.exp,
-		});
-
-		await newRefreshToken.save();
-
-		await RefreshToken.deleteOne({
-			$and: [
-				{ user: req.user.id },
-				{
-					_id: {
-						$ne: newRefreshToken._id,
-					},
-				},
-			],
 		}).exec();
 
-		req.refreshToken = {
-			id: newRefreshToken._id,
-			nbf: oneMinute + 60 / 1000,
+		const currentTime = Date.now();
+		const unixTime = Math.floor(currentTime / 1000);
+
+		let data = {
+			session: {
+				exp: req.user.session.exp,
+			},
 		};
 
-		next();
-	}),
-	asyncHandler((req, res, next) => {
-		const access_token = jwt.sign(
-			{
-				sid: req.authCode.session,
-				exp: req.refreshToken.nbf,
-			},
-			process.env.JWT_SECRET,
-			{
-				subject: req.user.id.toString(),
-				issuer: process.env.ORIGIN,
-			}
-		);
-		const refresh_token = jwt.sign(
-			{
-				sid: req.authCode.session,
-				rid: req.refreshToken.id,
-				exp: +new Date(req.user.session.exp) / 1000,
-			},
-			process.env.JWT_SECRET,
-			{
-				subject: req.user.id.toString(),
-				issuer: process.env.ORIGIN,
-			}
-		);
+		const handleCreateRefreshToken = async () => {
+			const newRefreshToken = new RefreshToken({
+				user: req.user.id,
+				notBefore: new Date(currentTime + 60 * 1000),
+				expiresAfter: req.user.session.exp,
+			});
+
+			data.access_token = jwt.sign(
+				{
+					sid: req.authCode.session,
+					exp: unixTime + 60,
+				},
+				process.env.JWT_SECRET,
+				{
+					subject: req.user.id,
+					issuer: process.env.ORIGIN,
+				}
+			);
+			data.refresh_token = jwt.sign(
+				{
+					rid: newRefreshToken._id,
+					sid: req.authCode.session,
+					exp:
+						unixTime +
+						(req.user.session.exp.getTime() - currentTime) / 1000,
+				},
+				process.env.JWT_SECRET,
+				{
+					subject: req.user.id,
+					issuer: process.env.ORIGIN,
+				}
+			);
+
+			newRefreshToken.token = data.refresh_token;
+
+			await newRefreshToken.save();
+		};
+		const handleCreateAccessToken = () => {
+			data.access_token = jwt.sign(
+				{
+					sid: req.authCode.session,
+					exp:
+						unixTime +
+						(new Date(refreshToken.notBefore).getTime() -
+							currentTime) /
+							1000,
+				},
+				process.env.JWT_SECRET,
+				{
+					subject: req.user.id,
+					issuer: process.env.ORIGIN,
+				}
+			);
+			data.refresh_token = refreshToken.token;
+		};
+
+		refreshToken
+			? handleCreateAccessToken()
+			: await handleCreateRefreshToken();
 
 		res.json({
 			success: true,
 			message: "Get token successfully.",
-			data: {
-				session: {
-					exp: req.user.session.exp,
-				},
-				access_token,
-				refresh_token,
-			},
+			data,
 		});
 	}),
 ];
