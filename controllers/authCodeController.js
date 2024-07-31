@@ -1,24 +1,31 @@
+import jwt from "jsonwebtoken";
+import debug from "debug";
 import asyncHandler from "express-async-handler";
 import { randomBytes } from "node:crypto";
-import jwt from "jsonwebtoken";
 import { sessionStore } from "../config/database.js";
 
-import generateCodeChallenge from "../utils/generateCodeChallenge.js";
 import verifyToken from "../middlewares/verifyToken.js";
 import verifyQuery from "../middlewares/verifyQuery.js";
+import generateCodeChallenge from "../utils/generateCodeChallenge.js";
 
 import AuthCode from "../models/authCode.js";
 import RefreshToken from "../models/refreshToken.js";
+
+const serverLog = debug("Server");
 
 const authCode = [
 	verifyQuery,
 	asyncHandler((req, res, next) => {
 		const { redirect_url } = req.query;
+
+		const handleError = () => {
+			serverLog("The redirect url provided is invalid.");
+			res.render("error");
+		};
+
 		JSON.parse(process.env.REDIRECT_URL).includes(redirect_url)
 			? next()
-			: res.render("error", {
-					message: "The redirect url provided is invalid.",
-			  });
+			: handleError();
 	}),
 	asyncHandler((req, res, next) => {
 		const {
@@ -28,16 +35,16 @@ const authCode = [
 			redirect_url,
 			darkTheme,
 		} = req.query;
+		const queries =
+			`state=${state}` +
+			`&code_challenge=${code_challenge}` +
+			`&code_challenge_method=${code_challenge_method}` +
+			`&redirect_url=${redirect_url}` +
+			`&darkTheme=${darkTheme}`;
 
 		req.isAuthenticated()
 			? next()
-			: res.redirect(
-					`/account/login?state=${state}` +
-						`&code_challenge=${code_challenge}` +
-						`&code_challenge_method=${code_challenge_method}` +
-						`&redirect_url=${redirect_url}` +
-						`&darkTheme=${darkTheme}`
-			  );
+			: res.redirect(`/account/login?${queries}`);
 	}),
 	asyncHandler(async (req, res, next) => {
 		const code = randomBytes(16).toString("hex");
