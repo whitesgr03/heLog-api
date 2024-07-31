@@ -129,20 +129,25 @@ const userLoginGet = [
 			darkTheme,
 		} = req.query;
 
+		const queries =
+			`state=${state}` +
+			`&code_challenge=${code_challenge}` +
+			`&code_challenge_method=${code_challenge_method}` +
+			`&redirect_url=${redirect_url}` +
+			`&darkTheme=${darkTheme}`;
+
 		const secret = await csrf.secret();
 		req.session.csrf = secret;
 
 		res.render("login", {
-			state,
-			code_challenge,
-			code_challenge_method,
-			redirect_url,
-			darkTheme,
+			queries,
 			csrfToken: csrf.create(secret),
 		});
 	}),
 ];
 const userLoginPost = [
+	verifyAuthenticated,
+	verifyQuery,
 	asyncHandler((req, res, next) => {
 		const setSession = () => {
 			delete req.session.csrf;
@@ -163,8 +168,6 @@ const userLoginPost = [
 					message: "The content type is invalid",
 			  });
 	}),
-	verifyQuery,
-	verifyAuthenticated,
 	verifyFormSchema({
 		email: {
 			trim: true,
@@ -209,20 +212,24 @@ const userRegisterGet = [
 			redirect_url,
 			darkTheme,
 		} = req.query;
+		const queries =
+			`state=${state}` +
+			`&code_challenge=${code_challenge}` +
+			`&code_challenge_method=${code_challenge_method}` +
+			`&redirect_url=${redirect_url}` +
+			`&darkTheme=${darkTheme}`;
 
 		const secret = await csrf.secret();
 		req.session.csrf = secret;
 		res.render("register", {
-			state,
-			code_challenge,
-			code_challenge_method,
-			redirect_url,
-			darkTheme,
+			queries,
 			csrfToken: csrf.create(secret),
 		});
 	}),
 ];
 const userRegisterPost = [
+	verifyAuthenticated,
+	verifyQuery,
 	asyncHandler((req, res, next) => {
 		const setSession = () => {
 			delete req.session.csrf;
@@ -242,8 +249,6 @@ const userRegisterPost = [
 					message: "The content type is invalid",
 			  });
 	}),
-	verifyQuery,
-	verifyAuthenticated,
 	verifyFormSchema({
 		name: {
 			trim: true,
