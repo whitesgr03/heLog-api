@@ -62,6 +62,7 @@ const postCreate = [
 	verifyToken,
 	verifyJSONSchema({
 		title: {
+			unescape: true,
 			optional: true,
 			trim: true,
 			isLength: {
@@ -69,6 +70,7 @@ const postCreate = [
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
+			escape: true,
 			custom: {
 				options: (title, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -81,7 +83,6 @@ const postCreate = [
 					}),
 				errorMessage: "The title is been used.",
 			},
-			escape: true,
 		},
 		mainImage: {
 			optional: true,
@@ -118,6 +119,26 @@ const postCreate = [
 		content: {
 			optional: true,
 			trim: true,
+			custom: {
+				options: content => {
+					const wordCountLimit = 8000;
+
+					const words = content
+						.match(/(?<=>)[^<>\n]+(?=<)/g)
+						?.join(" ")
+						?.replace(/\s/g, "");
+
+					const escapeCount = words?.match(/(?<=)&[\w]+;(?=)/g) ?? [];
+
+					const wordCount = words?.replace(/(?<=)&[\w]+;(?=)/g, "");
+
+					return (
+						escapeCount.length + wordCount.length <= wordCountLimit
+					);
+				},
+
+				errorMessage: "The content must be less than 8000 long.",
+			},
 		},
 		publish: {
 			optional: true,
@@ -133,7 +154,6 @@ const postCreate = [
 		const currentTime = new Date();
 
 		const newPost = new Post({
-			publish: false,
 			...req.data,
 			author: req.user.id,
 			lastModified: currentTime,
