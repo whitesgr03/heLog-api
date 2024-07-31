@@ -166,16 +166,14 @@ const replyUpdate = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const newComment = {
-			...req.data,
-			lastModified: new Date(),
-		};
+		req.reply.content = req.data.content;
+		req.reply.lastModified = new Date();
 
-		await Reply.findByIdAndUpdate(req.params.replyId, newComment).exec();
+		await req.reply.save();
 
 		res.json({
 			success: true,
-			message: "Update comment successfully.",
+			message: "Update reply successfully.",
 		});
 	}),
 ];
@@ -184,15 +182,11 @@ const replyDelete = [
 	verifyId("reply"),
 	verifyPermission("reply"),
 	asyncHandler(async (req, res, next) => {
-		const currentTime = new Date();
+		req.reply.content = "Reply deleted by user";
+		req.reply.lastModified = new Date();
+		req.reply.deleted = true;
 
-		const newReply = {
-			content: "Reply deleted by user",
-			lastModified: currentTime,
-			deleted: true,
-		};
-
-		await Reply.findByIdAndUpdate(req.params.replyId, newReply).exec();
+		await req.reply.save();
 
 		res.json({
 			success: true,
