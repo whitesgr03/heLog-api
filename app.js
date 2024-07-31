@@ -29,6 +29,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(16).toString("base64");
+	res.locals.darkScheme = req.query.darkTheme === "true";
+	res.locals.clientUrl = process.env.CLIENT_URL;
 	next();
 });
 
