@@ -8,6 +8,7 @@ const RefreshTokenSchema = new Schema({
 		required: true,
 		immutable: true,
 	},
+	token: { type: String, required: true, immutable: true },
 	notBefore: { type: Date, required: true },
 	expiresAfter: {
 		type: Date,
