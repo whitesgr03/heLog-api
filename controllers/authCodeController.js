@@ -82,9 +82,8 @@ const tokenExChange = [
 			const { sid, rid } = decode;
 			req.payload = {
 				sid,
+				rid,
 			};
-			rid && (req.payload.rid = rid);
-
 			req.token = token;
 			next();
 		};
@@ -119,20 +118,11 @@ const tokenExChange = [
 			req.payload.rid
 		).exec();
 
-		refreshToken
-			? next()
-			: res.status(401).json({
-					success: false,
-					message: "The token provided is revoked.",
-			  });
-	}),
-	asyncHandler(async (req, res, next) => {
-		const refreshToken = await RefreshToken.findById(
-			req.payload.rid
-		).exec();
+		req.refreshToken = refreshToken;
 
 		const handleLogout = async () => {
-			await RefreshToken.findByIdAndDelete(req.payload.rid).exec();
+			await refreshToken.deleteOne();
+
 			sessionStore.destroy(req.payload.sid, err =>
 				err
 					? next(err)
@@ -142,7 +132,6 @@ const tokenExChange = [
 					  })
 			);
 		};
-
 		Date.now() > +new Date(refreshToken.notBefore)
 			? next()
 			: handleLogout();
@@ -157,29 +146,34 @@ const tokenExChange = [
 			},
 			err => {
 				err
-					? res.status(401).json({
-							success: false,
-							message:
-								"The token provided is expired, or invalid.",
-					  })
+					? err.name === "TokenExpiredError"
+						? res.status(401).json({
+								success: false,
+								message: "The token provided is expired.",
+						  })
+						: res.status(401).json({
+								success: false,
+								message: "The token provided is invalid.",
+						  })
 					: next();
 			}
 		);
 	}),
 	asyncHandler(async (req, res, next) => {
-		const oneMinute = Date.now() + 60;
-		await RefreshToken.findByIdAndUpdate(req.payload.rid, {
-			notBefore: new Date(oneMinute * 1000),
-		}).exec();
+		const currentTime = Date.now();
+
+		req.refreshToken.notBefore = new Date(currentTime + 60 * 1000);
+
+		await req.refreshToken.save();
 
 		const access_token = jwt.sign(
 			{
-				sid: req.payload.session,
-				exp: oneMinute / 1000,
+				sid: req.payload.sid,
+				exp: Math.floor(currentTime / 1000) + 60,
 			},
 			process.env.JWT_SECRET,
 			{
-				subject: req.user.id.toString(),
+				subject: req.user.id,
 				issuer: process.env.ORIGIN,
 			}
 		);
