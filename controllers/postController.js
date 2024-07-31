@@ -177,6 +177,7 @@ const postUpdate = [
 	verifyPermission("post"),
 	verifyJSONSchema({
 		title: {
+			unescape: true,
 			optional: true,
 			trim: true,
 			isLength: {
@@ -184,6 +185,7 @@ const postUpdate = [
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
+			escape: true,
 			custom: {
 				options: (title, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -207,15 +209,12 @@ const postUpdate = [
 			},
 			escape: true,
 		},
-		content: {
-			optional: true,
-			trim: true,
-		},
 		mainImage: {
 			optional: true,
 			trim: true,
 			custom: {
 				options: mainImage =>
+					mainImage === "" ||
 					new Promise((resolve, reject) => {
 						const source = mainImage.match(
 							/(?<=img src=")(.*?)(?=")/g
@@ -242,6 +241,30 @@ const postUpdate = [
 				errorMessage: "The main image is invalid.",
 			},
 		},
+		content: {
+			optional: true,
+			trim: true,
+			custom: {
+				options: content => {
+					const wordCountLimit = 8000;
+
+					const words = content
+						.match(/(?<=>)[^<>\n]+(?=<)/g)
+						?.join(" ")
+						?.replace(/\s/g, "");
+
+					const escapeCount = words?.match(/(?<=)&[\w]+;(?=)/g) ?? [];
+
+					const wordCount = words?.replace(/(?<=)&[\w]+;(?=)/g, "");
+
+					return (
+						escapeCount.length + wordCount.length <= wordCountLimit
+					);
+				},
+
+				errorMessage: "The content must be less than 8000 long.",
+			},
+		},
 		publish: {
 			optional: true,
 			trim: true,
@@ -253,12 +276,16 @@ const postUpdate = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const newPost = {
-			...req.data,
-			lastModified: new Date(),
-		};
+		const { title, mainImage, content, publish } = req.data;
 
-		await Post.findByIdAndUpdate(req.params.postId, newPost).exec();
+		title && (req.post.title = title);
+		mainImage && (req.post.mainImage = mainImage);
+		content && (req.post.content = content);
+		publish && (req.post.publish = publish);
+
+		req.post.lastModified = new Date();
+
+		await req.post.save();
 
 		res.json({
 			success: true,
