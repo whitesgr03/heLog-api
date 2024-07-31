@@ -14,11 +14,10 @@ block content
                         input#email(
                             type="text" 
                             name="email" 
-                            value='admin@gmail.com'
+                            value= user ? user.email : '' 
                             title="The email is required and must be standard format." 
                             required
                         )
-                        //-   value != user ? user.email : '' 
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.email ? inputErrors.email.msg : "Message placeholder"
@@ -27,11 +26,10 @@ block content
                         input#password(
                             type="password" 
                             name="password" 
-                            value='1!Qwerty'
+                            value= user ? user.password : '' 
                             title="The password is required." 
                             required
                         )
-                        //-  value != user ? user.password : '' 
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.password  ? inputErrors.password.msg : "Message placeholder"
