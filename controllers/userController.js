@@ -364,6 +364,10 @@ const userLogout = [
 		!req.isAuthenticated() ? res.redirect(process.env.CLIENT_URL) : next();
 	}),
 	asyncHandler(async (req, res, next) => {
+		await RefreshToken.findOneAndDelete({
+			user: req.user._id,
+		}).exec();
+
 		req.logout(err =>
 			err
 				? next(err)
