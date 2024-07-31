@@ -118,15 +118,10 @@ const commentUpdate = [
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
-		const newComment = {
-			...req.data,
-			lastModified: new Date(),
-		};
+		req.comment.content = req.data.content;
+		req.comment.lastModified = new Date();
 
-		await Comment.findByIdAndUpdate(
-			req.params.commentId,
-			newComment
-		).exec();
+		await req.comment.save();
 
 		res.json({
 			success: true,
