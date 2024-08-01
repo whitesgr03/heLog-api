@@ -5,7 +5,9 @@ import MongoStore from "connect-mongo";
 const databaseLog = debug("Mongoose");
 
 const handleError = err => {
+	databaseLog("Connect error");
 	databaseLog(`${err.name}: ${err.message}`);
+	databaseLog("Process exit.");
 	process.exit(1);
 };
 
