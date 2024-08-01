@@ -50,7 +50,7 @@ const verifyToken = [
 			process.env.JWT_SECRET,
 			{
 				subject: req.user.id,
-				issuer: process.env.ORIGIN,
+				issuer: process.env.HELOG_API_URL,
 			},
 			err => {
 				err

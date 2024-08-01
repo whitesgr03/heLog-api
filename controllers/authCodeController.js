@@ -23,7 +23,7 @@ const authCode = [
 			res.render("error");
 		};
 
-		process.env.REDIRECT_URL.split(",").includes(redirect_url)
+		process.env.ALLOW_REDIRECT_URLS.split(",").includes(redirect_url)
 			? next()
 			: handleError();
 	}),
@@ -142,7 +142,7 @@ const tokenExChange = [
 			process.env.JWT_SECRET,
 			{
 				subject: req.user.id,
-				issuer: process.env.ORIGIN,
+				issuer: process.env.HELOG_API_URL,
 			},
 			err => {
 				err
@@ -174,7 +174,7 @@ const tokenExChange = [
 			process.env.JWT_SECRET,
 			{
 				subject: req.user.id,
-				issuer: process.env.ORIGIN,
+				issuer: process.env.HELOG_API_URL,
 			}
 		);
 
@@ -275,7 +275,7 @@ const tokenCreate = [
 				process.env.JWT_SECRET,
 				{
 					subject: req.user.id,
-					issuer: process.env.ORIGIN,
+					issuer: process.env.HELOG_API_URL,
 				}
 			);
 			data.refresh_token = jwt.sign(
@@ -289,7 +289,7 @@ const tokenCreate = [
 				process.env.JWT_SECRET,
 				{
 					subject: req.user.id,
-					issuer: process.env.ORIGIN,
+					issuer: process.env.HELOG_API_URL,
 				}
 			);
 
@@ -310,7 +310,7 @@ const tokenCreate = [
 				process.env.JWT_SECRET,
 				{
 					subject: req.user.id,
-					issuer: process.env.ORIGIN,
+					issuer: process.env.HELOG_API_URL,
 				}
 			);
 			data.refresh_token = refreshToken.token;

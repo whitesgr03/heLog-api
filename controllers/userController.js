@@ -361,7 +361,7 @@ const userRegisterPost = [
 ];
 const userLogout = [
 	asyncHandler((req, res, next) => {
-		!req.isAuthenticated() ? res.redirect(process.env.CLIENT_URL) : next();
+		!req.isAuthenticated() ? res.redirect(process.env.HELOG_URL) : next();
 	}),
 	asyncHandler(async (req, res, next) => {
 		await RefreshToken.findOneAndDelete({
@@ -376,7 +376,7 @@ const userLogout = [
 							? next(err)
 							: res
 									.clearCookie("helog.connect.sid")
-									.redirect(process.env.CLIENT_URL);
+									.redirect(process.env.HELOG_URL);
 				  })
 		);
 	}),
