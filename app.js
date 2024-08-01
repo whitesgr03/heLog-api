@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-	origin: JSON.parse(process.env.ALLOW_CLIENT_ORIGINS),
+	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
 	maxAge: 60,
 };
 const helmetOptions = {
@@ -68,7 +68,7 @@ const helmetOptions = {
 	},
 };
 const sessionOptions = {
-	secret: JSON.parse(process.env.SESSION_SECRETS),
+	secret: process.env.SESSION_SECRETS.split(","),
 	resave: false,
 	saveUninitialized: false,
 	store: sessionStore,
@@ -85,6 +85,8 @@ const staticOptions = {
 	maxAge: "1d",
 	redirect: false,
 };
+
+app.set("trust proxy", 1);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
