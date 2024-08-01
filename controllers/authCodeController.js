@@ -23,7 +23,7 @@ const authCode = [
 			res.render("error");
 		};
 
-		JSON.parse(process.env.REDIRECT_URL).includes(redirect_url)
+		process.env.REDIRECT_URL.split(",").includes(redirect_url)
 			? next()
 			: handleError();
 	}),
