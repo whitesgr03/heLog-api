@@ -18,7 +18,7 @@ const handleListening = async () => {
 	};
 
 	serverLog(`Listening on Local:         http://localhost:${port}`);
-	process.env.NODE_ENV === "development" && handlePrintNetwork();
+	handlePrintNetwork();
 };
 
 const handleError = error => {
@@ -36,5 +36,8 @@ const handleError = error => {
 
 db.on("connected", () => {
 	databaseLog("Connecting successfully");
-	app.listen(port, handleListening).on("error", handleError);
+	app.listen(
+		port,
+		process.env.NODE_ENV === "development" ? handleListening : {}
+	).on("error", handleError);
 });
