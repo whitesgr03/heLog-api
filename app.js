@@ -15,9 +15,6 @@ import cors from "cors";
 import passport from "./config/passport.js";
 import { sessionStore } from "./config/database.js";
 
-// middleware
-import rateLimiter from "./middlewares/rateLimiter.js";
-
 // routes
 import accountRouter from "./routes/account.js";
 import blogRouter from "./routes/blog.js";
@@ -94,7 +91,6 @@ app.set("view engine", "pug");
 
 app.use(express.static(path.join(__dirname, "public"), staticOptions));
 
-app.use(rateLimiter);
 app.use(morgan("dev"));
 app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
