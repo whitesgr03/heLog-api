@@ -278,10 +278,10 @@ const postUpdate = [
 	asyncHandler(async (req, res, next) => {
 		const { title, mainImage, content, publish } = req.data;
 
-		title && (req.post.title = title);
-		mainImage && (req.post.mainImage = mainImage);
-		content && (req.post.content = content);
-		publish && (req.post.publish = publish);
+		(title || title === "") && (req.post.title = title);
+		(mainImage || mainImage === "") && (req.post.mainImage = mainImage);
+		(content || content === "") && (req.post.content = content);
+		(publish || publish === "") && (req.post.publish = publish);
 
 		req.post.lastModified = new Date();
 
