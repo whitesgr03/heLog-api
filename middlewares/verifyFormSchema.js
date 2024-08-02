@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
-
 import { validationResult, checkSchema, matchedData } from "express-validator";
+import Csrf from "csrf";
 
 const verifyFormSchema = schema => {
 	return asyncHandler(async (req, res, next) => {
@@ -8,7 +8,7 @@ const verifyFormSchema = schema => {
 
 		const schemaErrors = validationResult(req);
 
-		const handleSchemaErrors = () => {
+		const handleSchemaErrors = async () => {
 			const inputErrors = schemaErrors.mapped();
 			const {
 				state,
@@ -25,9 +25,14 @@ const verifyFormSchema = schema => {
 				`&redirect_url=${redirect_url}` +
 				`&darkTheme=${darkTheme}`;
 
+			const csrf = new Csrf();
+			const secret = await csrf.secret();
+			req.session.csrf = secret;
+
 			res.render(req.path.split("/")[1], {
 				user: { ...req.body },
 				queries,
+				csrfToken: csrf.create(secret),
 				inputErrors,
 			});
 		};
