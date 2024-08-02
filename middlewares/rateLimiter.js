@@ -9,10 +9,13 @@ const rateLimiter = rateLimit({
 		rateLimiterLog("limit ip:", req.ip, "for path:", req.path);
 		const message = "You have sent too many requests in 24 hrs limit!";
 		const path = req.path.split("/")[2];
+
+		const handleError = () => {
+			rateLimiterLog(message);
+			res.render("error");
+		};
 		(path && path === "login") || path === "register"
-			? res.render("error", {
-					limit: message,
-			  })
+			? handleError()
 			: res.json({
 					success: false,
 					message,

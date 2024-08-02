@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
 import Csrf from "csrf";
+import debug from "debug";
 
 import { sessionStore } from "../config/database.js";
 
@@ -14,6 +15,8 @@ import handleLogin from "../middlewares/handleLogin.js";
 
 import User from "../models/user.js";
 import RefreshToken from "../models/refreshToken.js";
+
+const serverLog = debug("Server");
 
 const csrf = new Csrf();
 
@@ -154,11 +157,14 @@ const userLoginPost = [
 			next();
 		};
 
+		const handleError = () => {
+			serverLog("The csrf token is invalid.");
+			res.render("error");
+		};
+
 		csrf.verify(req.session.csrf, req.body.csrfToken)
 			? setSession()
-			: res.render("error", {
-					message: "The csrf token is invalid",
-			  });
+			: handleError();
 	}),
 	asyncHandler((req, res, next) => {
 		req.is("application/x-www-form-urlencoded")
@@ -235,11 +241,15 @@ const userRegisterPost = [
 			delete req.session.csrf;
 			next();
 		};
+
+		const handleError = () => {
+			serverLog("The csrf token is invalid.");
+			res.render("error");
+		};
+
 		csrf.verify(req.session.csrf, req.body.csrfToken)
 			? setSession()
-			: res.render("error", {
-					message: "The csrf token is invalid",
-			  });
+			: handleError();
 	}),
 	asyncHandler((req, res, next) => {
 		req.is("application/x-www-form-urlencoded")
