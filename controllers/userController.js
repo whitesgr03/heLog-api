@@ -15,6 +15,9 @@ import handleLogin from "../middlewares/handleLogin.js";
 
 import User from "../models/user.js";
 import RefreshToken from "../models/refreshToken.js";
+import Post from "../models/post.js";
+import Comment from "../models/comment.js";
+import Reply from "../models/reply.js";
 
 const serverLog = debug("Server");
 
@@ -103,11 +106,43 @@ const userUpdate = [
 const userDelete = [
 	verifyToken,
 	asyncHandler(async (req, res, next) => {
+		const posts = await Post.find(
+			{ author: req.user.id },
+			{ _id: 1 }
+		).exec();
+
 		await Promise.all([
+			...posts.map(async post => {
+				Promise.all([
+					Comment.deleteMany({ post: post._id }).exec(),
+					Reply.deleteMany({ post: post._id }).exec(),
+					post.deleteOne(),
+				]);
+			}),
 			User.findByIdAndDelete(req.user.id).exec(),
 			RefreshToken.findOneAndDelete({
-				user: req.user._id,
+				user: req.user.id,
 			}).exec(),
+			Comment.updateMany(
+				{
+					author: req.user.id,
+				},
+				{
+					content: "Comment deleted by user",
+					lastModified: new Date(),
+					deleted: true,
+				}
+			).exec(),
+			Reply.updateMany(
+				{
+					author: req.user.id,
+				},
+				{
+					content: "Reply deleted by user",
+					lastModified: new Date(),
+					deleted: true,
+				}
+			).exec(),
 		]);
 
 		sessionStore.destroy(req.payload.sid, err =>
