@@ -6,7 +6,7 @@ block head
 block content
     div.formContainer
         h3.title User Register
-        div.formWrap
+        div.container
             form(method="POST")
                 input(name="csrfToken"  type="hidden" value= csrfToken)
                 div 
@@ -57,9 +57,8 @@ block content
                     div.placeholder
                         span.icon.alert
                         p= inputErrors && inputErrors.confirmPassword  ? inputErrors.confirmPassword.msg : "Message placeholder"
-                button(type="submit")
-                    span.text  Register
-                        span.icon.loadIcon
+                button(type="submit") Register
+            hr
             div.linkWrap
                 p Already have an account?
-                a(href=`/account/login?${queries}`) Login in
+                a(href='/account/login') Login in
