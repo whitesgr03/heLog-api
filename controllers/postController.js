@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { Types, isValidObjectId } from "mongoose";
 import https from "node:https";
+import DOMPurify from "isomorphic-dompurify";
 
 import verifyToken from "../middlewares/verifyToken.js";
 import verifyPermission from "../middlewares/verifyPermission.js";
@@ -152,6 +153,7 @@ const postCreate = [
 
 		const newPost = new Post({
 			...req.data,
+			title: DOMPurify.sanitize(req.data.title),
 			author: req.user.id,
 			lastModified: currentTime,
 			createdAt: currentTime,
@@ -271,7 +273,7 @@ const postUpdate = [
 	asyncHandler(async (req, res, next) => {
 		const { title, mainImage, content, publish } = req.data;
 
-		(title || title === "") && (req.post.title = title);
+		(title || title === "") && (req.post.title = DOMPurify.sanitize(title));
 		(mainImage || mainImage === "") && (req.post.mainImage = mainImage);
 		(content || content === "") && (req.post.content = content);
 		(publish || publish === "") && (req.post.publish = publish);
