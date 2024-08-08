@@ -33,6 +33,8 @@ app.use((req, res, next) => {
 
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
+	methods: ["GET", "PUT", "POST", "DELETE"],
+	allowedHeaders: ["Content-Type", "Authorization"],
 	maxAge: 60,
 };
 const helmetOptions = {
