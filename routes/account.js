@@ -16,4 +16,9 @@ router
 
 router.get("/logout", userControllers.userLogout);
 
+router.get("/login/google", userControllers.googleLogin);
+router.get("/oauth2/redirect/google", userControllers.googleRedirect);
+router.get("/login/facebook", userControllers.facebookLogin);
+router.get("/oauth2/redirect/facebook", userControllers.facebookRedirect);
+
 export default router;
