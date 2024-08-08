@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { Types } from "mongoose";
 import Csrf from "csrf";
 import debug from "debug";
+import passport from "../config/passport.js";
 
 import { sessionStore } from "../config/database.js";
 
@@ -398,6 +399,40 @@ const userLogout = [
 		);
 	}),
 ];
+const googleLogin = [
+	verifyAuthenticated,
+	verifyQuery,
+	passport.authenticate("google"),
+];
+const googleRedirect = [
+	verifyAuthenticated,
+	verifyQuery,
+	asyncHandler((req, res, next) => {
+		req.query.error ? res.redirect("/account/login") : next();
+	}),
+	asyncHandler((req, res, next) => {
+		const authenticateFn = passport.authenticate(
+			"google",
+			async (err, user) => {
+				err && next(err);
+
+				const handleLogin = () => {
+					const queries = req.session.queries;
+
+					const cb = () => {
+						req.session.queries = queries;
+						res.redirect("/auth/code");
+					};
+
+					req.login(user, cb);
+				};
+				user && handleLogin();
+			}
+		);
+		authenticateFn(req, res, next);
+	}),
+];
+
 
 export {
 	userUpdate,
@@ -408,4 +443,6 @@ export {
 	userLoginGet,
 	userRegisterGet,
 	userLogout,
+	googleLogin,
+	googleRedirect,
 };
