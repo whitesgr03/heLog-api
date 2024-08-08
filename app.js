@@ -62,7 +62,7 @@ const helmetOptions = {
 	},
 	xFrameOptions: { action: "deny" },
 	referrerPolicy: {
-		policy: ["no-referrer", "strict-origin-when-cross-origin"],
+		policy: ["no-referrer"],
 	},
 };
 const sessionOptions = {
