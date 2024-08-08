@@ -5,31 +5,56 @@
 
 :root {
 	/* light */
-	--light-scheme-color: #000;
+	--light-scheme-color: rgb(0, 0, 0);
+	--light-scheme-color-rgb: 0, 0, 0;
 
-	--light-scheme-layout-bgc: #dcd6d6;
-	--light-scheme-layout-shadow: #bbbdc3;
-	--light-scheme-main-bgc: #f5f8fe;
+	--light-scheme-layout-bgc: rgb(220, 214, 214);
+	--light-scheme-layout-bgc-rgb: 220, 214, 214;
 
-	--light-scheme-link-bgc-hover: rgba(0, 0, 0, 0.2);
+	--light-scheme-layout-shadow: rgb(187, 189, 195);
+	--light-scheme-layout-shadow-rgb: 187, 189, 195;
 
-	--light-scheme-highlight: #175073;
-	--light-scheme-success: #0b563d;
-	--light-scheme-error: #911d1d;
+	--light-scheme-google-bgc: rgb(255, 255, 255);
+
+	--light-scheme-main-bgc: rgb(245, 248, 254);
+	--light-scheme-main-bgc-rgb: 245, 248, 254;
+
+	--light-scheme-highlight: rgb(23, 80, 115);
+	--light-scheme-highlight-rgb: 23, 80, 115;
+
+	--light-scheme-success: rgb(11, 86, 61);
+	--light-scheme-success-rgb: 11, 86, 61;
+
+	--light-scheme-error: rgb(145, 29, 29);
+	--light-scheme-error-rgb: 145, 29, 29;
 
 	/* dark */
-	--dark-scheme-color: #d1d1d1;
+	--dark-scheme-color: rgb(209, 209, 209);
+	--dark-scheme-color-rgb: 209, 209, 209;
 
-	--dark-scheme-layout-bgc: #0a1324;
-	--dark-scheme-layout-border-shadow: #cacdd4;
+	--dark-scheme-layout-bgc: rgb(10, 19, 36);
+	--dark-scheme-layout-bgc-rgb: 10, 19, 36;
 
-	--dark-scheme-link-bgc-hover: rgba(209, 209, 209, 0.2);
-	--dark-scheme-input-bgc: #483b2e;
-	--dark-scheme-switch-bgc: #573614;
+	--dark-scheme-layout-border-shadow: rgb(202, 205, 212);
+	--dark-scheme-layout-border-shadow-rgb: 202, 205, 212;
 
-	--dark-scheme-highlight: #f2a145;
-	--dark-scheme-success: #5cb297;
-	--dark-scheme-error: #ec7474;
+	--dark-scheme-input-bgc: rgb(72, 59, 46);
+	--dark-scheme-input-bgc-rgb: 72, 59, 46;
+
+	--dark-scheme-switch-bgc: rgb(87, 54, 20);
+	--dark-scheme-switch-bgc-rgb: 87, 54, 20;
+
+	--dark-scheme-placeholder: rgb(168, 168, 168);
+	--dark-scheme-placeholder-rgb: 168, 168, 168;
+
+	--dark-scheme-highlight: rgb(242, 161, 69);
+	--dark-scheme-highlight-rgb: 242, 161, 69;
+
+	--dark-scheme-success: rgb(92, 178, 151);
+	--dark-scheme-success-rgb: 92, 178, 151;
+
+	--dark-scheme-error: rgb(236, 116, 116);
+	--dark-scheme-error-rgb: 236, 116, 116;
 
 	/* icon */
 	--icon-size-mobile: 45px;
@@ -140,6 +165,10 @@ main > * {
 	pointer-events: none;
 }
 
+hr {
+	border-top: 1px solid var(--light-scheme-color);
+}
+
 /* Dark scheme classes */
 .dark * {
 	font-weight: 300;
@@ -161,4 +190,8 @@ main > * {
 
 .dark .app {
 	background-color: var(--dark-scheme-layout-bgc);
+}
+
+.dark hr {
+	border-top-color: var(--dark-scheme-color);
 }
