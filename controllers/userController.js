@@ -433,6 +433,39 @@ const googleRedirect = [
 	}),
 ];
 
+const facebookLogin = [
+	verifyAuthenticated,
+	verifyQuery,
+	passport.authenticate("facebook"),
+];
+const facebookRedirect = [
+	verifyAuthenticated,
+	verifyQuery,
+	asyncHandler((req, res, next) => {
+		req.query.error ? res.redirect("/account/login") : next();
+	}),
+	asyncHandler((req, res, next) => {
+		const authenticateFn = passport.authenticate(
+			"facebook",
+			async (err, user) => {
+				err && next(err);
+
+				const handleLogin = () => {
+					const queries = req.session.queries;
+
+					const cb = () => {
+						req.session.queries = queries;
+						res.redirect("/auth/code");
+					};
+
+					req.login(user, cb);
+				};
+				user && handleLogin();
+			}
+		);
+		authenticateFn(req, res, next);
+	}),
+];
 
 export {
 	userUpdate,
@@ -445,4 +478,6 @@ export {
 	userLogout,
 	googleLogin,
 	googleRedirect,
+	facebookLogin,
+	facebookRedirect,
 };
