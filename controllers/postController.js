@@ -62,7 +62,6 @@ const postCreate = [
 	verifyToken,
 	verifyJSONSchema({
 		title: {
-			unescape: true,
 			optional: true,
 			trim: true,
 			isLength: {
@@ -70,7 +69,6 @@ const postCreate = [
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (title, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -147,7 +145,6 @@ const postCreate = [
 			isBoolean: {
 				errorMessage: "The publish must be boolean.",
 			},
-			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
@@ -177,7 +174,6 @@ const postUpdate = [
 	verifyPermission("post"),
 	verifyJSONSchema({
 		title: {
-			unescape: true,
 			optional: true,
 			trim: true,
 			isLength: {
@@ -185,7 +181,6 @@ const postUpdate = [
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (title, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -207,7 +202,6 @@ const postUpdate = [
 					}),
 				errorMessage: "The title is been used.",
 			},
-			escape: true,
 		},
 		mainImage: {
 			optional: true,
@@ -272,7 +266,6 @@ const postUpdate = [
 			isBoolean: {
 				errorMessage: "The publish must be boolean.",
 			},
-			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
