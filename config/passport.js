@@ -8,8 +8,6 @@ import { Strategy as FacebookStrategy } from "passport-facebook";
 import User from "../models/user.js";
 import FederatedCredential from "../models/federatedCredential.js";
 
-const errorLog = debug("AuthenticateError");
-
 passport.use(
 	new LocalStrategy(
 		{ usernameField: "email" },
