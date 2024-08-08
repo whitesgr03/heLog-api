@@ -4,8 +4,9 @@ import asyncHandler from "express-async-handler";
 const serverLog = debug("Server");
 
 const verifyQuery = asyncHandler((req, res, next) => {
-	const { state, code_challenge, code_challenge_method, redirect_url } =
-		req.query;
+	const obj = req.session?.queries || req.query;
+
+	const { state, code_challenge, code_challenge_method, redirect_url } = obj;
 
 	const handleError = () => {
 		serverLog("The request is missing a required parameter.");
