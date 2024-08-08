@@ -26,7 +26,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(16).toString("base64");
-	res.locals.darkScheme = req.query.darkTheme === "true";
 	res.locals.clientUrl = process.env.HELOG_URL;
 	next();
 });
@@ -99,6 +98,11 @@ app.use(cors(corsOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(compression());
+
+app.use((req, res, next) => {
+	res.locals.darkScheme = req.session?.queries?.darkTheme === "true";
+	next();
+});
 
 app.use("/account", accountRouter);
 app.use("/auth", authRouter);
