@@ -16,13 +16,16 @@ const serverLog = debug("Server");
 const authCode = [
 	verifyQuery,
 	asyncHandler((req, res, next) => {
-		const { redirect_url } = req.query;
+		const obj = req.session?.queries || req.query;
+
+		const { redirect_url } = obj;
 
 		const handleError = () => {
 			serverLog("The redirect url provided is invalid.");
 			res.render("error");
 		};
 
+		redirect_url &&
 		process.env.ALLOW_REDIRECT_URLS.split(",").includes(redirect_url)
 			? next()
 			: handleError();
@@ -48,8 +51,10 @@ const authCode = [
 	}),
 	asyncHandler(async (req, res, next) => {
 		const code = randomBytes(16).toString("hex");
+		const obj = req.session?.queries || req.query;
+
 		const { state, code_challenge, code_challenge_method, redirect_url } =
-			req.query;
+			obj;
 
 		const newAuthCode = new AuthCode({
 			session: req.session.id,
@@ -59,6 +64,8 @@ const authCode = [
 		});
 
 		await newAuthCode.save();
+
+		req.session?.queries && delete req.session.queries;
 
 		res.redirect(`${redirect_url}?state=${state}&code=${code}`);
 	}),
