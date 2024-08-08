@@ -163,26 +163,9 @@ const userLoginGet = [
 	verifyAuthenticated,
 	verifyQuery,
 	asyncHandler(async (req, res, next) => {
-		const {
-			state,
-			code_challenge,
-			code_challenge_method,
-			redirect_url,
-			darkTheme,
-		} = req.query;
-
-		const queries =
-			`state=${state}` +
-			`&code_challenge=${code_challenge}` +
-			`&code_challenge_method=${code_challenge_method}` +
-			`&redirect_url=${redirect_url}` +
-			`&darkTheme=${darkTheme}`;
-
 		const secret = await csrf.secret();
 		req.session.csrf = secret;
-
 		res.render("login", {
-			queries,
 			csrfToken: csrf.create(secret),
 		});
 	}),
@@ -250,24 +233,9 @@ const userRegisterGet = [
 	verifyAuthenticated,
 	verifyQuery,
 	asyncHandler(async (req, res, next) => {
-		const {
-			state,
-			code_challenge,
-			code_challenge_method,
-			redirect_url,
-			darkTheme,
-		} = req.query;
-		const queries =
-			`state=${state}` +
-			`&code_challenge=${code_challenge}` +
-			`&code_challenge_method=${code_challenge_method}` +
-			`&redirect_url=${redirect_url}` +
-			`&darkTheme=${darkTheme}`;
-
 		const secret = await csrf.secret();
 		req.session.csrf = secret;
 		res.render("register", {
-			queries,
 			csrfToken: csrf.create(secret),
 		});
 	}),
