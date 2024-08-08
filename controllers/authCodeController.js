@@ -31,23 +31,29 @@ const authCode = [
 			: handleError();
 	}),
 	asyncHandler((req, res, next) => {
-		const {
-			state,
-			code_challenge,
-			code_challenge_method,
-			redirect_url,
-			darkTheme,
-		} = req.query;
-		const queries =
-			`state=${state}` +
-			`&code_challenge=${code_challenge}` +
-			`&code_challenge_method=${code_challenge_method}` +
-			`&redirect_url=${redirect_url}` +
-			`&darkTheme=${darkTheme}`;
+		const handleLogin = () => {
+			const {
+				state,
+				code_challenge,
+				code_challenge_method,
+				redirect_url,
+				darkTheme
+			} = req.query;
 
-		req.isAuthenticated()
-			? next()
-			: res.redirect(`/account/login?${queries}`);
+			const queries = {
+				state,
+				code_challenge,
+				code_challenge_method,
+				redirect_url,
+				darkTheme,
+			};
+
+			req.session.queries = queries;
+
+			res.redirect(`/account/login`);
+		};
+
+		req.isAuthenticated() ? next() : handleLogin();
 	}),
 	asyncHandler(async (req, res, next) => {
 		const code = randomBytes(16).toString("hex");
