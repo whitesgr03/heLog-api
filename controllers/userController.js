@@ -18,6 +18,7 @@ import RefreshToken from "../models/refreshToken.js";
 import Post from "../models/post.js";
 import Comment from "../models/comment.js";
 import Reply from "../models/reply.js";
+import FederatedCredential from "../models/federatedCredential.js";
 
 const serverLog = debug("Server");
 
@@ -121,6 +122,9 @@ const userDelete = [
 			}),
 			User.findByIdAndDelete(req.user.id).exec(),
 			RefreshToken.findOneAndDelete({
+				user: req.user.id,
+			}).exec(),
+			FederatedCredential.findOneAndDelete({
 				user: req.user.id,
 			}).exec(),
 			Comment.updateMany(
