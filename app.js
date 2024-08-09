@@ -104,6 +104,7 @@ app.use((req, res, next) => {
 	next();
 });
 
+app.get("/", (req, res) => res.redirect(process.env.HELOG_URL));
 app.use("/account", accountRouter);
 app.use("/auth", authRouter);
 app.use("/blog", blogRouter);
