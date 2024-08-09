@@ -10,20 +10,6 @@ const verifyFormSchema = schema => {
 
 		const handleSchemaErrors = async () => {
 			const inputErrors = schemaErrors.mapped();
-			const {
-				state,
-				code_challenge,
-				code_challenge_method,
-				redirect_url,
-				darkTheme,
-			} = req.query;
-
-			const queries =
-				`state=${state}` +
-				`&code_challenge=${code_challenge}` +
-				`&code_challenge_method=${code_challenge_method}` +
-				`&redirect_url=${redirect_url}` +
-				`&darkTheme=${darkTheme}`;
 
 			const csrf = new Csrf();
 			const secret = await csrf.secret();
@@ -31,7 +17,6 @@ const verifyFormSchema = schema => {
 
 			res.render(req.path.split("/")[1], {
 				user: { ...req.body },
-				queries,
 				csrfToken: csrf.create(secret),
 				inputErrors,
 			});
