@@ -25,6 +25,9 @@ router
 	.route("/posts")
 	.get(postControllers.postList)
 	.post(postControllers.postCreate);
+
+router.get("/posts", postControllers.postListUser);
+
 router
 	.route("/posts/:postId")
 	.get(postControllers.postDetail)
