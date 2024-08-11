@@ -9,33 +9,27 @@ import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
 
 import Post from "../models/post.js";
-
 const postList = [
-	asyncHandler((req, res, next) => {
-		const { userId = null } = req.query;
-
-		!userId || isValidObjectId(userId)
-			? next()
-			: res.status(400).json({
-					success: false,
-					message: "The query is invalid.",
-			  });
-	}),
 	asyncHandler(async (req, res, next) => {
-		const { limit = 0, userId = null } = req.query;
-
-		const filter = {};
-
-		userId
-			? (filter.author = new Types.ObjectId(userId))
-			: (filter.publish = true);
-
-		const posts = await Post.find(filter)
+		req.headers.authorization ? next("route") : next();
+	}),
+	asyncHandler(async (req, res) => {
+		const posts = await Post.find({ publish: true })
 			.populate("author", {
 				name: 1,
 			})
 			.sort({ createdAt: -1 })
-			.limit(limit)
+			.exec();
+
+		res.header({
+			"Cache-Control": "no-store",
+		}).json({
+			success: true,
+			message: "Get all posts successfully.",
+			data: posts,
+		});
+	}),
+];
 			.exec();
 
 		res.header({
