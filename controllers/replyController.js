@@ -22,7 +22,7 @@ const replyList = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const { limit = 0, postId = null } = req.query;
+		const { postId = null } = req.query;
 
 		const filter = {};
 
@@ -37,7 +37,6 @@ const replyList = [
 				select: "author deleted",
 				populate: { path: "author", select: "name -_id" },
 			})
-			.limit(limit)
 			.sort()
 			.exec();
 
