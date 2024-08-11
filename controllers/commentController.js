@@ -57,7 +57,6 @@ const commentCreate = [
 				options: { max: 500 },
 				errorMessage: "The content must be less than 500 long.",
 			},
-			escape: true,
 		},
 		post: {
 			trim: true,
@@ -78,7 +77,6 @@ const commentCreate = [
 					}),
 				errorMessage: "The post could not be found.",
 			},
-			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
@@ -114,7 +112,6 @@ const commentUpdate = [
 				options: { max: 500 },
 				errorMessage: "The content must be less than 500 long.",
 			},
-			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {

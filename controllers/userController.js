@@ -62,7 +62,6 @@ const userUpdate = [
 				errorMessage: "The name must be alphanumeric and underscore.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (name, { req }) =>
 					new Promise(async (resolve, reject) => {
@@ -213,7 +212,6 @@ const userLoginPost = [
 				errorMessage: "The email must be in standard format.",
 				bail: true,
 			},
-			escape: true,
 		},
 		password: {
 			trim: true,
@@ -296,7 +294,6 @@ const userRegisterPost = [
 					}),
 				errorMessage: "The name is been used.",
 			},
-			escape: true,
 		},
 		email: {
 			trim: true,
@@ -313,7 +310,6 @@ const userRegisterPost = [
 				errorMessage: "The email must be in standard format.",
 				bail: true,
 			},
-			escape: true,
 			custom: {
 				options: (email, { req }) =>
 					new Promise(async (resolve, reject) => {

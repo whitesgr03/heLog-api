@@ -63,7 +63,6 @@ const replyCreate = [
 				options: { max: 500 },
 				errorMessage: "The content must be less than 500 long.",
 			},
-			escape: true,
 		},
 		post: {
 			trim: true,
@@ -84,7 +83,6 @@ const replyCreate = [
 					}),
 				errorMessage: "The post could not be found.",
 			},
-			escape: true,
 		},
 		comment: {
 			trim: true,
@@ -108,7 +106,6 @@ const replyCreate = [
 					}),
 				errorMessage: "The comment could not be found.",
 			},
-			escape: true,
 		},
 		reply: {
 			optional: true,
@@ -126,7 +123,6 @@ const replyCreate = [
 					}),
 				errorMessage: "The reply could not be found.",
 			},
-			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
@@ -162,7 +158,6 @@ const replyUpdate = [
 				options: { max: 500 },
 				errorMessage: "The content must be less than 500 long.",
 			},
-			escape: true,
 		},
 	}),
 	asyncHandler(async (req, res, next) => {
