@@ -112,6 +112,8 @@ const userDelete = [
 			{ _id: 1 }
 		).exec();
 
+		const currentTime = new Date();
+
 		await Promise.all([
 			...posts.map(async post => {
 				Promise.all([
@@ -133,7 +135,7 @@ const userDelete = [
 				},
 				{
 					content: "Comment deleted by user",
-					lastModified: new Date(),
+					lastModified: currentTime,
 					deleted: true,
 				}
 			).exec(),
@@ -143,7 +145,7 @@ const userDelete = [
 				},
 				{
 					content: "Reply deleted by user",
-					lastModified: new Date(),
+					lastModified: currentTime,
 					deleted: true,
 				}
 			).exec(),
