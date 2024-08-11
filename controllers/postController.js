@@ -62,6 +62,7 @@ const postCreate = [
 	verifyToken,
 	verifyJSONSchema({
 		title: {
+			unescape: true,
 			optional: true,
 			trim: true,
 			isLength: {
@@ -175,6 +176,7 @@ const postUpdate = [
 	verifyPermission("post"),
 	verifyJSONSchema({
 		title: {
+			unescape: true,
 			optional: true,
 			trim: true,
 			isLength: {
