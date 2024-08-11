@@ -3,6 +3,7 @@ import debug from "debug";
 import asyncHandler from "express-async-handler";
 import { randomBytes } from "node:crypto";
 import { sessionStore } from "../config/database.js";
+import { sanitizeFilter } from "mongoose";
 
 import verifyToken from "../middlewares/verifyToken.js";
 import verifyQuery from "../middlewares/verifyQuery.js";
@@ -37,7 +38,7 @@ const authCode = [
 				code_challenge,
 				code_challenge_method,
 				redirect_url,
-				darkTheme
+				darkTheme,
 			} = req.query;
 
 			const queries = {
@@ -213,7 +214,7 @@ const tokenCreate = [
 	}),
 	asyncHandler(async (req, res, next) => {
 		const authCode = await AuthCode.findOne({
-			code: req.body.code,
+			code: sanitizeFilter(req.body.code),
 		}).exec();
 
 		const handleSetLocals = () => {
