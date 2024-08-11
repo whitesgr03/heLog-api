@@ -176,14 +176,14 @@ const tokenExChange = [
 	asyncHandler(async (req, res, next) => {
 		const currentTime = Date.now();
 
-		req.refreshToken.notBefore = new Date(currentTime + 60 * 1000);
+		req.refreshToken.notBefore = new Date(currentTime + 60 * 60 * 1000);
 
 		await req.refreshToken.save();
 
 		const access_token = jwt.sign(
 			{
 				sid: req.payload.sid,
-				exp: Math.floor(currentTime / 1000) + 60,
+				exp: Math.floor(currentTime / 1000) + 60 * 60,
 			},
 			process.env.JWT_SECRET,
 			{
@@ -277,14 +277,14 @@ const tokenCreate = [
 		const handleCreateRefreshToken = async () => {
 			const newRefreshToken = new RefreshToken({
 				user: req.user.id,
-				notBefore: new Date(currentTime + 60 * 1000),
+				notBefore: new Date(currentTime + 60 * 60 * 1000),
 				expiresAfter: req.user.session.exp,
 			});
 
 			data.access_token = jwt.sign(
 				{
 					sid: req.authCode.session,
-					exp: unixTime + 60,
+					exp: unixTime + 60 * 60,
 				},
 				process.env.JWT_SECRET,
 				{
