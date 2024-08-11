@@ -17,7 +17,7 @@ const commentList = [
 			? next()
 			: res.status(400).json({
 					success: false,
-					message: "The postId query is invalid object id..",
+					message: "The post query is invalid object id..",
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
