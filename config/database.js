@@ -5,22 +5,20 @@ import MongoStore from "connect-mongo";
 const databaseLog = debug("Mongoose");
 
 const handleError = err => {
-	databaseLog("Connect error");
-	databaseLog(`${err.name}: ${err.message}`);
-	databaseLog("Process exit.");
+	databaseLog("Database connecting error");
+	databaseLog(err);
+	mongoose.disconnect();
+	databaseLog(`Database is disconnected.`);
 	process.exit(1);
 };
 
-const db = mongoose.connection;
-
-db.on("connecting", () => databaseLog("Starting connect to MongoDB"));
-db.on("disconnected", () => databaseLog("Disconnected to MongoDB"));
-db.on("error", err => handleError(err));
-
+mongoose.connection.on("connecting", () =>
+	databaseLog("Connecting MongoDB...")
+);
 mongoose
 	.connect(process.env.DATABASE_STRING, { dbName: process.env.DATABASE_NAME })
 	.catch(err => handleError(err));
 
-const sessionStore = MongoStore.create(db);
+const sessionStore = MongoStore.create(mongoose.connection);
 
-export { db as default, sessionStore };
+export { sessionStore };
