@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import { Types, isValidObjectId } from "mongoose";
+import { Types } from "mongoose";
 import https from "node:https";
 
 import verifyToken from "../middlewares/verifyToken.js";
@@ -8,6 +8,9 @@ import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
 
 import Post from "../models/post.js";
+import Comment from "../models/comment.js";
+import Reply from "../models/reply.js";
+
 const postList = [
 	asyncHandler(async (req, res, next) => {
 		req.headers.authorization ? next("route") : next();
@@ -293,7 +296,11 @@ const postDelete = [
 	verifyId("post"),
 	verifyPermission("post"),
 	asyncHandler(async (req, res, next) => {
-		await req.post.deleteOne();
+		await Promise.all([
+			Comment.deleteMany({ post: req.params.postId }).exec(),
+			Reply.deleteMany({ post: req.params.postId }).exec(),
+			req.post.deleteOne(),
+		]);
 
 		res.json({
 			success: true,
