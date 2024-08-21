@@ -79,7 +79,7 @@ const sessionOptions = {
 };
 const staticOptions = {
 	index: false,
-	maxAge: "1d",
+	maxAge: "60 * 60 * 1000",
 	redirect: false,
 };
 
