@@ -26,7 +26,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(16).toString("base64");
-	res.locals.clientUrl = process.env.HELOG_URL;
 	next();
 });
 
@@ -90,16 +89,16 @@ app.set("trust proxy", 1);
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-app.use(express.static(path.join(__dirname, "public"), staticOptions));
-
-app.use(morgan("dev"));
-app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
+app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
+app.use(express.static(path.join(__dirname, "public"), staticOptions));
+app.use(morgan(process.env.production ? "common" : "dev"));
 app.use(compression());
 
 app.use((req, res, next) => {
+	res.locals.clientUrl = process.env.HELOG_URL;
 	res.locals.darkScheme = req.session?.queries?.darkTheme === "true";
 	next();
 });
