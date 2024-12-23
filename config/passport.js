@@ -1,34 +1,8 @@
 import passport from "passport";
-import bcrypt from "bcrypt";
-
-import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 
 import User from "../models/user.js";
-import FederatedCredential from "../models/federatedCredential.js";
-
-passport.use(
-	new LocalStrategy(
-		{ usernameField: "email" },
-		async (email, password, done) => {
-			try {
-				const user = await User.findOne({ email });
-				const match =
-					user && (await bcrypt.compare(password, user.password));
-
-				match
-					? done(null, {
-							_id: user._id,
-							isAdmin: user.isAdmin,
-					  })
-					: done(null, false, "The account could not be found.");
-			} catch (err) {
-				done(err);
-			}
-		}
-	)
-);
 passport.use(
 	new GoogleStrategy(
 		{
