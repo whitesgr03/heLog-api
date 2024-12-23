@@ -15,6 +15,7 @@ const UserSchema = new Schema(
 		},
 		username: { type: String },
 		isAdmin: { type: Boolean, immutable: true },
+		provider: { type: Array, required: true },
 	},
 );
 
