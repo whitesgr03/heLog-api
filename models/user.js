@@ -17,6 +17,7 @@ const UserSchema = new Schema(
 		isAdmin: { type: Boolean, immutable: true },
 		provider: { type: Array, required: true },
 	},
+	{ timestamps: true }
 );
 
 const UserModel = mongoose.model("User", UserSchema);
