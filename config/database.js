@@ -19,6 +19,4 @@ mongoose
 	.connect(process.env.DATABASE_STRING, { dbName: process.env.DATABASE_NAME })
 	.catch(err => handleError(err));
 
-const sessionStore = MongoStore.create(mongoose.connection);
-
-export { sessionStore };
+export const sessionStore = MongoStore.create(mongoose.connection);
