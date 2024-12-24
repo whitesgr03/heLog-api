@@ -30,9 +30,11 @@ passport.use(
 				done(null, { id: newUser._id });
 			};
 
+			const handleUpdate = async () => {
+				user.provider = [...user.provider, "google"];
+				await user.save();
+				done(null, { id: user.id });
 			};
-
-			credential ? done(null, credential.user) : await handleRegister();
 		}
 	)
 );
@@ -62,9 +64,12 @@ passport.use(
 
 				done(null, { id: newUser._id });
 			};
-			};
 
-			credential ? done(null, credential.user) : await handleRegister();
+			const handleUpdate = async () => {
+				user.provider = [...user.provider, "facebook"];
+				await user.save();
+				done(null, { id: user.id });
+			};
 		}
 	)
 );
