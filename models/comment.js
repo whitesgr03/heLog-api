@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const CommentModel = mongoose.model(
+export const Comment = mongoose.model(
 	"Comment",
 	new Schema(
 		{
@@ -24,4 +24,3 @@ const CommentModel = mongoose.model(
 		{ timestamps: true }
 	)
 );
-export default CommentModel;

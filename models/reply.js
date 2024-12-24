@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const ReplyModel = mongoose.model(
+export const Reply = mongoose.model(
 	"Reply",
 	new mongoose.Schema(
 		{
@@ -36,4 +36,4 @@ const ReplyModel = mongoose.model(
 	)
 );
 
-export default ReplyModel;
+
