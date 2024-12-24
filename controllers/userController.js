@@ -56,28 +56,26 @@ const userUpdate = [
 				errorMessage: "The name must be alphanumeric and underscore.",
 				bail: true,
 			},
-			custom: {
-				options: (name, { req }) =>
-					new Promise(async (resolve, reject) => {
-						const existingName = await User.findOne({
-							$and: [
-								{ name },
-								{
-									_id: {
-										$ne: Types.ObjectId.createFromHexString(
-											req.user.id
-										),
-									},
-								},
-							],
-						}).exec();
-						existingName
-							? reject((req.schema = { isConflict: true }))
-							: resolve();
-					}),
-				errorMessage: "The name is been used.",
-			},
-		},
+	}),
+	asyncHandler(async (req, res, next) => {
+		const { username } = req.data;
+		const existingUserName = await User.findOne({
+			$and: [
+				{ username },
+				{
+					_id: {
+						$ne: Types.ObjectId.createFromHexString(req.user.id),
+					},
+				},
+			],
+		}).exec();
+
+		existingUserName
+			? res.json({
+					success: false,
+					message: "Username is been used.",
+			  })
+			: next();
 	}),
 	asyncHandler(async (req, res, next) => {
 		const newUser = {
