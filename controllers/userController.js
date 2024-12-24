@@ -11,6 +11,18 @@ import { User } from "../models/user.js";
 import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 import { Reply } from "../models/reply.js";
+
+export const userPostList = [
+	asyncHandler(async (req, res) => {
+		const posts = await Post.find({ author: req.user.id }).exec();
+
+		res.json({
+			success: true,
+			message: "Get user's post list successfully.",
+			data: posts,
+		});
+	}),
+];
 		const user = await User.findById(req.user.id, {
 			name: 1,
 			isAdmin: 1,
