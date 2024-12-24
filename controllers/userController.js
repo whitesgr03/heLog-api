@@ -1,33 +1,16 @@
+// Modules
 import asyncHandler from "express-async-handler";
-import bcrypt from "bcrypt";
 import { Types } from "mongoose";
-import Csrf from "csrf";
-import debug from "debug";
-import passport from "../config/passport.js";
+import { checkSchema } from "express-validator";
 
-import { sessionStore } from "../config/database.js";
+// Middlewares
+import { validationScheme } from "../middlewares/validationScheme.js";
 
-import verifyFormSchema from "../middlewares/verifyFormSchema.js";
-import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
-import verifyToken from "../middlewares/verifyToken.js";
-import verifyQuery from "../middlewares/verifyQuery.js";
-import verifyAuthenticated from "../middlewares/verifyAuthenticated.js";
-import handleLogin from "../middlewares/handleLogin.js";
-
-import User from "../models/user.js";
-import RefreshToken from "../models/refreshToken.js";
-import Post from "../models/post.js";
-import Comment from "../models/comment.js";
-import Reply from "../models/reply.js";
-import FederatedCredential from "../models/federatedCredential.js";
-
-const serverLog = debug("Server");
-
-const csrf = new Csrf();
-
-const userInfo = [
-	verifyToken,
-	asyncHandler(async (req, res, next) => {
+// Models
+import { User } from "../models/user.js";
+import { Post } from "../models/post.js";
+import { Comment } from "../models/comment.js";
+import { Reply } from "../models/reply.js";
 		const user = await User.findById(req.user.id, {
 			name: 1,
 			isAdmin: 1,
