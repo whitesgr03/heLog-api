@@ -2,7 +2,8 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 
-import User from "../models/user.js";
+import { User } from "../models/user.js";
+
 passport.use(
 	new GoogleStrategy(
 		{
@@ -13,12 +14,9 @@ passport.use(
 			state: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
-			const credential = await FederatedCredential.findOne({
-				provider: "https://accounts.google.com",
-				subject: profile.id,
-			})
-				.populate("user", { isAdmin: 1 })
-				.exec();
+			const user = await User.findOne({
+				email: profile.emails[0].value,
+			}).exec();
 
 			const handleRegister = async () => {
 				const currentTime = new Date();
@@ -60,12 +58,9 @@ passport.use(
 			state: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
-			const credential = await FederatedCredential.findOne({
-				provider: "https://www.facebook.com",
-				subject: profile.id,
-			})
-				.populate("user", { isAdmin: 1 })
-				.exec();
+			const user = await User.findOne({
+				email: profile.emails[0].value,
+			}).exec();
 
 			const handleRegister = async () => {
 				const currentTime = new Date();
