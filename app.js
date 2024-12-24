@@ -21,6 +21,8 @@ const errorLog = debug("ServerError");
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
 	methods: ["GET", "POST", "PATCH", "DELETE"],
+	credentials: true,
+	allowedHeaders: ["Content-Type"],
 	maxAge: 3600,
 };
 const sessionOptions = {
