@@ -18,6 +18,7 @@ import { sessionStore } from "./config/database.js";
 // routes
 import { accountRouter } from "./routes/account.js";
 import { blogRouter } from "./routes/blog.js";
+import { userRouter } from "./routes/user.js";
 
 const app = express();
 const errorLog = debug("ServerError");
@@ -104,7 +105,7 @@ app.use((req, res, next) => {
 
 app.get("/", (req, res) => res.redirect(process.env.HELOG_URL));
 app.use("/account", accountRouter);
-app.use("/auth", authRouter);
+app.use("/user", userRouter);
 app.use("/blog", blogRouter);
 
 // Unknown routes handler
