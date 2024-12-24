@@ -24,10 +24,6 @@ const app = express();
 const errorLog = debug("ServerError");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-app.use((req, res, next) => {
-	res.locals.cspNonce = randomBytes(16).toString("base64");
-	next();
-});
 
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
