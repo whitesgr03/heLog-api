@@ -136,12 +136,14 @@ export const userDelete = [
 
 		next();
 	}),
+	(req, res, next) => {
+		req.logout(err =>
 			err
 				? next(err)
-				: res.clearCookie("helog.connect.sid").json({
+				: res.json({
 						success: true,
 						message: "Delete user successfully.",
 				  })
 		);
-	}),
+	},
 ];
