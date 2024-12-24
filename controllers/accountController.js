@@ -1,5 +1,7 @@
 import passport from "../config/passport.js";
 
+import { authenticate } from "../middlewares/authenticate.js";
+
 export const googleLogin = [
 	(req, res, next) => {
 		req.session.oauth2 = true;
@@ -55,6 +57,7 @@ export const facebookRedirect = [
 	},
 ];
 export const userLogout = [
+	authenticate,
 	(req, res, next) => {
 		req.logout(err =>
 			err
