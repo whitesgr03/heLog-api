@@ -11,7 +11,6 @@ blogRouter
 	.get(postControllers.postList)
 	.post(postControllers.postCreate);
 
-router.get("/posts", postControllers.postListUser);
 
 blogRouter
 	.route("/posts/:postId")
