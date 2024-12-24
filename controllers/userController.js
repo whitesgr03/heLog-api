@@ -116,12 +116,6 @@ export const userDelete = [
 				]);
 			}),
 			User.findByIdAndDelete(req.user.id).exec(),
-			RefreshToken.findOneAndDelete({
-				user: req.user.id,
-			}).exec(),
-			FederatedCredential.findOneAndDelete({
-				user: req.user.id,
-			}).exec(),
 			Comment.updateMany(
 				{
 					author: req.user.id,
