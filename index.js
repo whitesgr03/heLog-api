@@ -1,4 +1,3 @@
-import os from "node:os";
 import debug from "debug";
 import mongoose from "mongoose";
 
@@ -11,13 +10,7 @@ const port = process.env.PORT || "3000";
 
 const handleServer = () => {
 	databaseLog("MongoDB connecting successfully");
-	const handleListening = async () => {
-		const IP_Address = os
-			.networkInterfaces()
-			.en0.find(internet => internet.family === "IPv4").address;
-		serverLog(`Listening on Local:        http://localhost:${port}`);
-		serverLog(`Listening on Your Network: http://${IP_Address}:${port}`);
-	};
+
 	const handleError = error => {
 		serverLog(`Server listening error.`);
 		switch (error.code) {
