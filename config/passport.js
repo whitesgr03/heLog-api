@@ -35,6 +35,12 @@ passport.use(
 				await user.save();
 				done(null, { id: user.id });
 			};
+
+			user
+				? user.provider.includes("google")
+					? done(null, { id: user.id })
+					: await handleUpdate()
+				: await handleRegistration();
 		}
 	)
 );
@@ -70,6 +76,12 @@ passport.use(
 				await user.save();
 				done(null, { id: user.id });
 			};
+
+			user
+				? user.provider.includes("facebook")
+					? done(null, { id: user.id })
+					: await handleUpdate()
+				: await handleRegistration();
 		}
 	)
 );
