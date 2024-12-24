@@ -20,8 +20,7 @@ const app = express();
 const errorLog = debug("ServerError");
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
-	methods: ["GET", "PUT", "POST", "DELETE"],
-	allowedHeaders: ["Content-Type", "Authorization"],
+	methods: ["GET", "POST", "PATCH", "DELETE"],
 	maxAge: 3600,
 };
 const sessionOptions = {
