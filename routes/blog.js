@@ -4,37 +4,35 @@ import * as postControllers from "../controllers/postController.js";
 import * as commentControllers from "../controllers/commentController.js";
 import * as replyControllers from "../controllers/replyController.js";
 
-const router = express.Router();
+export const blogRouter = express.Router();
 
-router
+blogRouter
 	.route("/posts")
 	.get(postControllers.postList)
 	.post(postControllers.postCreate);
 
 router.get("/posts", postControllers.postListUser);
 
-router
+blogRouter
 	.route("/posts/:postId")
 	.get(postControllers.postDetail)
 	.put(postControllers.postUpdate)
 	.delete(postControllers.postDelete);
 
-router
+blogRouter
 	.route("/comments")
 	.get(commentControllers.commentList)
 	.post(commentControllers.commentCreate);
-router
+blogRouter
 	.route("/comments/:commentId")
 	.put(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
-router
+blogRouter
 	.route("/replies")
 	.get(replyControllers.replyList)
 	.post(replyControllers.replyCreate);
-router
+blogRouter
 	.route("/replies/:replyId")
 	.put(replyControllers.replyUpdate)
 	.delete(replyControllers.replyDelete);
-
-export default router;
