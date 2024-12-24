@@ -77,17 +77,18 @@ export const userDetail = [
 			  })
 			: next();
 	}),
-	asyncHandler(async (req, res, next) => {
-		const newUser = {
-			...req.data,
-			lastModified: new Date(),
-		};
-		const user = await User.findByIdAndUpdate(req.user.id, newUser, {
-			new: true,
-			select: {
-				name: 1,
-			},
-		}).exec();
+	asyncHandler(async (req, res) => {
+		const user = await User.findByIdAndUpdate(
+			req.user.id,
+			{ ...req.data },
+			{
+				new: true,
+				select: {
+					username: 1,
+					isAdmin: 1,
+				},
+			}
+		).exec();
 
 		res.json({
 			success: true,
