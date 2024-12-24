@@ -34,9 +34,9 @@ const sessionOptions = {
 		sameSite: "Lax",
 		httpOnly: true,
 		secure: !process.env.NODE_ENV === "development",
-		maxAge: 7 * 24 * 60 * 60 * 1000,
+		maxAge: 30 * 24 * 60 * 60 * 1000,
 	},
-	name: "helog.connect.sid",
+	name: "helog.sid",
 };
 
 app.set("trust proxy", 1);
