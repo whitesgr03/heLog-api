@@ -5,15 +5,6 @@ import * as commentControllers from "../controllers/commentController.js";
 import * as replyControllers from "../controllers/replyController.js";
 
 const router = express.Router();
-router.use(express.json());
-
-router.use((req, res, next) => {
-	res.header({
-		"Content-Type": "application/json; charset=UTF-8",
-	});
-	next();
-});
-
 
 router
 	.route("/posts")
