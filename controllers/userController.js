@@ -23,10 +23,11 @@ export const userPostList = [
 		});
 	}),
 ];
+export const userDetail = [
+	asyncHandler(async (req, res) => {
 		const user = await User.findById(req.user.id, {
-			name: 1,
+			username: 1,
 			isAdmin: 1,
-			email: 1,
 		}).exec();
 
 		res.header({
