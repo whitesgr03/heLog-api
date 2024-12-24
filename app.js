@@ -24,35 +24,6 @@ const corsOptions = {
 	allowedHeaders: ["Content-Type", "Authorization"],
 	maxAge: 3600,
 };
-const helmetOptions = {
-	contentSecurityPolicy: {
-		directives: {
-			defaultSrc: ["'none'"],
-			imgSrc: ["'self'", "data:", "blob:"],
-			styleSrc: [
-				"'self'",
-				"fonts.googleapis.com",
-				"necolas.github.io",
-				(req, res) => `'nonce-${res.locals.cspNonce}'`,
-			],
-			formAction: [
-				"'self'",
-				`${process.env.NODE_ENV === "development" ? "http" : "https"}:`,
-			],
-			frameAncestors: ["'none'"],
-			baseUri: ["'none'"],
-			objectSrc: ["'none'"],
-			scriptSrc: [
-				(req, res) => `'nonce-${res.locals.cspNonce}'`,
-				"strict-dynamic",
-			],
-		},
-	},
-	xFrameOptions: { action: "deny" },
-	referrerPolicy: {
-		policy: ["no-referrer"],
-	},
-};
 const sessionOptions = {
 	secret: process.env.SESSION_SECRETS.split(","),
 	resave: false,
@@ -70,7 +41,7 @@ const sessionOptions = {
 app.set("trust proxy", 1);
 
 app.use(cors(corsOptions));
-app.use(helmet(helmetOptions));
+app.use(helmet());
 app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(morgan(process.env.production ? "common" : "dev"));
