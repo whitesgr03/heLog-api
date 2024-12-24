@@ -16,9 +16,8 @@ import passport from "./config/passport.js";
 import { sessionStore } from "./config/database.js";
 
 // routes
-import accountRouter from "./routes/account.js";
-import blogRouter from "./routes/blog.js";
-import authRouter from "./routes/auth.js";
+import { accountRouter } from "./routes/account.js";
+import { blogRouter } from "./routes/blog.js";
 
 const app = express();
 const errorLog = debug("ServerError");
