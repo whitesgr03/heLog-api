@@ -37,6 +37,7 @@ export const userDetail = [
 		});
 	}),
 ];
+export const userUpdate = [
 	checkSchema({
 		username: {
 			trim: true,
@@ -97,8 +98,7 @@ export const userDetail = [
 		});
 	}),
 ];
-const userDelete = [
-	verifyToken,
+export const userDelete = [
 	asyncHandler(async (req, res, next) => {
 		const posts = await Post.find(
 			{ author: req.user.id },
