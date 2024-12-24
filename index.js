@@ -21,23 +21,15 @@ const handleServer = () => {
 			default:
 				serverLog(error);
 		}
-		app.close();
 	};
-	const handleClose = () => {
-		serverLog(`Server is closed.`);
-		mongoose.disconnect();
-		databaseLog(`Database is disconnected.`);
-		process.exit(1);
-	};
-	app.listen(port, process.env.NODE_ENV === "development" && handleListening)
-		.on("error", handleError)
-		.on("close", handleClose);
+
+	app.listen(port, serverLog(`Server listening successfully`)).on(
+		"error",
+		handleError
+	);
 };
-
-
 
 mongoose.connection.on("connected", handleServer).on("error", err => {
 	databaseLog("Database error");
 	databaseLog(err);
-	app.close();
 });
