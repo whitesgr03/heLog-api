@@ -18,29 +18,18 @@ passport.use(
 				email: profile.emails[0].value,
 			}).exec();
 
-			const handleRegister = async () => {
-				const currentTime = new Date();
+			const handleRegistration = async () => {
 				const newUser = new User({
 					email: profile.emails[0].value,
-					name: profile.displayName,
+					provider: ["google"],
 					isAdmin: process.env.NODE_ENV === "development",
-					lastModified: currentTime,
-					createdAt: currentTime,
-				});
-
-				const newCredential = new FederatedCredential({
-					user: newUser._id,
-					provider: "https://accounts.google.com",
-					subject: profile.id,
 				});
 
 				await newUser.save();
-				await newCredential.save();
 
-				return done(null, {
-					_id: newUser._id,
-					isAdmin: newUser.isAdmin,
-				});
+				done(null, { id: newUser._id });
+			};
+
 			};
 
 			credential ? done(null, credential.user) : await handleRegister();
@@ -62,29 +51,17 @@ passport.use(
 				email: profile.emails[0].value,
 			}).exec();
 
-			const handleRegister = async () => {
-				const currentTime = new Date();
+			const handleRegistration = async () => {
 				const newUser = new User({
 					email: profile.emails[0].value,
-					name: profile.displayName,
+					provider: ["facebook"],
 					isAdmin: process.env.NODE_ENV === "development",
-					lastModified: currentTime,
-					createdAt: currentTime,
-				});
-
-				const newCredential = new FederatedCredential({
-					user: newUser._id,
-					provider: "https://www.facebook.com",
-					subject: profile.id,
 				});
 
 				await newUser.save();
-				await newCredential.save();
 
-				return done(null, {
-					_id: newUser._id,
-					isAdmin: newUser.isAdmin,
-				});
+				done(null, { id: newUser._id });
+			};
 			};
 
 			credential ? done(null, credential.user) : await handleRegister();
