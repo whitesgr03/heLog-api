@@ -1,7 +1,3 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { randomBytes } from "node:crypto";
-
 import express from "express";
 import createError from "http-errors";
 import morgan from "morgan";
@@ -22,9 +18,6 @@ import { userRouter } from "./routes/user.js";
 
 const app = express();
 const errorLog = debug("ServerError");
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
 	methods: ["GET", "PUT", "POST", "DELETE"],
@@ -73,23 +66,13 @@ const sessionOptions = {
 	},
 	name: "helog.connect.sid",
 };
-const staticOptions = {
-	index: false,
-	maxAge: "60 * 60 * 1000",
-	redirect: false,
-};
 
 app.set("trust proxy", 1);
-
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "pug");
 
 app.use(cors(corsOptions));
 app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
-app.use(express.static(path.join(__dirname, "public"), staticOptions));
 app.use(morgan(process.env.production ? "common" : "dev"));
 app.use(compression());
 
