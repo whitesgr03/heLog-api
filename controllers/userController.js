@@ -134,7 +134,8 @@ export const userDelete = [
 			).exec(),
 		]);
 
-		sessionStore.destroy(req.payload.sid, err =>
+		next();
+	}),
 			err
 				? next(err)
 				: res.clearCookie("helog.connect.sid").json({
