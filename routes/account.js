@@ -1,9 +1,8 @@
 import express from "express";
 
-import * as userControllers from "../controllers/userController.js";
+import * as accountControllers from "../controllers/accountController.js";
 
-const router = express.Router();
-router.use(express.urlencoded({ extended: false }));
+export const accountRouter = express.Router();
 
 router
 	.route("/login")
@@ -16,9 +15,13 @@ router
 
 router.get("/logout", userControllers.userLogout);
 
-router.get("/login/google", userControllers.googleLogin);
-router.get("/oauth2/redirect/google", userControllers.googleRedirect);
-router.get("/login/facebook", userControllers.facebookLogin);
-router.get("/oauth2/redirect/facebook", userControllers.facebookRedirect);
+accountRouter.get("/login/google", accountControllers.googleLogin);
+accountRouter.get("/oauth2/redirect/google", accountControllers.googleRedirect);
 
-export default router;
+accountRouter.get("/login/facebook", accountControllers.facebookLogin);
+accountRouter.get(
+	"/oauth2/redirect/facebook",
+	accountControllers.facebookRedirect
+);
+
+accountRouter.post("/logout", accountControllers.userLogout);
