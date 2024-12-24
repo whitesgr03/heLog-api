@@ -38,7 +38,7 @@ export const userDetail = [
 	}),
 ];
 const userUpdate = [
-	verifyToken,
+  
 	verifyJSONSchema({
 		name: {
 			trim: true,
