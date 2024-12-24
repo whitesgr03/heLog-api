@@ -61,19 +61,17 @@ app.use((req, res, next) => {
 });
 
 // Errors handler
+/* eslint-disable no-unused-vars */
 app.use((err, req, res, next) => {
+	/* eslint-enable */
 	errorLog(err);
-
-	const path = req.path.split("/")[2];
 
 	err.status ?? (err = createError(500));
 
-	path && (path === "login" || path === "register")
-		? res.render("error")
-		: res.status(err.status).json({
-				success: false,
-				message: err.message,
-		  });
+	res.json({
+		success: false,
+		message: err.message,
+	});
 });
 
 export default app;
