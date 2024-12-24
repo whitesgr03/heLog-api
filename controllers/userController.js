@@ -37,26 +37,26 @@ export const userDetail = [
 		});
 	}),
 ];
-const userUpdate = [
-  
-	verifyJSONSchema({
-		name: {
+	checkSchema({
+		username: {
 			trim: true,
 			notEmpty: {
-				errorMessage: "The name is required.",
+				errorMessage: "Username is required.",
 				bail: true,
 			},
 			isLength: {
 				options: { max: 30 },
-				errorMessage: "The name must be less than 30 long.",
+				errorMessage: "username must be less than 30 long.",
 				bail: true,
 			},
 			custom: {
-				options: name => name.match(/^[a-zA-Z]\w*$/),
-				errorMessage: "The name must be alphanumeric and underscore.",
+				options: username => username.match(/^[a-zA-Z]\w*$/),
+				errorMessage: "Username must be alphanumeric and underscore.",
 				bail: true,
 			},
+		},
 	}),
+	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { username } = req.data;
 		const existingUserName = await User.findOne({
