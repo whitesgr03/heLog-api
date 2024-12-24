@@ -76,13 +76,10 @@ app.use(passport.session());
 app.use(morgan(process.env.production ? "common" : "dev"));
 app.use(compression());
 
-app.use((req, res, next) => {
-	res.locals.clientUrl = process.env.HELOG_URL;
-	res.locals.darkScheme = req.session?.queries?.darkTheme === "true";
-	next();
-});
 
-app.get("/", (req, res) => res.redirect(process.env.HELOG_URL));
+
+
+// app.get("/", (req, res) => res.redirect(process.env.HELOG_URL));
 app.use("/account", accountRouter);
 app.use("/user", userRouter);
 app.use("/blog", blogRouter);
