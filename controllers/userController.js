@@ -30,9 +30,7 @@ export const userDetail = [
 			isAdmin: 1,
 		}).exec();
 
-		res.header({
-			"Cache-Control": "no-store",
-		}).json({
+		res.json({
 			success: true,
 			message: "Get user info successfully.",
 			data: user,
