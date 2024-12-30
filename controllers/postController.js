@@ -244,6 +244,16 @@ const postUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+
+		user.isAdmin || user._id.toString() === req.post.author._id.toString()
+			? next()
+			: res.status(403).json({
+					success: false,
+					message: "This request requires higher permissions.",
+			  });
+	}),
+	asyncHandler(async (req, res) => {
 		const { title, mainImage, content, publish } = req.data;
 
 		(title || title === "") && (req.post.title = title);
