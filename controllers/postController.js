@@ -27,22 +27,7 @@ const postList = [
 		});
 	}),
 ];
-const postListUser = [
-	verifyToken,
-	asyncHandler(async (req, res) => {
-		const posts = await Post.find({ author: req.user.id })
-			.sort({ createdAt: -1 })
-			.exec();
 
-		res.header({
-			"Cache-Control": "no-store",
-		}).json({
-			success: true,
-			message: "Get all posts successfully.",
-			data: posts,
-		});
-	}),
-];
 const postDetail = [
 	verifyId("post"),
 	asyncHandler(async (req, res, next) => {
