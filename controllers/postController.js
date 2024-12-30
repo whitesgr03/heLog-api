@@ -270,9 +270,6 @@ const postUpdate = [
 	}),
 ];
 const postDelete = [
-	verifyToken,
-	verifyId("post"),
-	verifyPermission("post"),
 	asyncHandler(async (req, res, next) => {
 		await Promise.all([
 			Comment.deleteMany({ post: req.params.postId }).exec(),
