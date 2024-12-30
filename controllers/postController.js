@@ -1,11 +1,13 @@
 import asyncHandler from "express-async-handler";
-import { Types } from "mongoose";
-import https from "node:https";
-
+import { checkSchema } from "express-validator";
 
 import Post from "../models/post.js";
 import Comment from "../models/comment.js";
 import Reply from "../models/reply.js";
+
+// Middlewares
+import { validationScheme } from "../middlewares/validationScheme.js";
+
 
 export const postList = [
 	asyncHandler(async (req, res) => {
