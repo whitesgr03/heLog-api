@@ -149,7 +149,7 @@ const postUpdate = [
 	verifyToken,
 	verifyId("post"),
 	verifyPermission("post"),
-	verifyJSONSchema({
+	checkSchema({
 		title: {
 			unescape: true,
 			optional: true,
@@ -225,6 +225,7 @@ const postUpdate = [
 			},
 		},
 	}),
+	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { title, mainImage, content, publish } = req.data;
 
