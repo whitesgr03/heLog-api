@@ -261,8 +261,6 @@ const postUpdate = [
 		(content || content === "") && (req.post.content = content);
 		(publish || publish === "") && (req.post.publish = publish);
 
-		req.post.lastModified = new Date();
-
 		await req.post.save();
 
 		res.json({
