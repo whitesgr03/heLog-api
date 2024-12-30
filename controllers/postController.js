@@ -29,15 +29,25 @@ const postList = [
 ];
 
 const postDetail = [
-	verifyId("post"),
-	asyncHandler(async (req, res, next) => {
-		res.header({
-			"Cache-Control": "no-store",
-		}).json({
-			success: true,
-			message: "Get post successfully.",
-			data: req.post,
-		});
+	asyncHandler(async (req, res) => {
+		const { postId } = req.params;
+
+		const post = await Post.findOne({ _id: postId })
+			.populate("author", {
+				username: 1,
+			})
+			.exec();
+
+		post
+			? res.json({
+					success: true,
+					message: "Get post successfully.",
+					data: post,
+			  })
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
 	}),
 ];
 const postCreate = [
