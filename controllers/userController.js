@@ -28,6 +28,7 @@ export const userDetail = [
 		const user = await User.findById(req.user.id, {
 			username: 1,
 			isAdmin: 1,
+			email: 1,
 		}).exec();
 
 		res.json({
