@@ -52,7 +52,7 @@ const postDetail = [
 ];
 const postCreate = [
 	verifyToken,
-	verifyJSONSchema({
+	checkSchema({
 		title: {
 			unescape: true,
 			optional: true,
@@ -127,6 +127,7 @@ const postCreate = [
 			},
 		},
 	}),
+	validationScheme,
 	asyncHandler(async (req, res) => {
 		const newPost = new Post({
 			...req.data,
