@@ -145,10 +145,8 @@ const postCreate = [
 		});
 	}),
 ];
+
 const postUpdate = [
-	verifyToken,
-	verifyId("post"),
-	verifyPermission("post"),
 	checkSchema({
 		title: {
 			unescape: true,
