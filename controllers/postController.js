@@ -12,9 +12,6 @@ import Comment from "../models/comment.js";
 import Reply from "../models/reply.js";
 
 const postList = [
-	asyncHandler(async (req, res, next) => {
-		req.headers.authorization ? next("route") : next();
-	}),
 	asyncHandler(async (req, res) => {
 		const posts = await Post.find({ publish: true })
 			.populate("author", {
