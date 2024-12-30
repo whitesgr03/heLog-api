@@ -159,27 +159,6 @@ const postUpdate = [
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
-			custom: {
-				options: (title, { req }) =>
-					new Promise(async (resolve, reject) => {
-						const existingTitle = await Post.findOne({
-							$and: [
-								{ title },
-								{
-									_id: {
-										$ne: Types.ObjectId.createFromHexString(
-											req.params.postId
-										),
-									},
-								},
-							],
-						}).exec();
-						existingTitle
-							? reject((req.schema = { isConflict: true }))
-							: resolve();
-					}),
-				errorMessage: "The title is been used.",
-			},
 		},
 		mainImage: {
 			optional: true,
