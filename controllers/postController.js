@@ -11,7 +11,7 @@ import Post from "../models/post.js";
 import Comment from "../models/comment.js";
 import Reply from "../models/reply.js";
 
-const postList = [
+export const postList = [
 	asyncHandler(async (req, res) => {
 		const posts = await Post.find({ publish: true })
 			.populate("author", {
@@ -28,7 +28,7 @@ const postList = [
 	}),
 ];
 
-const postDetail = [
+export const postDetail = [
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
 
@@ -51,7 +51,7 @@ const postDetail = [
 	}),
 ];
 
-const postCreate = [
+export const postCreate = [
 	checkSchema({
 		title: {
 			unescape: true,
@@ -146,7 +146,7 @@ const postCreate = [
 	}),
 ];
 
-const postUpdate = [
+export const postUpdate = [
 	checkSchema({
 		title: {
 			unescape: true,
@@ -269,7 +269,8 @@ const postUpdate = [
 		});
 	}),
 ];
-const postDelete = [
+
+export const postDelete = [
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
 
@@ -312,12 +313,3 @@ const postDelete = [
 		});
 	}),
 ];
-
-export {
-	postList,
-	postListUser,
-	postDetail,
-	postCreate,
-	postUpdate,
-	postDelete,
-};
