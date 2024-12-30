@@ -271,6 +271,24 @@ const postUpdate = [
 ];
 const postDelete = [
 	asyncHandler(async (req, res, next) => {
+		const { postId } = req.params;
+
+		const post = await Post.findOne({ _id: postId })
+			.populate("author")
+			.exec();
+
+		const handleSetLocalVariable = () => {
+			req.post = post;
+			next();
+		};
+
+		post
+			? handleSetLocalVariable()
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
+	}),
 		await Promise.all([
 			Comment.deleteMany({ post: req.params.postId }).exec(),
 			Reply.deleteMany({ post: req.params.postId }).exec(),
