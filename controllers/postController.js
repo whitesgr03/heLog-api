@@ -225,6 +225,25 @@ const postUpdate = [
 	}),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
+		const { postId } = req.params;
+
+		const post = await Post.findOne({ _id: postId })
+			.populate("author")
+			.exec();
+
+		const handleSetLocalVariable = () => {
+			req.post = post;
+			next();
+		};
+
+		post
+			? handleSetLocalVariable()
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
+	}),
+	asyncHandler(async (req, res, next) => {
 		const { title, mainImage, content, publish } = req.data;
 
 		(title || title === "") && (req.post.title = title);
