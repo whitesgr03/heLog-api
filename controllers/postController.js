@@ -50,8 +50,8 @@ const postDetail = [
 			  });
 	}),
 ];
+
 const postCreate = [
-	verifyToken,
 	checkSchema({
 		title: {
 			unescape: true,
