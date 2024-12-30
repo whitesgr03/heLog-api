@@ -127,15 +127,10 @@ const postCreate = [
 			},
 		},
 	}),
-	asyncHandler(async (req, res, next) => {
-		const currentTime = new Date();
-
+	asyncHandler(async (req, res) => {
 		const newPost = new Post({
 			...req.data,
-			title: req.data.title,
 			author: req.user.id,
-			lastModified: currentTime,
-			createdAt: currentTime,
 		});
 
 		await newPost.save();
