@@ -2,10 +2,6 @@ import asyncHandler from "express-async-handler";
 import { Types } from "mongoose";
 import https from "node:https";
 
-import verifyToken from "../middlewares/verifyToken.js";
-import verifyPermission from "../middlewares/verifyPermission.js";
-import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
-import verifyId from "../middlewares/verifyId.js";
 
 import Post from "../models/post.js";
 import Comment from "../models/comment.js";
