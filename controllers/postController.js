@@ -62,18 +62,6 @@ const postCreate = [
 				errorMessage: "The title must be less than 100 long.",
 				bail: true,
 			},
-			custom: {
-				options: (title, { req }) =>
-					new Promise(async (resolve, reject) => {
-						const existingTitle = await Post.findOne({
-							title,
-						}).exec();
-						existingTitle
-							? reject((req.schema = { isConflict: true }))
-							: resolve();
-					}),
-				errorMessage: "The title is been used.",
-			},
 		},
 		mainImage: {
 			optional: true,
@@ -103,7 +91,6 @@ const postCreate = [
 
 						source ? handleMimeType() : reject();
 					}),
-
 				errorMessage: "The main image is invalid.",
 			},
 		},
