@@ -19,10 +19,14 @@ export const googleRedirect = [
 			(err, user, { message }) => {
 				delete req.session.oauth2;
 
+				const redirect_origin =
+					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
+						origin => origin === req.headers.referer
+					) ?? process.env.HELOG_URL;
+
 				err && next(err);
-				message && res.redirect(process.env.HELOG_URL);
-				user &&
-					req.login(user, () => res.redirect(process.env.HELOG_URL));
+				message && res.redirect(redirect_origin);
+				user && req.login(user, () => res.redirect(redirect_origin));
 			}
 		);
 		authenticateFn(req, res, next);
@@ -47,10 +51,14 @@ export const facebookRedirect = [
 				console.log(message);
 				delete req.session.oauth2;
 
+				const redirect_origin =
+					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
+						origin => origin === req.headers.referer
+					) ?? process.env.HELOG_URL;
+
 				err && next(err);
-				message && res.redirect(process.env.HELOG_URL);
-				user &&
-					req.login(user, () => res.redirect(process.env.HELOG_URL));
+				message && res.redirect(redirect_origin);
+				user && req.login(user, () => res.redirect(redirect_origin));
 			}
 		);
 		authenticateFn(req, res, next);
