@@ -228,7 +228,7 @@ export const postUpdate = [
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
 
-		const post = await Post.findOne({ _id: postId })
+		const post = await Post.findOne({ _id: postId }, { createdAt: 0 })
 			.populate("author")
 			.exec();
 
