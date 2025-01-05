@@ -262,11 +262,21 @@ export const postUpdate = [
 		(content || content === "") && (req.post.content = content);
 		(publish || publish === "") && (req.post.publish = publish);
 
-		await req.post.save();
+		const post = await Post.findByIdAndUpdate(
+			req.post._id,
+			{
+				title,
+				mainImage,
+				content,
+				publish,
+			},
+			{ new: true, select: { createdAt: 0, author: 0 } }
+		);
 
 		res.json({
 			success: true,
 			message: "Update post successfully.",
+			data: post,
 		});
 	}),
 ];
