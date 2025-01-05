@@ -5,6 +5,7 @@ import { authenticate } from "../middlewares/authenticate.js";
 export const googleLogin = [
 	(req, res, next) => {
 		req.session.oauth2 = true;
+		req.session.referer = req.headers.referer;
 		next();
 	},
 	passport.authenticate("google"),
@@ -17,12 +18,13 @@ export const googleRedirect = [
 		const authenticateFn = passport.authenticate(
 			"google",
 			(err, user, { message }) => {
-				delete req.session.oauth2;
-
 				const redirect_origin =
 					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
-						origin => origin === req.headers.referer
+						origin => `${origin}/` === req.session.referer
 					) ?? process.env.HELOG_URL;
+
+				delete req.session.oauth2;
+				delete req.session.referer;
 
 				err && next(err);
 				message && res.redirect(redirect_origin);
@@ -35,6 +37,7 @@ export const googleRedirect = [
 export const facebookLogin = [
 	(req, res, next) => {
 		req.session.oauth2 = true;
+		req.session.referer = req.headers.referer;
 		next();
 	},
 
@@ -48,13 +51,13 @@ export const facebookRedirect = [
 		const authenticateFn = passport.authenticate(
 			"facebook",
 			(err, user, { message }) => {
-				console.log(message);
-				delete req.session.oauth2;
-
 				const redirect_origin =
 					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
-						origin => origin === req.headers.referer
+						origin => `${origin}/` === req.session.referer
 					) ?? process.env.HELOG_URL;
+
+				delete req.session.oauth2;
+				delete req.session.referer;
 
 				err && next(err);
 				message && res.redirect(redirect_origin);
