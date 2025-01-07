@@ -6,8 +6,9 @@ import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
 import verifyId from "../middlewares/verifyId.js";
 import verifyPermission from "../middlewares/verifyPermission.js";
 
-import Post from "../models/post.js";
-import Comment from "../models/comment.js";
+// Models
+import { Post } from "../models/post.js";
+import { Comment } from "../models/comment.js";
 
 const commentList = [
 	asyncHandler((req, res, next) => {
