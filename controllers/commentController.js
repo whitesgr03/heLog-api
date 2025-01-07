@@ -11,8 +11,8 @@ import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 
 export const commentList = [
-	asyncHandler(async (req, res, next) => {
-		const { limit = 0, postId = null } = req.query;
+	asyncHandler(async (req, res) => {
+		const { skip = 0 } = req.query;
 
 		const filter = {};
 
