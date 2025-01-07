@@ -16,7 +16,7 @@ blogRouter.post("/posts", postControllers.postCreate);
 
 blogRouter
 	.route("/posts/:postId")
-	.put(postControllers.postUpdate)
+	.patch(postControllers.postUpdate)
 	.delete(postControllers.postDelete);
 
 blogRouter
