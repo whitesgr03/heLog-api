@@ -321,8 +321,8 @@ export const postDelete = [
 	}),
 	asyncHandler(async (req, res) => {
 		await Promise.all([
-			Comment.deleteMany({ post: req.params.postId }).exec(),
-			Reply.deleteMany({ post: req.params.postId }).exec(),
+			Comment.deleteMany({ post: req.post.id }).exec(),
+			Reply.deleteMany({ post: req.post.id }).exec(),
 			req.post.deleteOne(),
 		]);
 
