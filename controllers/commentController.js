@@ -29,9 +29,7 @@ export const commentList = [
 					.limit(10)
 					.exec();
 
-		res.header({
-			"Cache-Control": "no-store",
-		}).json({
+		res.json({
 			success: true,
 			message: "Get all comments successfully.",
 			data: comments,
