@@ -35,5 +35,3 @@ export const Reply = mongoose.model(
 		{ timestamps: true }
 	)
 );
-
-
