@@ -22,6 +22,7 @@ export const commentList = [
 			  })
 					.populate("author", {
 						username: 1,
+						_id: 0,
 					})
 					.sort({ createdAt: -1 })
 					.skip(skip)
