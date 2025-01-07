@@ -15,17 +15,18 @@ export const commentList = [
 		const { postId } = req.params;
 		const { skip = 0 } = req.query;
 
-		const filter = {};
+		const comments = !isValidObjectId(postId)
+			? []
+			: await Comment.find({
+					post: new Types.ObjectId(`${postId}`),
+			  })
+					.populate("author", {
+						name: 1,
+					})
+					.sort({ createdAt: -1 })
 
-		postId && (filter.post = new Types.ObjectId(postId));
-
-		const comments = await Comment.find(filter)
-			.populate("author", {
-				name: 1,
-			})
-			.sort({ createdAt: -1 })
-			.limit(limit)
-			.exec();
+					.limit(limit)
+					.exec();
 
 		res.header({
 			"Cache-Control": "no-store",
