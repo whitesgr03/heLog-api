@@ -18,10 +18,7 @@ blogRouter
 	.patch(postControllers.postUpdate)
 	.delete(postControllers.postDelete);
 
-blogRouter
-	.route("/comments")
-	.get(commentControllers.commentList)
-	.post(commentControllers.commentCreate);
+blogRouter.post("/posts/:postId/comments", commentControllers.commentCreate);
 blogRouter
 	.route("/comments/:commentId")
 	.put(commentControllers.commentUpdate)
