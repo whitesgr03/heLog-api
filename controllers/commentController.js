@@ -11,16 +11,6 @@ import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 
 const commentList = [
-	asyncHandler((req, res, next) => {
-		const { postId = null } = req.query;
-
-		!postId || isValidObjectId(postId)
-			? next()
-			: res.status(400).json({
-					success: false,
-					message: "The post query is invalid object id..",
-			  });
-	}),
 	asyncHandler(async (req, res, next) => {
 		const { limit = 0, postId = null } = req.query;
 
