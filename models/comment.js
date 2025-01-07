@@ -19,7 +19,7 @@ export const Comment = mongoose.model(
 				immutable: true,
 			},
 			content: { type: String, required: true },
-			deleted: { type: Boolean },
+			deleted: { type: Boolean, default: false },
 		},
 		{ timestamps: true }
 	)
