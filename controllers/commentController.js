@@ -10,7 +10,7 @@ import { validationScheme } from "../middlewares/validationScheme.js";
 import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 
-const commentList = [
+export const commentList = [
 	asyncHandler(async (req, res, next) => {
 		const { limit = 0, postId = null } = req.query;
 
