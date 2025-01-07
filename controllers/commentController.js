@@ -21,7 +21,7 @@ export const commentList = [
 					post: new Types.ObjectId(`${postId}`),
 			  })
 					.populate("author", {
-						name: 1,
+						username: 1,
 					})
 					.sort({ createdAt: -1 })
 					.skip(skip)
