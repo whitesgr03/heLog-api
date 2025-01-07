@@ -38,7 +38,7 @@ export const commentList = [
 ];
 
 const commentCreate = [
-	verifyJSONSchema({
+	checkSchema({
 		content: {
 			trim: true,
 			notEmpty: {
@@ -50,27 +50,8 @@ const commentCreate = [
 				errorMessage: "The content must be less than 500 long.",
 			},
 		},
-		post: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "The post is required.",
-				bail: true,
-			},
-			custom: {
-				options: id => isValidObjectId(id),
-				errorMessage: "The post is invalid object ID.",
-				bail: true,
-			},
-			custom: {
-				options: id =>
-					new Promise(async (resolve, reject) => {
-						const isExisting = await Post.findById(id).exec();
-						isExisting ? resolve() : reject();
-					}),
-				errorMessage: "The post could not be found.",
-			},
-		},
 	}),
+	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const currentTime = new Date();
 
