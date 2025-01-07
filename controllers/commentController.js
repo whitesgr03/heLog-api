@@ -24,8 +24,8 @@ export const commentList = [
 						name: 1,
 					})
 					.sort({ createdAt: -1 })
-
-					.limit(limit)
+					.skip(skip)
+					.limit(10)
 					.exec();
 
 		res.header({
