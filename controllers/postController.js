@@ -19,6 +19,7 @@ export const postList = [
 		const posts = await Post.find({ publish: true })
 			.populate("author", {
 				username: 1,
+				_id: 0,
 			})
 			.skip(skip)
 			.limit(10)
