@@ -6,9 +6,8 @@ import { authenticate } from "../middlewares/authenticate.js";
 
 export const blogRouter = express.Router();
 
-
-
 blogRouter.get("/posts", postControllers.postList);
+blogRouter.get("/posts/:postId/comments", commentControllers.commentList);
 
 blogRouter.use(authenticate);
 
