@@ -6,13 +6,14 @@ import { authenticate } from "../middlewares/authenticate.js";
 
 export const blogRouter = express.Router();
 
-blogRouter
-	.route("/posts")
-	.get(postControllers.postList)
-	.post(postControllers.postCreate);
 
+
+blogRouter.get("/posts", postControllers.postList);
 
 blogRouter.use(authenticate);
+
+blogRouter.post("/posts", postControllers.postCreate);
+
 blogRouter
 	.route("/posts/:postId")
 	.get(postControllers.postDetail)
