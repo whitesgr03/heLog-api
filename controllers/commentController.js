@@ -12,6 +12,7 @@ import { Comment } from "../models/comment.js";
 
 export const commentList = [
 	asyncHandler(async (req, res) => {
+		const { postId } = req.params;
 		const { skip = 0 } = req.query;
 
 		const filter = {};
