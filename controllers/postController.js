@@ -2,6 +2,7 @@
 import https from "node:https";
 import asyncHandler from "express-async-handler";
 import { checkSchema } from "express-validator";
+import { isValidObjectId } from "mongoose";
 
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
@@ -233,9 +234,11 @@ export const postUpdate = [
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
 
-		const post = await Post.findOne({ _id: postId }, { createdAt: 0 })
-			.populate("author")
-			.exec();
+		const post =
+			isValidObjectId(postId) &&
+			(await Post.findById(postId, { createdAt: 0 })
+				.populate("author")
+				.exec());
 
 		const handleSetLocalVariable = () => {
 			req.post = post;
@@ -290,9 +293,9 @@ export const postDelete = [
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
 
-		const post = await Post.findOne({ _id: postId })
-			.populate("author")
-			.exec();
+		const post =
+			isValidObjectId(postId) &&
+			(await Post.findById(postId).populate("author").exec());
 
 		const handleSetLocalVariable = () => {
 			req.post = post;
