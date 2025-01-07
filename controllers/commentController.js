@@ -3,9 +3,6 @@ import asyncHandler from "express-async-handler";
 import { isValidObjectId, Types } from "mongoose";
 import { checkSchema } from "express-validator";
 
-import verifyToken from "../middlewares/verifyToken.js";
-import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
-
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
 
