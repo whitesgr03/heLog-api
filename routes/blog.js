@@ -2,7 +2,7 @@ import express from "express";
 
 import * as postControllers from "../controllers/postController.js";
 import * as commentControllers from "../controllers/commentController.js";
-import * as replyControllers from "../controllers/replyController.js";
+import { authenticate } from "../middlewares/authenticate.js";
 
 export const blogRouter = express.Router();
 
@@ -12,6 +12,7 @@ blogRouter
 	.post(postControllers.postCreate);
 
 
+blogRouter.use(authenticate);
 blogRouter
 	.route("/posts/:postId")
 	.get(postControllers.postDetail)
