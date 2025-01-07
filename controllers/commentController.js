@@ -36,8 +36,8 @@ export const commentList = [
 		});
 	}),
 ];
+
 const commentCreate = [
-	verifyToken,
 	verifyJSONSchema({
 		content: {
 			trim: true,
