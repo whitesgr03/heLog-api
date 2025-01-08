@@ -201,16 +201,25 @@ export const commentDelete = [
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
 
-		user.isAdmin ||
-		user._id.toString() === req.comment.author._id.toString()
-			? next()
+		const isCommentOwner =
+			user._id.toString() === req.comment.author._id.toString();
+
+		const handleSetLocalVariable = () => {
+			req.deletedByAdmin = user.isAdmin && !isCommentOwner;
+			next();
+		};
+
+		user.isAdmin || isCommentOwner
+			? handleSetLocalVariable()
 			: res.status(403).json({
 					success: false,
 					message: "This request requires higher permissions.",
 			  });
 	}),
 	asyncHandler(async (req, res) => {
-		req.comment.content = "Comment deleted by user";
+		req.comment.content = req.deletedByAdmin
+			? "Comment deleted by admin"
+			: "Comment deleted by user";
 		req.comment.deleted = true;
 
 		await req.comment.save();
