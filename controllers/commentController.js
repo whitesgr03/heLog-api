@@ -110,13 +110,13 @@ export const commentUpdate = [
 	}),
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.data.content;
-		req.comment.lastModified = new Date();
 
-		await req.comment.save();
+		const newComment = await req.comment.save();
 
 		res.json({
 			success: true,
 			message: "Update comment successfully.",
+			data: newComment,
 		});
 	}),
 ];
