@@ -52,6 +52,20 @@ export const commentCreate = [
 		},
 	}),
 	validationScheme,
+	asyncHandler(async (req, res, next) => {
+		const { postId } = req.params;
+
+		const post =
+			isValidObjectId(postId) &&
+			(await Post.findById({ _id: postId }).exec());
+
+		post
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
+	}),
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
 
@@ -90,6 +104,19 @@ export const commentUpdate = [
 	}),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
+		const { postId } = req.params;
+
+		const post =
+			isValidObjectId(postId) && (await Post.findById(postId).exec());
+
+		post
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
+	}),
+	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
 
 		const comment =
@@ -122,6 +149,19 @@ export const commentUpdate = [
 ];
 
 export const commentDelete = [
+	asyncHandler(async (req, res, next) => {
+		const { postId } = req.params;
+
+		const post =
+			isValidObjectId(postId) && (await Post.findById(postId).exec());
+
+		post
+			? next()
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
+	}),
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
 
