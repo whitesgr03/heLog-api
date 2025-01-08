@@ -21,7 +21,7 @@ blogRouter
 blogRouter.post("/posts/:postId/comments", commentControllers.commentCreate);
 blogRouter
 	.route("/comments/:commentId")
-	.put(commentControllers.commentUpdate)
+	.patch(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
 blogRouter
