@@ -38,7 +38,6 @@ export const replyList = [
 ];
 
 export const replyCreate = [
-	verifyToken,
 	verifyJSONSchema({
 		content: {
 			trim: true,
