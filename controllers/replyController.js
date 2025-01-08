@@ -10,7 +10,7 @@ import Post from "../models/post.js";
 import Reply from "../models/reply.js";
 import Comment from "../models/comment.js";
 
-const replyList = [
+export const replyList = [
 	asyncHandler((req, res, next) => {
 		const { postId = null } = req.query;
 
@@ -49,7 +49,8 @@ const replyList = [
 		});
 	}),
 ];
-const replyCreate = [
+
+export const replyCreate = [
 	verifyToken,
 	verifyJSONSchema({
 		content: {
@@ -142,7 +143,7 @@ const replyCreate = [
 		});
 	}),
 ];
-const replyUpdate = [
+export const replyUpdate = [
 	verifyToken,
 	verifyId("reply"),
 	verifyPermission("reply"),
@@ -171,7 +172,7 @@ const replyUpdate = [
 		});
 	}),
 ];
-const replyDelete = [
+export const replyDelete = [
 	verifyToken,
 	verifyId("reply"),
 	verifyPermission("reply"),
@@ -188,5 +189,3 @@ const replyDelete = [
 		});
 	}),
 ];
-
-export { replyList, replyCreate, replyUpdate, replyDelete };
