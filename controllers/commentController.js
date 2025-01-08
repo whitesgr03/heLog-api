@@ -1,6 +1,6 @@
 // Modules
 import asyncHandler from "express-async-handler";
-import { isValidObjectId, Types } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { checkSchema } from "express-validator";
 
 // Middlewares
@@ -18,7 +18,7 @@ export const commentList = [
 		const comments = !isValidObjectId(postId)
 			? []
 			: await Comment.find({
-					post: new Types.ObjectId(`${postId}`),
+					post: postId,
 			  })
 					.populate("author", {
 						username: 1,
