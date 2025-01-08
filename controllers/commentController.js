@@ -122,9 +122,6 @@ export const commentUpdate = [
 ];
 
 export const commentDelete = [
-	verifyToken,
-	verifyId("comment"),
-	verifyPermission("comment"),
 	asyncHandler(async (req, res, next) => {
 		req.comment.content = "Comment deleted by user";
 		req.comment.lastModified = new Date();
