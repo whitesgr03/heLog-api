@@ -7,6 +7,7 @@ import { checkSchema } from "express-validator";
 import { validationScheme } from "../middlewares/validationScheme.js";
 
 // Models
+import { User } from "../models/user.js";
 import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 
@@ -135,6 +136,17 @@ export const commentUpdate = [
 					message: `Comment could not be found.`,
 			  });
 	}),
+	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+
+		user.isAdmin ||
+		user._id.toString() === req.comment.author._id.toString()
+			? next()
+			: res.status(403).json({
+					success: false,
+					message: "This request requires higher permissions.",
+			  });
+	}),
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.data.content;
 
@@ -179,6 +191,17 @@ export const commentDelete = [
 			: res.status(404).json({
 					success: false,
 					message: `Comment could not be found.`,
+			  });
+	}),
+	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+
+		user.isAdmin ||
+		user._id.toString() === req.comment.author._id.toString()
+			? next()
+			: res.status(403).json({
+					success: false,
+					message: "This request requires higher permissions.",
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
