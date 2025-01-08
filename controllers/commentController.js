@@ -204,9 +204,8 @@ export const commentDelete = [
 					message: "This request requires higher permissions.",
 			  });
 	}),
-	asyncHandler(async (req, res, next) => {
+	asyncHandler(async (req, res) => {
 		req.comment.content = "Comment deleted by user";
-		req.comment.lastModified = new Date();
 		req.comment.deleted = true;
 
 		await req.comment.save();
