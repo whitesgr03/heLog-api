@@ -122,7 +122,12 @@ export const commentUpdate = [
 
 		const comment =
 			isValidObjectId(commentId) &&
-			(await Comment.findById(commentId).exec());
+			(await Comment.findById(commentId)
+				.populate("author", {
+					username: 1,
+					_id: 0,
+				})
+				.exec());
 
 		const handleSetLocalVariable = () => {
 			req.comment = comment;
