@@ -37,7 +37,7 @@ export const commentList = [
 	}),
 ];
 
-const commentCreate = [
+export const commentCreate = [
 	checkSchema({
 		content: {
 			trim: true,
@@ -70,7 +70,8 @@ const commentCreate = [
 		});
 	}),
 ];
-const commentUpdate = [
+
+export const commentUpdate = [
 	verifyToken,
 	verifyId("comment"),
 	verifyPermission("comment"),
@@ -99,7 +100,8 @@ const commentUpdate = [
 		});
 	}),
 ];
-const commentDelete = [
+
+export const commentDelete = [
 	verifyToken,
 	verifyId("comment"),
 	verifyPermission("comment"),
@@ -116,5 +118,3 @@ const commentDelete = [
 		});
 	}),
 ];
-
-export { commentList, commentCreate, commentUpdate, commentDelete };
