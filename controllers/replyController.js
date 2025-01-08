@@ -11,24 +11,23 @@ import Reply from "../models/reply.js";
 import { Comment } from "../models/comment.js";
 
 export const replyList = [
-	asyncHandler(async (req, res, next) => {
-		const { postId = null } = req.query;
+	asyncHandler(async (req, res) => {
+		const { commentId } = req.params;
+		const { skip = 0 } = req.query;
 
-		const filter = {};
-
-		postId && (filter.post = new Types.ObjectId(postId));
-
-		const replies = await Reply.find(filter)
-			.populate("author", {
-				name: 1,
-			})
-			.populate({
-				path: "reply",
-				select: "author deleted",
-				populate: { path: "author", select: "name -_id" },
-			})
-			.sort()
-			.exec();
+		const replies = !isValidObjectId(commentId)
+			? []
+			: await Comment.find({
+					parent: commentId,
+			  })
+					.populate("author", {
+						username: 1,
+						_id: 0,
+					})
+					.sort({ createdAt: -1 })
+					.skip(skip)
+					.limit(10)
+					.exec();
 
 		res.json({
 			success: true,
