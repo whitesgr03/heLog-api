@@ -222,11 +222,12 @@ export const commentDelete = [
 			: "Comment deleted by user";
 		req.comment.deleted = true;
 
-		await req.comment.save();
+		const deletedComment = await req.comment.save();
 
 		res.json({
 			success: true,
 			message: "Delete comment successfully.",
+			data: deletedComment,
 		});
 	}),
 ];
