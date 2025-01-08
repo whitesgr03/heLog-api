@@ -38,7 +38,7 @@ export const replyList = [
 ];
 
 export const replyCreate = [
-	verifyJSONSchema({
+	checkSchema({
 		content: {
 			trim: true,
 			notEmpty: {
@@ -111,6 +111,7 @@ export const replyCreate = [
 			},
 		},
 	}),
+	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const currentTime = new Date();
 
