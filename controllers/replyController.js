@@ -30,9 +30,7 @@ export const replyList = [
 			.sort()
 			.exec();
 
-		res.header({
-			"Cache-Control": "no-store",
-		}).json({
+		res.json({
 			success: true,
 			message: "Get all replies successfully.",
 			data: replies,
