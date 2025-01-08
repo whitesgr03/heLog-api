@@ -52,21 +52,24 @@ export const commentCreate = [
 		},
 	}),
 	validationScheme,
-	asyncHandler(async (req, res, next) => {
-		const currentTime = new Date();
+	asyncHandler(async (req, res) => {
+		const { postId } = req.params;
 
 		const newComment = new Comment({
-			...req.data,
 			author: req.user.id,
-			lastModified: currentTime,
-			createdAt: currentTime,
+			post: postId,
+			...req.data,
 		});
 
-		await newComment.save();
+		const comment = await newComment.save();
 
 		res.json({
 			success: true,
 			message: "Create comment successfully.",
+			data: await comment.populate("author", {
+				username: 1,
+				_id: 0,
+			}),
 		});
 	}),
 ];
