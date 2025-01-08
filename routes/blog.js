@@ -19,8 +19,9 @@ blogRouter
 	.delete(postControllers.postDelete);
 
 blogRouter.post("/posts/:postId/comments", commentControllers.commentCreate);
+
 blogRouter
-	.route("/comments/:commentId")
+	.route("/posts/:postId/comments/:commentId")
 	.patch(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
