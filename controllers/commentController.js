@@ -75,9 +75,6 @@ export const commentCreate = [
 ];
 
 export const commentUpdate = [
-	verifyToken,
-	verifyId("comment"),
-	verifyPermission("comment"),
 	verifyJSONSchema({
 		content: {
 			trim: true,
