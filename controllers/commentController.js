@@ -75,19 +75,20 @@ export const commentCreate = [
 ];
 
 export const commentUpdate = [
-	verifyJSONSchema({
+	checkSchema({
 		content: {
 			trim: true,
 			notEmpty: {
-				errorMessage: "The content is required.",
+				errorMessage: "Content is required.",
 				bail: true,
 			},
 			isLength: {
 				options: { max: 500 },
-				errorMessage: "The content must be less than 500 long.",
+				errorMessage: "Content must be less than 500 long.",
 			},
 		},
 	}),
+	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		req.comment.content = req.data.content;
 		req.comment.lastModified = new Date();
