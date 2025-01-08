@@ -8,7 +8,7 @@ import verifyPermission from "../middlewares/verifyPermission.js";
 
 import Post from "../models/post.js";
 import Reply from "../models/reply.js";
-import Comment from "../models/comment.js";
+import { Comment } from "../models/comment.js";
 
 export const replyList = [
 	asyncHandler(async (req, res, next) => {
