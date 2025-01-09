@@ -141,7 +141,12 @@ export const commentUpdate = [
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.data.content;
 
-		const updatedComment = await req.comment.save();
+		const comment = await req.comment.save();
+
+		const updatedComment = {
+			...comment._doc,
+			author: { username: comment._doc.author.username },
+		};
 
 		res.json({
 			success: true,
