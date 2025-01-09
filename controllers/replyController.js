@@ -6,11 +6,6 @@ import { checkSchema } from "express-validator";
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
 
-import verifyToken from "../middlewares/verifyToken.js";
-import verifyJSONSchema from "../middlewares/verifyJSONSchema.js";
-import verifyId from "../middlewares/verifyId.js";
-import verifyPermission from "../middlewares/verifyPermission.js";
-
 // Models
 import Post from "../models/post.js";
 import Reply from "../models/reply.js";
