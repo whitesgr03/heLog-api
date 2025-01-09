@@ -52,44 +52,28 @@ export const replyCreate = [
 		},
 	}),
 	validationScheme,
-	asyncHandler(async (req, res, next) => {
-		const currentTime = new Date();
+	asyncHandler(async (req, res) => {
+		const { commentId } = req.params;
 
-		const newReply = new Reply({
-			...req.data,
+		const newReply = await new Comment({
 			author: req.user.id,
-			lastModified: currentTime,
-			createdAt: currentTime,
-		});
+			post: req.comment.post,
+			parent: commentId,
+			...req.data,
+		}).save();
 
-		await newReply.save();
+		const createdReply = await newReply.populate("author", {
+			username: 1,
+			_id: 0,
+		});
 
 		res.json({
 			success: true,
-			message: "Create reply successfully.",
+			message: "Create comment successfully.",
+			data: createdReply,
 		});
 	}),
 ];
-export const replyUpdate = [
-	verifyToken,
-	verifyId("reply"),
-	verifyPermission("reply"),
-	verifyJSONSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "The content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "The content must be less than 500 long.",
-			},
-		},
-	}),
-	asyncHandler(async (req, res, next) => {
-		req.reply.content = req.data.content;
-		req.reply.lastModified = new Date();
 
 		await req.reply.save();
 
