@@ -122,16 +122,18 @@ export const replyUpdate = [
 ];
 
 export const replyDelete = [
-	asyncHandler(async (req, res, next) => {
-		req.reply.content = "Reply deleted by user";
-		req.reply.lastModified = new Date();
-		req.reply.deleted = true;
+	asyncHandler(async (req, res) => {
+		req.comment.content = req.deletedByAdmin
+			? "Reply deleted by admin"
+			: "Reply deleted by user";
+		req.comment.deleted = true;
 
-		await req.reply.save();
+		const deletedReply = await req.reply.save();
 
 		res.json({
 			success: true,
 			message: "Delete reply successfully.",
+			data: deletedReply,
 		});
 	}),
 ];
