@@ -57,8 +57,7 @@ export const commentCreate = [
 		const { postId } = req.params;
 
 		const post =
-			isValidObjectId(postId) &&
-			(await Post.findById({ _id: postId }).exec());
+			isValidObjectId(postId) && (await Post.findById(postId).exec());
 
 		post
 			? next()
