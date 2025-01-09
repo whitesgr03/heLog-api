@@ -199,10 +199,10 @@ export const replyDelete = [
 			  });
 	}),
 	asyncHandler(async (req, res) => {
-		req.comment.content = req.deletedByAdmin
+		req.reply.content = req.deletedByAdmin
 			? "Reply deleted by admin"
 			: "Reply deleted by user";
-		req.comment.deleted = true;
+		req.reply.deleted = true;
 
 		const deletedReply = await req.reply.save();
 
