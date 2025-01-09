@@ -8,6 +8,7 @@ import { validationScheme } from "../middlewares/validationScheme.js";
 
 // Models
 import { Comment } from "../models/comment.js";
+import { User } from "../models/user.js";
 
 export const replyList = [
 	asyncHandler(async (req, res) => {
