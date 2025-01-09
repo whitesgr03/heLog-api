@@ -7,8 +7,6 @@ import { checkSchema } from "express-validator";
 import { validationScheme } from "../middlewares/validationScheme.js";
 
 // Models
-import Post from "../models/post.js";
-import Reply from "../models/reply.js";
 import { Comment } from "../models/comment.js";
 
 export const replyList = [
