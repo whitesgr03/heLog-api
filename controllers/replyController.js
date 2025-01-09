@@ -94,6 +94,24 @@ export const replyCreate = [
 	}),
 ];
 
+export const replyUpdate = [
+	verifyJSONSchema({
+		content: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "The content is required.",
+				bail: true,
+			},
+			isLength: {
+				options: { max: 500 },
+				errorMessage: "The content must be less than 500 long.",
+			},
+		},
+	}),
+	asyncHandler(async (req, res, next) => {
+		req.reply.content = req.data.content;
+		req.reply.lastModified = new Date();
+
 		await req.reply.save();
 
 		res.json({
@@ -102,6 +120,7 @@ export const replyCreate = [
 		});
 	}),
 ];
+
 export const replyDelete = [
 	asyncHandler(async (req, res, next) => {
 		req.reply.content = "Reply deleted by user";
