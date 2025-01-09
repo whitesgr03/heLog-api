@@ -111,7 +111,6 @@ export const commentUpdate = [
 			(await Comment.findById(commentId)
 				.populate("author", {
 					username: 1,
-					_id: 0,
 				})
 				.exec());
 
