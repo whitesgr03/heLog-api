@@ -109,15 +109,20 @@ export const replyUpdate = [
 		},
 	}),
 	validationScheme,
-	asyncHandler(async (req, res, next) => {
+	asyncHandler(async (req, res) => {
 		req.reply.content = req.data.content;
-		req.reply.lastModified = new Date();
 
-		await req.reply.save();
+		const reply = await req.reply.save();
+
+		const updatedReply = {
+			...reply._doc,
+			author: { username: reply._doc.author.username },
+		};
 
 		res.json({
 			success: true,
 			message: "Update reply successfully.",
+			data: updatedReply,
 		});
 	}),
 ];
