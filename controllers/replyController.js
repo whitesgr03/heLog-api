@@ -52,6 +52,25 @@ export const replyCreate = [
 		},
 	}),
 	validationScheme,
+	asyncHandler(async (req, res, next) => {
+		const { commentId } = req.params;
+
+		const comment =
+			isValidObjectId(commentId) &&
+			(await Comment.findById(commentId).exec());
+
+		const handleSetLocalVariable = () => {
+			req.comment = comment;
+			next();
+		};
+
+		comment
+			? handleSetLocalVariable()
+			: res.status(404).json({
+					success: false,
+					message: `Comment could not be found.`,
+			  });
+	}),
 	asyncHandler(async (req, res) => {
 		const { commentId } = req.params;
 
