@@ -26,7 +26,7 @@ blogRouter
 	.delete(commentControllers.commentDelete);
 
 blogRouter
-	.route("/replies")
+	.route("/comments/:commentId/replies")
 	.get(replyControllers.replyList)
 	.post(replyControllers.replyCreate);
 blogRouter
