@@ -195,7 +195,9 @@ export const commentDelete = [
 			: "Comment deleted by user";
 		req.comment.deleted = true;
 
-		const deletedComment = await req.comment.save();
+		const comment = await req.comment.save();
+
+		const { _author, ...deletedComment } = comment._doc;
 
 		res.json({
 			success: true,
