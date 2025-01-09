@@ -204,7 +204,9 @@ export const replyDelete = [
 			: "Reply deleted by user";
 		req.reply.deleted = true;
 
-		const deletedReply = await req.reply.save();
+		const reply = await req.reply.save();
+
+		const { _author, ...deletedReply } = reply._doc;
 
 		res.json({
 			success: true,
