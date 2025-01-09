@@ -1,6 +1,6 @@
 // Modules
 import asyncHandler from "express-async-handler";
-import { Types, isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { checkSchema } from "express-validator";
 
 // Middlewares
