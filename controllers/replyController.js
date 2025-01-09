@@ -122,6 +122,25 @@ export const replyUpdate = [
 ];
 
 export const replyDelete = [
+	asyncHandler(async (req, res, next) => {
+		const { replyId } = req.params;
+
+		const reply =
+			isValidObjectId(replyId) &&
+			(await Comment.findById(replyId).exec());
+
+		const handleSetLocalVariable = () => {
+			req.reply = reply;
+			next();
+		};
+
+		reply
+			? handleSetLocalVariable()
+			: res.status(404).json({
+					success: false,
+					message: `Reply could not be found.`,
+			  });
+	}),
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.deletedByAdmin
 			? "Reply deleted by admin"
