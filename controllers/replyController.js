@@ -141,6 +141,24 @@ export const replyDelete = [
 					message: `Reply could not be found.`,
 			  });
 	}),
+	asyncHandler(async (req, res, next) => {
+		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+
+		const isReplyOwner =
+			user._id.toString() === req.reply.author._id.toString();
+
+		const handleSetLocalVariable = () => {
+			req.deletedByAdmin = user.isAdmin && !isReplyOwner;
+			next();
+		};
+
+		user.isAdmin || isReplyOwner
+			? handleSetLocalVariable()
+			: res.status(403).json({
+					success: false,
+					message: "This request requires higher permissions.",
+			  });
+	}),
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.deletedByAdmin
 			? "Reply deleted by admin"
