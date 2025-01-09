@@ -103,9 +103,6 @@ export const replyCreate = [
 	}),
 ];
 export const replyDelete = [
-	verifyToken,
-	verifyId("reply"),
-	verifyPermission("reply"),
 	asyncHandler(async (req, res, next) => {
 		req.reply.content = "Reply deleted by user";
 		req.reply.lastModified = new Date();
