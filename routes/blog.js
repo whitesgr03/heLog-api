@@ -8,6 +8,7 @@ export const blogRouter = express.Router();
 
 blogRouter.get("/posts", postControllers.postList);
 blogRouter.get("/posts/:postId/comments", commentControllers.commentList);
+blogRouter.get("/comments/:commentId/replies", replyControllers.replyList);
 
 blogRouter.use(authenticate);
 
@@ -25,10 +26,8 @@ blogRouter
 	.patch(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
-blogRouter
-	.route("/comments/:commentId/replies")
-	.get(replyControllers.replyList)
-	.post(replyControllers.replyCreate);
+blogRouter.post("/comments/:commentId/replies", replyControllers.replyCreate);
+
 blogRouter
 	.route("/replies/:replyId")
 	.put(replyControllers.replyUpdate)
