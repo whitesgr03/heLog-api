@@ -18,6 +18,16 @@ export const Comment = mongoose.model(
 				required: true,
 				immutable: true,
 			},
+			parent: {
+				type: Schema.Types.ObjectId,
+				ref: "Comment",
+				immutable: true,
+			},
+			reply: {
+				type: Schema.Types.ObjectId,
+				ref: "Reply",
+				immutable: true,
+			},
 			content: { type: String, required: true },
 			deleted: { type: Boolean, default: false },
 		},
