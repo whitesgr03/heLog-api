@@ -108,7 +108,30 @@ export const replyUpdate = [
 			},
 		},
 	}),
-	validationScheme,
+  validationScheme,
+  asyncHandler(async (req, res, next) => {
+		const { replyId } = req.params;
+
+		const reply =
+			isValidObjectId(replyId) &&
+			(await Comment.findById(replyId)
+				.populate("author", {
+					username: 1,
+				})
+				.exec());
+
+		const handleSetLocalVariable = () => {
+			req.reply = reply;
+			next();
+		};
+
+		reply
+			? handleSetLocalVariable()
+			: res.status(404).json({
+					success: false,
+					message: `Reply could not be found.`,
+			  });
+	}),
 	asyncHandler(async (req, res) => {
 		req.reply.content = req.data.content;
 
