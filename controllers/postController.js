@@ -2,7 +2,7 @@
 import https from "node:https";
 import asyncHandler from "express-async-handler";
 import { checkSchema } from "express-validator";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
@@ -42,17 +42,75 @@ export const postDetail = [
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
 
-		const post = await Post.findOne({ _id: postId })
-			.populate("author", {
-				username: 1,
-			})
-			.exec();
+		const pipeline = [
+			{
+				$match: {
+					_id: new Types.ObjectId(`${postId}`),
+				},
+			},
+			{
+				$lookup: {
+					from: "users",
+					localField: "author",
+					foreignField: "_id",
+					as: "author",
+					pipeline: [
+						{
+							$project: {
+								_id: 0,
+								username: 1,
+							},
+						},
+					],
+				},
+			},
+			{
+				$unwind: {
+					path: "$author",
+				},
+			},
+			{
+				$set: {
+					mainImageUrl: {
+						$regexFind: {
+							input: "$mainImage",
+							regex: /(?<=img src=")(.*?)(?=")/g,
+						},
+					},
+				},
+			},
+			{
+				$set: {
+					mainImageUrl: {
+						$ifNull: ["$mainImageUrl.match", null],
+					},
+				},
+			},
+			{
+				$lookup: {
+					from: "comments",
+					localField: "_id",
+					foreignField: "post",
+					as: "countComments",
+				},
+			},
+			{
+				$set: {
+					countComments: {
+						$size: "$countComments",
+					},
+				},
+			},
+		];
 
-		post
+		const post =
+			isValidObjectId(postId) && (await Post.aggregate(pipeline));
+
+		post?.length
 			? res.json({
 					success: true,
 					message: "Get post successfully.",
-					data: post,
+					data: post[0],
 			  })
 			: res.status(404).json({
 					success: false,
