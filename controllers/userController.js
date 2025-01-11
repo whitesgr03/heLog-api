@@ -10,7 +10,6 @@ import { validationScheme } from "../middlewares/validationScheme.js";
 import { User } from "../models/user.js";
 import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
-import { Reply } from "../models/reply.js";
 
 export const userPostList = [
 	asyncHandler(async (req, res) => {
@@ -110,7 +109,6 @@ export const userDelete = [
 			...posts.map(async post => {
 				Promise.all([
 					Comment.deleteMany({ post: post._id }).exec(),
-					Reply.deleteMany({ post: post._id }).exec(),
 					post.deleteOne(),
 				]);
 			}),
@@ -121,15 +119,6 @@ export const userDelete = [
 				},
 				{
 					content: "Comment deleted by user",
-					deleted: true,
-				}
-			).exec(),
-			Reply.updateMany(
-				{
-					author: req.user.id,
-				},
-				{
-					content: "Reply deleted by user",
 					deleted: true,
 				}
 			).exec(),
