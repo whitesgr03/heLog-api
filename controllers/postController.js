@@ -17,7 +17,10 @@ export const postList = [
 	asyncHandler(async (req, res) => {
 		const { skip = 0 } = req.query;
 
-		const posts = await Post.find({ publish: true })
+		const posts = await Post.find(
+			{ publish: true },
+			{ content: 0, publish: 0 }
+		)
 			.populate("author", {
 				username: 1,
 				_id: 0,
