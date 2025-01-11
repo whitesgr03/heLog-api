@@ -25,7 +25,7 @@ export const Comment = mongoose.model(
 			},
 			reply: {
 				type: Schema.Types.ObjectId,
-				ref: "Reply",
+				ref: "Comment",
 				immutable: true,
 			},
 			content: { type: String, required: true },
