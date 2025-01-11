@@ -11,7 +11,6 @@ import { validationScheme } from "../middlewares/validationScheme.js";
 import { User } from "../models/user.js";
 import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
-import { Reply } from "../models/reply.js";
 
 export const postList = [
 	asyncHandler(async (req, res) => {
