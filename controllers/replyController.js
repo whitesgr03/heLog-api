@@ -293,10 +293,24 @@ export const replyUpdate = [
 
 		const reply = await req.reply.save();
 
-		const updatedReply = {
-			...reply._doc,
-			author: { username: reply._doc.author.username },
-		};
+		const updatedReply = req.reply?.reply
+			? await reply.populate({
+					path: "reply",
+					select: {
+						author: 1,
+						deleted: 1,
+					},
+					populate: {
+						path: "author",
+						select: {
+							username: 1,
+							_id: 0,
+						},
+					},
+			  })
+			: reply._doc;
+
+		updatedReply.author = { username: reply._doc.author.username };
 
 		res.json({
 			success: true,
