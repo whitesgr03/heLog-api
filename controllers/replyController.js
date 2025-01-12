@@ -1,6 +1,6 @@
 // Modules
 import asyncHandler from "express-async-handler";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import { checkSchema } from "express-validator";
 
 // Middlewares
@@ -15,19 +15,89 @@ export const replyList = [
 		const { commentId } = req.params;
 		const { skip = 0 } = req.query;
 
+		const pipeline = [
+			{
+				$match: {
+					parent: new Types.ObjectId(`${commentId}`),
+				},
+			},
+			{
+				$sort: {
+					reply: 1,
+					createdAt: -1,
+				},
+			},
+			{ $skip: Number(skip) },
+			{ $limit: 10 },
+			{
+				$lookup: {
+					from: "users",
+					localField: "author",
+					foreignField: "_id",
+					as: "author",
+					pipeline: [
+						{
+							$project: {
+								_id: 0,
+								username: 1,
+							},
+						},
+					],
+				},
+			},
+			{
+				$unwind: {
+					path: "$author",
+				},
+			},
+			{
+				$lookup: {
+					from: "comments",
+					localField: "reply",
+					foreignField: "_id",
+					as: "reply",
+					pipeline: [
+						{
+							$project: {
+								deleted: 1,
+								author: 1,
+							},
+						},
+						{
+							$lookup: {
+								from: "users",
+								localField: "author",
+								foreignField: "_id",
+								as: "author",
+								pipeline: [
+									{
+										$project: {
+											_id: 0,
+											username: 1,
+										},
+									},
+								],
+							},
+						},
+						{
+							$unwind: {
+								path: "$author",
+							},
+						},
+					],
+				},
+			},
+			{
+				$unwind: {
+					path: "$reply",
+					preserveNullAndEmptyArrays: true,
+				},
+			},
+		];
+
 		const replies = !isValidObjectId(commentId)
 			? []
-			: await Comment.find({
-					parent: commentId,
-			  })
-					.populate("author", {
-						username: 1,
-						_id: 0,
-					})
-					.sort({ createdAt: -1 })
-					.skip(skip)
-					.limit(10)
-					.exec();
+			: await Comment.aggregate(pipeline);
 
 		res.json({
 			success: true,
