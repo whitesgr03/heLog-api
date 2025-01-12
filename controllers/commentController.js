@@ -1,6 +1,6 @@
 // Modules
 import asyncHandler from "express-async-handler";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import { checkSchema } from "express-validator";
 
 // Middlewares
@@ -16,19 +16,61 @@ export const commentList = [
 		const { postId } = req.params;
 		const { skip = 0 } = req.query;
 
+		const pipeline = [
+			{
+				$match: {
+					post: new Types.ObjectId(postId),
+					parent: null,
+				},
+			},
+			{
+				$sort: {
+					createdAt: -1,
+				},
+			},
+			{ $skip: Number(skip) },
+			{ $limit: 10 },
+			{
+				$lookup: {
+					from: "users",
+					localField: "author",
+					foreignField: "_id",
+					as: "author",
+					pipeline: [
+						{
+							$project: {
+								_id: 0,
+								username: 1,
+							},
+						},
+					],
+				},
+			},
+			{
+				$unwind: {
+					path: "$author",
+				},
+			},
+			{
+				$lookup: {
+					from: "comments",
+					localField: "_id",
+					foreignField: "parent",
+					as: "countReplies",
+				},
+			},
+			{
+				$set: {
+					countReplies: {
+						$size: "$countReplies",
+					},
+				},
+			},
+		];
+
 		const comments = !isValidObjectId(postId)
 			? []
-			: await Comment.find({
-					post: postId,
-			  })
-					.populate("author", {
-						username: 1,
-						_id: 0,
-					})
-					.sort({ createdAt: -1 })
-					.skip(skip)
-					.limit(10)
-					.exec();
+			: await Comment.aggregate(pipeline);
 
 		res.json({
 			success: true,
