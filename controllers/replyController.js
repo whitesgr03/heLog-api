@@ -107,7 +107,7 @@ export const replyList = [
 	}),
 ];
 
-export const replyCreate = [
+export const replyComment = [
 	checkSchema({
 		content: {
 			trim: true,
