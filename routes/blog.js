@@ -29,7 +29,7 @@ blogRouter
 	.patch(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
-blogRouter.post("/comments/:commentId/replies", replyControllers.replyCreate);
+blogRouter.post("/comments/:commentId/replies", replyControllers.replyComment);
 
 blogRouter
 	.route("/replies/:replyId")
