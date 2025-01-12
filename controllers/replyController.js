@@ -164,6 +164,82 @@ export const replyComment = [
 	}),
 ];
 
+export const replyCreate = [
+	checkSchema({
+		content: {
+			trim: true,
+			notEmpty: {
+				errorMessage: "Content is required.",
+				bail: true,
+			},
+			isLength: {
+				options: { max: 500 },
+				errorMessage: "Content must be less than 500 long.",
+			},
+		},
+	}),
+	validationScheme,
+	asyncHandler(async (req, res, next) => {
+		const { replyId } = req.params;
+
+		const reply =
+			isValidObjectId(replyId) &&
+			(await Comment.findById(replyId).exec());
+
+		const handleSetLocalVariable = () => {
+			req.reply = reply;
+			next();
+		};
+
+		reply
+			? handleSetLocalVariable()
+			: res.status(404).json({
+					success: false,
+					message: `Reply could not be found.`,
+			  });
+	}),
+	asyncHandler(async (req, res) => {
+		const { replyId } = req.params;
+
+		const newReply = await new Comment({
+			author: req.user.id,
+			post: req.reply.post,
+			parent: req.reply.parent,
+			reply: replyId,
+			...req.data,
+		}).save();
+
+		let createdReply = await newReply.populate({
+			path: "author",
+			select: {
+				username: 1,
+				_id: 0,
+			},
+		});
+
+		createdReply = await newReply.populate({
+			path: "reply",
+			select: {
+				author: 1,
+				deleted: 1,
+			},
+			populate: {
+				path: "author",
+				select: {
+					username: 1,
+					_id: 0,
+				},
+			},
+		});
+
+		res.json({
+			success: true,
+			message: "Create reply successfully.",
+			data: createdReply,
+		});
+	}),
+];
+
 export const replyUpdate = [
 	checkSchema({
 		content: {
