@@ -33,5 +33,5 @@ blogRouter.post("/comments/:commentId/replies", replyControllers.replyComment);
 
 blogRouter
 	.route("/replies/:replyId")
-	.put(replyControllers.replyUpdate)
+	.patch(replyControllers.replyUpdate)
 	.delete(replyControllers.replyDelete);
