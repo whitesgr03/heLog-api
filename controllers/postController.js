@@ -16,23 +16,93 @@ export const postList = [
 	asyncHandler(async (req, res) => {
 		const { skip = 0 } = req.query;
 
-		const posts = await Post.find(
-			{ publish: true },
-			{ content: 0, publish: 0 }
-		)
-			.populate("author", {
-				username: 1,
-				_id: 0,
-			})
-			.skip(skip)
-			.limit(10)
-			.sort({ createdAt: -1 })
-			.exec();
+		const pipeline = [
+			{
+				$match: {
+					publish: true,
+				},
+			},
+			{
+				$facet: {
+					posts: [
+						{
+							$sort: {
+								createdAt: -1,
+								_id: -1,
+							},
+						},
+						{ $skip: Number(skip) },
+						{ $limit: 10 },
+						{
+							$set: {
+								mainImageUrl: {
+									$regexFind: {
+										input: "$mainImage",
+										regex: /(?<=img src=")(.*?)(?=")/g,
+									},
+								},
+							},
+						},
+						{
+							$set: {
+								mainImageUrl: {
+									$ifNull: ["$mainImageUrl.match", null],
+								},
+							},
+						},
+						{
+							$project: {
+								content: 0,
+								publish: 0,
+							},
+						},
+						{
+							$lookup: {
+								from: "users",
+								localField: "author",
+								foreignField: "_id",
+								as: "author",
+								pipeline: [
+									{
+										$project: {
+											_id: 0,
+											username: 1,
+										},
+									},
+								],
+							},
+						},
+						{
+							$unwind: {
+								path: "$author",
+							},
+						},
+					],
+					countPosts: [
+						{
+							$count: "count",
+						},
+					],
+				},
+			},
+			{
+				$unwind: {
+					path: "$countPosts",
+				},
+			},
+			{
+				$set: {
+					countPosts: "$countPosts.count",
+				},
+			},
+		];
+
+		const posts = await Post.aggregate(pipeline);
 
 		res.json({
 			success: true,
 			message: "Get all posts successfully.",
-			data: posts,
+			data: posts[0],
 		});
 	}),
 ];
