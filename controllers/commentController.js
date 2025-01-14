@@ -19,7 +19,7 @@ export const commentList = [
 		const pipeline = [
 			{
 				$match: {
-					post: new Types.ObjectId(postId),
+					post: new Types.ObjectId(`${postId}`),
 					parent: null,
 				},
 			},
