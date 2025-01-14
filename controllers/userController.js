@@ -13,12 +13,13 @@ import { Comment } from "../models/comment.js";
 
 export const userPostList = [
 	asyncHandler(async (req, res) => {
-		const posts = await Post.find({ author: req.user.id }).exec();
+		const userPosts = await Post.find({ author: req.user.id })
+		.exec();
 
 		res.json({
 			success: true,
 			message: "Get user's post list successfully.",
-			data: posts,
+			data: userPosts,
 		});
 	}),
 ];
