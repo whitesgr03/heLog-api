@@ -26,6 +26,7 @@ export const commentList = [
 			{
 				$sort: {
 					createdAt: -1,
+					_id: -1,
 				},
 			},
 			{ $skip: Number(skip) },
