@@ -144,7 +144,7 @@ const createPosts = async ({ users, amount }) => {
 
 			content += `<p>${faker.lorem.paragraphs({
 				min: 3,
-				max: 8,
+				max: 5,
 			})}</p>\n`;
 
 			i + 1 !== line &&
@@ -186,7 +186,7 @@ const createComments = async ({ users, posts, amount }) => {
 		const obj = {
 			author: users[randomInteger(0, users.length - 1)].id,
 			post: posts[randomInteger(0, posts.length - 1)]._id,
-			content: `${faker.lorem.paragraphs({ min: 1, max: 5 }, "\n\n")}`,
+			content: `${faker.lorem.paragraphs({ min: 1, max: 2 }, "\n\n")}`,
 			deleted: false,
 		};
 		fakeComments.push(obj);
@@ -206,7 +206,7 @@ const createCommentReplies = async ({ users, comments, amount }) => {
 			author: users[randomInteger(0, users.length - 1)].id,
 			post: comment.post,
 			parent: comment.id,
-			content: `${faker.lorem.paragraphs({ min: 1, max: 5 }, "\n\n")}`,
+			content: `${faker.lorem.paragraphs({ min: 1, max: 2 }, "\n\n")}`,
 			deleted: false,
 		};
 		fakeCommentReplies.push(obj);
