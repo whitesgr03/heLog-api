@@ -25,7 +25,9 @@ export const googleRedirect = [
 			delete req.session.referer;
 
 			err && next(err);
-			user && req.login(user, () => res.redirect(redirect_origin));
+			user
+				? req.login(user, () => res.redirect(redirect_origin))
+				: res.redirect(redirect_origin);
 		});
 		authenticateFn(req, res, next);
 	},
@@ -56,7 +58,9 @@ export const facebookRedirect = [
 				delete req.session.referer;
 
 				err && next(err);
-				user && req.login(user, () => res.redirect(redirect_origin));
+				user
+					? req.login(user, () => res.redirect(redirect_origin))
+					: res.redirect(redirect_origin);
 			}
 		);
 		authenticateFn(req, res, next);
