@@ -15,22 +15,18 @@ export const googleRedirect = [
 		req.session.oauth2 ? next() : res.redirect("account/login/google");
 	},
 	(req, res, next) => {
-		const authenticateFn = passport.authenticate(
-			"google",
-			(err, user, { message }) => {
-				const redirect_origin =
-					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
-						origin => `${origin}/` === req.session.referer
-					) ?? process.env.HELOG_URL;
+		const authenticateFn = passport.authenticate("google", (err, user) => {
+			const redirect_origin =
+				process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
+					origin => `${origin}/` === req.session.referer
+				) ?? process.env.HELOG_URL;
 
-				delete req.session.oauth2;
-				delete req.session.referer;
+			delete req.session.oauth2;
+			delete req.session.referer;
 
-				err && next(err);
-				message && res.redirect(redirect_origin);
-				user && req.login(user, () => res.redirect(redirect_origin));
-			}
-		);
+			err && next(err);
+			user && req.login(user, () => res.redirect(redirect_origin));
+		});
 		authenticateFn(req, res, next);
 	},
 ];
@@ -50,7 +46,7 @@ export const facebookRedirect = [
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate(
 			"facebook",
-			(err, user, { message }) => {
+			(err, user) => {
 				const redirect_origin =
 					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
 						origin => `${origin}/` === req.session.referer
@@ -60,7 +56,6 @@ export const facebookRedirect = [
 				delete req.session.referer;
 
 				err && next(err);
-				message && res.redirect(redirect_origin);
 				user && req.login(user, () => res.redirect(redirect_origin));
 			}
 		);
