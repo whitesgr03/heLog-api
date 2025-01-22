@@ -13,7 +13,10 @@ import { Comment } from "../models/comment.js";
 
 export const userPostList = [
 	asyncHandler(async (req, res) => {
-		const userPosts = await Post.find({ author: req.user.id })
+		const userPosts = await Post.find(
+			{ author: req.user.id },
+			{ author: -1 }
+		)
 			.sort({ updatedAt: -1, createdAt: -1, _id: -1 })
 			.exec();
 
