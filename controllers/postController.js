@@ -204,8 +204,12 @@ export const postCreate = [
 			},
 		},
 		mainImage: {
-			optional: true,
 			trim: true,
+			optional: {
+				options: {
+					values: "falsy",
+				},
+			},
 			custom: {
 				options: mainImage =>
 					new Promise((resolve, reject) => {
