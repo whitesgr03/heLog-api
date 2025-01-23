@@ -210,6 +210,12 @@ export const postCreate = [
 					values: "falsy",
 				},
 			},
+			isURL: {
+				protocols: ["https"],
+				errorMessage:
+					"Only https protocol is allowed in main image URL",
+				bail: true,
+			},
 			custom: {
 				options: url =>
 					new Promise((resolve, reject) => {
