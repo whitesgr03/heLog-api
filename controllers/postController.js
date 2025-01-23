@@ -261,7 +261,11 @@ export const postCreate = [
 			},
 		},
 		content: {
-			optional: true,
+			optional: {
+				options: {
+					values: "falsy",
+				},
+			},
 			trim: true,
 			custom: {
 				options: content => {
