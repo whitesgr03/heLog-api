@@ -296,13 +296,13 @@ export const postCreate = [
 			author: req.user.id,
 		});
 
-		await newPost.save();
+		const post = await newPost.save();
+
+		const { author, ...createdPost } = post._doc;
 
 		res.json({
 			success: true,
-			data: {
-				post: { id: newPost._id },
-			},
+			data: createdPost,
 			message: "Create post successfully.",
 		});
 	}),
