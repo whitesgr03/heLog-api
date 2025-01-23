@@ -199,9 +199,8 @@ export const postCreate = [
 			unescape: true,
 			trim: true,
 			isLength: {
-				options: { max: 100 },
-				errorMessage: "The title must be less than 100 long.",
-				bail: true,
+				options: { min: 0, max: 100 },
+				errorMessage: "Title must be less than 100 long.",
 			},
 		},
 		mainImage: {
