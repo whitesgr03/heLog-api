@@ -452,10 +452,10 @@ export const postUpdate = [
 	asyncHandler(async (req, res) => {
 		const { title, mainImage, content, publish } = req.data;
 
-		(title || title === "") && (req.post.title = title);
-		(mainImage || mainImage === "") && (req.post.mainImage = mainImage);
-		(content || content === "") && (req.post.content = content);
-		(publish || publish === "") && (req.post.publish = publish);
+		req.post.title = title;
+		req.post.mainImage = mainImage;
+		req.post.content = content;
+		req.post.publish = publish;
 
 		const post = await Post.findByIdAndUpdate(
 			req.post._id,
