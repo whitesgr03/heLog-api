@@ -191,8 +191,12 @@ export const postDetail = [
 export const postCreate = [
 	checkSchema({
 		title: {
+			optional: {
+				options: {
+					values: "falsy",
+				},
+			},
 			unescape: true,
-			optional: true,
 			trim: true,
 			isLength: {
 				options: { max: 100 },
