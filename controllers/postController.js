@@ -211,31 +211,47 @@ export const postCreate = [
 				},
 			},
 			custom: {
-				options: mainImage =>
+				options: url =>
 					new Promise((resolve, reject) => {
-						const source = mainImage.match(
-							/(?<=img src=")(.*?)(?=")/g
-						);
+						const handleCheckMimeType = mimeType => {
+							const isValidMimeTypes =
+								/(?=(jpeg|png|webp))/g.test(mimeType);
 
-						const handleMimeType = () => {
+							isValidMimeTypes ? resolve() : reject();
+						};
+
+						const handleFetch = url => {
 							https
-								.request(source[0], res => {
-									const mimeType =
-										res.headers["content-type"];
-									res.statusCode === 200 &&
-									(mimeType === "image/jpeg" ||
-										mimeType === "image/png" ||
-										mimeType === "image/webp")
-										? resolve()
+								.request(url, res => {
+									res["statusCode"] === 200
+										? handleCheckMimeType(
+												res.headers?.["content-type"]
+										  )
 										: reject();
 								})
 								.on("error", () => reject())
 								.end();
 						};
 
-						source ? handleMimeType() : reject();
+						https
+							.request(url, res => {
+								switch (res["statusCode"]) {
+									case 200:
+										handleCheckMimeType(
+											res.headers?.["content-type"]
+										);
+										break;
+									case 302:
+										handleFetch(res.headers?.["location"]);
+										break;
+									default:
+										reject();
+								}
+							})
+							.on("error", () => reject())
+							.end();
 					}),
-				errorMessage: "The main image is invalid.",
+				errorMessage: "Main image is not a valid source.",
 			},
 		},
 		content: {
