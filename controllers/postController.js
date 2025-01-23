@@ -318,6 +318,10 @@ export const postUpdate = [
 				errorMessage: "Title must be less than 100 long.",
 				bail: true,
 			},
+			notEmpty: {
+				if: (_value, { req }) => req.body.publish,
+				errorMessage: "Title is required.",
+			},
 		},
 		mainImage: {
 			trim: true,
