@@ -288,14 +288,6 @@ export const postCreate = [
 				errorMessage: "Content must be less than 8000 long.",
 			},
 		},
-		publish: {
-			optional: true,
-			trim: true,
-			toLowerCase: true,
-			isBoolean: {
-				errorMessage: "The publish must be boolean.",
-			},
-		},
 	}),
 	validationScheme,
 	asyncHandler(async (req, res) => {
