@@ -425,9 +425,7 @@ export const postUpdate = [
 
 		const post =
 			isValidObjectId(postId) &&
-			(await Post.findById(postId, { createdAt: 0 })
-				.populate("author")
-				.exec());
+			(await Post.findById(postId).populate("author").exec());
 
 		const handleSetLocalVariable = () => {
 			req.post = post;
