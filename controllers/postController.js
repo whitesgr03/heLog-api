@@ -330,6 +330,12 @@ export const postUpdate = [
 				errorMessage: "Main Image is required.",
 				bail: true,
 			},
+			isURL: {
+				if: url => url !== "",
+				protocols: ["https"],
+				errorMessage: "Only https protocol is allowed in image URL",
+				bail: true,
+			},
 			custom: {
 				if: url => url !== "",
 				options: url =>
