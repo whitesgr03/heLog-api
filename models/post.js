@@ -12,9 +12,9 @@ export const Post = mongoose.model(
 				required: true,
 				immutable: true,
 			},
-			title: { type: String },
-			mainImage: { type: String },
-			content: { type: String },
+			title: { type: String, default: "" },
+			mainImage: { type: String, default: "" },
+			content: { type: String, default: "" },
 			publish: { type: Boolean, default: false },
 		},
 		{
