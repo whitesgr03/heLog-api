@@ -15,7 +15,7 @@ export const userPostList = [
 	asyncHandler(async (req, res) => {
 		const userPosts = await Post.find(
 			{ author: req.user.id },
-			{ author: -1 }
+			{ author: 0 }
 		)
 			.sort({ createdAt: -1, _id: -1 })
 			.exec();
