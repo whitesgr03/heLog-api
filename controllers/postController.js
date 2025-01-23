@@ -412,6 +412,9 @@ export const postUpdate = [
 			trim: true,
 			toLowerCase: true,
 			isBoolean: {
+				options: {
+					loose: false,
+				},
 				errorMessage: "The publish must be boolean.",
 			},
 		},
