@@ -312,7 +312,6 @@ export const postUpdate = [
 	checkSchema({
 		title: {
 			unescape: true,
-			optional: true,
 			trim: true,
 			isLength: {
 				options: { max: 100 },
@@ -321,7 +320,6 @@ export const postUpdate = [
 			},
 		},
 		mainImage: {
-			optional: true,
 			trim: true,
 			custom: {
 				options: mainImage =>
@@ -353,7 +351,6 @@ export const postUpdate = [
 			},
 		},
 		content: {
-			optional: true,
 			trim: true,
 			custom: {
 				options: content => {
@@ -377,7 +374,6 @@ export const postUpdate = [
 			},
 		},
 		publish: {
-			optional: true,
 			trim: true,
 			toLowerCase: true,
 			isBoolean: {
