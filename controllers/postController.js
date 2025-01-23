@@ -403,6 +403,10 @@ export const postUpdate = [
 				},
 				errorMessage: "Content must be less than 8000 long.",
 			},
+			notEmpty: {
+				if: (_value, { req }) => req.body.publish,
+				errorMessage: "Content is required.",
+			},
 		},
 		publish: {
 			trim: true,
