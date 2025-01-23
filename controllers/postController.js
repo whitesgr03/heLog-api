@@ -457,21 +457,14 @@ export const postUpdate = [
 		req.post.content = content;
 		req.post.publish = publish;
 
-		const post = await Post.findByIdAndUpdate(
-			req.post._id,
-			{
-				title,
-				mainImage,
-				content,
-				publish,
-			},
-			{ new: true, select: { createdAt: 0, author: 0 } }
-		);
+		const post = await req.post.save();
+
+		const { author, ...updatedPost } = post._doc;
 
 		res.json({
 			success: true,
 			message: "Update post successfully.",
-			data: post,
+			data: updatedPost,
 		});
 	}),
 ];
