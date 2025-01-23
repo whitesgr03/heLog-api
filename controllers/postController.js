@@ -325,6 +325,11 @@ export const postUpdate = [
 		},
 		mainImage: {
 			trim: true,
+			notEmpty: {
+				if: (_url, { req }) => req.body.publish,
+				errorMessage: "Main Image is required.",
+				bail: true,
+			},
 			custom: {
 				if: url => url !== "",
 				options: url =>
