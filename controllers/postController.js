@@ -394,14 +394,14 @@ export const postUpdate = [
 
 					const escapeCount = words?.match(/(?<=)&[\w]+;(?=)/g) ?? [];
 
-					const wordCount = words?.replace(/(?<=)&[\w]+;(?=)/g, "");
+					const wordCount =
+						words?.replace(/(?<=)&[\w]+;(?=)/g, "") ?? [];
 
 					return (
 						escapeCount.length + wordCount.length <= wordCountLimit
 					);
 				},
-
-				errorMessage: "The content must be less than 8000 long.",
+				errorMessage: "Content must be less than 8000 long.",
 			},
 		},
 		publish: {
