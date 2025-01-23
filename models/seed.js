@@ -164,10 +164,10 @@ const createPosts = async ({ users, amount }) => {
 		const obj = {
 			author: users[randomInteger(0, users.length - 1)]._id,
 			title: faker.lorem.words({ min: 5, max: 8 }),
-			mainImage: `<p><img src="${faker.image.urlPicsumPhotos({
+			mainImage: faker.image.url({
 				width: 1920,
 				height: 1080,
-			})}" alt=""></p>`,
+			}),
 			content: createParagraph({ line: 5, IMAGE_SIZES }),
 			publish: true,
 		};
