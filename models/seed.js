@@ -149,12 +149,12 @@ const createPosts = async ({ users, amount }) => {
 
 			i + 1 !== line &&
 				!randomInteger(0, 2) &&
-				(content += `<img style="width:${size.width}px; height:${
+				(content += `<p><img style="width:${size.width}px; height:${
 					size.height
 				}px;" src="${faker.image.url({
 					width: size.width,
 					height: size.height,
-				})}" alt="" width=${size.width} height=${size.height}>`);
+				})}" alt="" width=${size.width} height=${size.height}></p>`);
 		}
 
 		return content;
