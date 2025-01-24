@@ -1,5 +1,4 @@
 // Modules
-import https from "node:https";
 import asyncHandler from "express-async-handler";
 import { checkSchema } from "express-validator";
 import { isValidObjectId, Types } from "mongoose";
@@ -210,55 +209,6 @@ export const postCreate = [
 					values: "falsy",
 				},
 			},
-			isURL: {
-				protocols: ["https"],
-				errorMessage:
-					"Only https protocol is allowed in main image URL",
-				bail: true,
-			},
-			custom: {
-				options: url =>
-					new Promise((resolve, reject) => {
-						const handleCheckMimeType = mimeType => {
-							const isValidMimeTypes =
-								/(?=(jpeg|png|webp))/g.test(mimeType);
-
-							isValidMimeTypes ? resolve() : reject();
-						};
-
-						const handleFetch = url => {
-							https
-								.request(url, res => {
-									res["statusCode"] === 200
-										? handleCheckMimeType(
-												res.headers?.["content-type"]
-										  )
-										: reject();
-								})
-								.on("error", () => reject())
-								.end();
-						};
-
-						https
-							.request(url, res => {
-								switch (res["statusCode"]) {
-									case 200:
-										handleCheckMimeType(
-											res.headers?.["content-type"]
-										);
-										break;
-									case 302:
-										handleFetch(res.headers?.["location"]);
-										break;
-									default:
-										reject();
-								}
-							})
-							.on("error", () => reject())
-							.end();
-					}),
-				errorMessage: "Main image is not a valid source.",
-			},
 		},
 		content: {
 			optional: {
@@ -328,57 +278,6 @@ export const postUpdate = [
 			notEmpty: {
 				if: (_url, { req }) => req.body.publish,
 				errorMessage: "Main Image is required.",
-				bail: true,
-			},
-			isURL: {
-				if: url => url !== "",
-				protocols: ["https"],
-				errorMessage: "Only https protocol is allowed in image URL",
-				bail: true,
-			},
-			custom: {
-				if: url => url !== "",
-				options: url =>
-					new Promise((resolve, reject) => {
-						const handleCheckMimeType = mimeType => {
-							const isValidMimeTypes =
-								/(?=(jpeg|png|webp))/g.test(mimeType);
-
-							isValidMimeTypes ? resolve() : reject();
-						};
-
-						const handleFetch = url => {
-							https
-								.request(url, res => {
-									res["statusCode"] === 200
-										? handleCheckMimeType(
-												res.headers?.["content-type"]
-										  )
-										: reject();
-								})
-								.on("error", () => reject())
-								.end();
-						};
-
-						https
-							.request(url, res => {
-								switch (res["statusCode"]) {
-									case 200:
-										handleCheckMimeType(
-											res.headers?.["content-type"]
-										);
-										break;
-									case 302:
-										handleFetch(res.headers?.["location"]);
-										break;
-									default:
-										reject();
-								}
-							})
-							.on("error", () => reject())
-							.end();
-					}),
-				errorMessage: "Main image is not a valid source.",
 			},
 		},
 		content: {
