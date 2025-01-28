@@ -33,23 +33,6 @@ export const postList = [
 						{ $skip: Number(skip) },
 						{ $limit: 10 },
 						{
-							$set: {
-								mainImageUrl: {
-									$regexFind: {
-										input: "$mainImage",
-										regex: /(?<=img src=")(.*?)(?=")/g,
-									},
-								},
-							},
-						},
-						{
-							$set: {
-								mainImageUrl: {
-									$ifNull: ["$mainImageUrl.match", null],
-								},
-							},
-						},
-						{
 							$project: {
 								content: 0,
 								publish: 0,
@@ -135,23 +118,6 @@ export const postDetail = [
 			{
 				$unwind: {
 					path: "$author",
-				},
-			},
-			{
-				$set: {
-					mainImageUrl: {
-						$regexFind: {
-							input: "$mainImage",
-							regex: /(?<=img src=")(.*?)(?=")/g,
-						},
-					},
-				},
-			},
-			{
-				$set: {
-					mainImageUrl: {
-						$ifNull: ["$mainImageUrl.match", null],
-					},
 				},
 			},
 			{
