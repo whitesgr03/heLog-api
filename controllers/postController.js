@@ -84,7 +84,10 @@ export const postList = [
 		res.json({
 			success: true,
 			message: "Get all posts successfully.",
-			data: posts[0],
+			data: posts[0] ?? {
+				posts: [],
+				countPosts: 0,
+			},
 		});
 	}),
 ];
