@@ -130,10 +130,8 @@ const createPosts = async ({ users, amount }) => {
 	const fakePosts = [];
 
 	const IMAGE_SIZES = [
-		{ width: 1920, height: 1080 },
-		{ width: 1280, height: 720 },
-		{ width: 1200, height: 630 },
-		{ width: 250, height: 250 },
+		{ width: 600, height: 400 },
+		{ width: 300, height: 250 },
 	];
 
 	const createParagraph = ({ line, IMAGE_SIZES }) => {
