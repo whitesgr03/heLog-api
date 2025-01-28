@@ -297,22 +297,6 @@ const seed = async () => {
 
 	console.log("Amount of Fake Comments", comments.length);
 
-	// const commentReplies = await createCommentReplies({
-	// 	users,
-	// 	comments,
-	// 	amount: 10,
-	// });
-
-	// console.log("Amount of Fake Comment Replies", commentReplies.length);
-
-	// const replies = await createReplies({
-	// 	users,
-	// 	commentReplies,
-	// 	amount: 10,
-	// });
-
-	// console.log("Amount of Fake Replies", replies.length);
-
 	const [commentReplies, replies] = await randomCreateReplies({
 		users,
 		comments,
