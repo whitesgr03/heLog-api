@@ -19,17 +19,6 @@ export const Post = mongoose.model(
 		},
 		{
 			timestamps: true,
-			virtuals: {
-				mainImageUrl: {
-					get() {
-						const source = this.mainImage?.match(
-							/(?<=img src=")(.*?)(?=")/g
-						);
-						return source ? source[0] : null;
-					},
-				},
-			},
-			toJSON: { virtuals: true },
 		}
 	)
 );
