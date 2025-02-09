@@ -129,12 +129,52 @@ export const postDetail = [
 					localField: "_id",
 					foreignField: "post",
 					as: "countComments",
+					pipeline: [
+						{
+							$project: {
+								_id: 0,
+								parent: 1,
+							},
+						},
+						{
+							$group: {
+								_id: "$parent",
+								count: { $count: {} },
+							},
+						},
+					],
+				},
+			},
+			{
+				$set: {
+					totalComments: {
+						$sum: "$countComments.count",
+					},
+				},
+			},
+			{
+				$unwind: {
+					path: "$countComments",
+					preserveNullAndEmptyArrays: true,
+				},
+			},
+			{
+				$match: {
+					"countComments._id": {
+						$eq: null,
+					},
 				},
 			},
 			{
 				$set: {
 					countComments: {
-						$size: "$countComments",
+						$cond: {
+							if: {
+								$eq: ["$countComments._id", null],
+							},
+							then: "$countComments.count",
+							else: 0,
+						},
 					},
 				},
 			},
