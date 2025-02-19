@@ -31,7 +31,7 @@ const handleServer = () => {
 	);
 };
 
-mongoose.connection.on("connected", handleServer).on("error", err => {
-	databaseLog("Database error");
-	databaseLog(err);
+mongoose.connection.on("connected", () => {
+	databaseLog("MongoDB is connected");
+	handleServer();
 });
