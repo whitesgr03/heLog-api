@@ -1,4 +1,4 @@
-import passport from "../config/passport.js";
+import passport from "passport";
 
 import { authenticate } from "../middlewares/authenticate.js";
 
