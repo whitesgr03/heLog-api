@@ -51,7 +51,6 @@ app.use(compression());
 
 app.use(express.json());
 
-// app.get("/", (req, res) => res.redirect(process.env.HELOG_URL));
 app.use("/account", accountRouter);
 app.use("/user", userRouter);
 app.use("/blog", blogRouter);
