@@ -6,10 +6,11 @@ import session from "express-session";
 import compression from "compression";
 import helmet from "helmet";
 import cors from "cors";
+import MongoStore from "connect-mongo";
 
 // config
+import { mongoose } from "./config/database.js";
 import { passport } from "./config/passport.js";
-import { sessionStore } from "./config/database.js";
 
 // routes
 import { accountRouter } from "./routes/account.js";
@@ -29,7 +30,7 @@ const sessionOptions = {
 	secret: process.env.SESSION_SECRETS.split(","),
 	resave: false,
 	saveUninitialized: false,
-	store: sessionStore,
+	store: MongoStore.create(mongoose.connection),
 	cookie: {
 		sameSite: "Lax",
 		httpOnly: true,
