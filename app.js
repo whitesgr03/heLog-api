@@ -8,7 +8,7 @@ import helmet from "helmet";
 import cors from "cors";
 
 // config
-import passport from "./config/passport.js";
+import { passport } from "./config/passport.js";
 import { sessionStore } from "./config/database.js";
 
 // routes
@@ -16,7 +16,7 @@ import { accountRouter } from "./routes/account.js";
 import { blogRouter } from "./routes/blog.js";
 import { userRouter } from "./routes/user.js";
 
-const app = express();
+export const app = express();
 const errorLog = debug("ServerError");
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS.split(","),
@@ -73,5 +73,3 @@ app.use((err, req, res, next) => {
 		message: err.message,
 	});
 });
-
-export default app;

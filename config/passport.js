@@ -94,4 +94,4 @@ passport.deserializeUser((user, done) => {
 	done(null, user);
 });
 
-export default passport;
+export { passport };

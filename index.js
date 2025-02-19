@@ -1,7 +1,7 @@
 import debug from "debug";
 import mongoose from "mongoose";
 
-import app from "./app.js";
+import { app } from "./app.js";
 
 const databaseLog = debug("Mongoose");
 const serverLog = debug("Server");
