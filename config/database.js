@@ -7,9 +7,8 @@ const databaseLog = debug("Mongoose");
 const handleError = err => {
 	databaseLog("Database connecting error");
 	databaseLog(err);
-	mongoose.disconnect();
 	databaseLog(`Database is disconnected.`);
-	process.exit(1);
+	mongoose.disconnect();
 };
 
 mongoose.connection.on("connecting", () =>
