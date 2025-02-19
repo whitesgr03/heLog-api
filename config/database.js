@@ -16,3 +16,5 @@ mongoose.connection.on("connecting", () =>
 mongoose
 	.connect(process.env.DATABASE_STRING, { dbName: process.env.DATABASE_NAME })
 	.catch(err => handleError(err));
+
+export { mongoose };
