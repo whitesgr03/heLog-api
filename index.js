@@ -9,8 +9,7 @@ const serverLog = debug("Server");
 const port = process.env.PORT || "3000";
 
 const handleServer = () => {
-	databaseLog("MongoDB connecting successfully");
-
+	serverLog(`Server listening...`);
 	const handleError = error => {
 		serverLog(`Server listening error.`);
 		switch (error.code) {
@@ -25,10 +24,7 @@ const handleServer = () => {
 		}
 	};
 
-	app.listen(port, serverLog(`Server listening successfully`)).on(
-		"error",
-		handleError
-	);
+	app.listen(port, serverLog(`Server is listened`)).on("error", handleError);
 };
 
 mongoose.connection.on("connected", () => {
