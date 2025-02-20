@@ -56,8 +56,9 @@ export const userUpdate = [
 				bail: true,
 			},
 			custom: {
-				options: username => username.match(/^[a-zA-Z]\w*$/),
-				errorMessage: "Username must be alphanumeric and underscore.",
+				options: username =>
+					username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/),
+				errorMessage: "Username must be alphanumeric.",
 				bail: true,
 			},
 		},
