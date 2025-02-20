@@ -105,7 +105,7 @@ export const userUpdate = [
 	}),
 ];
 export const userDelete = [
-	asyncHandler(async (req, res, next) => {
+	asyncHandler(async (req, res) => {
 		const posts = await Post.find(
 			{ author: req.user.id },
 			{ _id: 1 }
@@ -130,16 +130,11 @@ export const userDelete = [
 			).exec(),
 		]);
 
-		next();
-	}),
-	(req, res, next) => {
-		req.logout(err =>
-			err
-				? next(err)
-				: res.json({
-						success: true,
-						message: "Delete user successfully.",
-				  })
+		req.logout(() =>
+			res.json({
+				success: true,
+				message: "Delete user successfully.",
+			})
 		);
-	},
+	}),
 ];
