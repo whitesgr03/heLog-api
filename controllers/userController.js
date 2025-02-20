@@ -71,7 +71,7 @@ export const userUpdate = [
 				{ username },
 				{
 					_id: {
-						$ne: Types.ObjectId.createFromHexString(req.user.id),
+						$ne: new Types.ObjectId(`${req.user.id}`),
 					},
 				},
 			],
