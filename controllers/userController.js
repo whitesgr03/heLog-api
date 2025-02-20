@@ -78,7 +78,7 @@ export const userUpdate = [
 		}).exec();
 
 		existingUserName
-			? res.json({
+			? res.status(409).json({
 					success: false,
 					message: "Username is been used.",
 			  })
