@@ -12,8 +12,8 @@
 		"start": "NODE_ENV=production node index",
 		"dev": "NODE_ENV=development node --env-file=.env --watch index",
 		"seed": "node --env-file=.env ./lib/seed",
-    "test": "vitest",
-    "coverage": "vitest --coverage"
+		"test": "vitest",
+		"coverage": "vitest --coverage"
 	},
 	"dependencies": {
 		"bcrypt": "^5.1.1",
