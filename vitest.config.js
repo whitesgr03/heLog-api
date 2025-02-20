@@ -3,9 +3,9 @@ import { loadEnv } from "vite";
 
 export default defineConfig({
 	test: {
-		include: ["__test__/integration/**.test.js"],
-		exclude: ["__test__/integration/delete_**.test.js"],
-		setupFiles: ["__test__/integration/setup.js"],
+		include: ["__test__/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+		exclude: ["__test__/**/delete_*.{test,spec}.?(c|m)[jt]s?(x)"],
+		setupFiles: "./__test__/setup.js",
 		env: loadEnv("", process.cwd(), ""),
 	},
 });
