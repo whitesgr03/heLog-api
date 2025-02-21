@@ -15,89 +15,87 @@ export const replyList = [
 		const { commentId } = req.params;
 		const { skip = 0 } = req.query;
 
-		const pipeline = [
-			{
-				$match: {
-					parent: new Types.ObjectId(`${commentId}`),
-				},
-			},
-			{
-				$sort: {
-					createdAt: 1,
-					_id: 1,
-				},
-			},
-			{ $skip: Number(skip) },
-			{ $limit: 10 },
-			{
-				$lookup: {
-					from: "users",
-					localField: "author",
-					foreignField: "_id",
-					as: "author",
-					pipeline: [
-						{
-							$project: {
-								_id: 0,
-								username: 1,
-							},
-						},
-					],
-				},
-			},
-			{
-				$unwind: {
-					path: "$author",
-				},
-			},
-			{
-				$lookup: {
-					from: "comments",
-					localField: "reply",
-					foreignField: "_id",
-					as: "reply",
-					pipeline: [
-						{
-							$project: {
-								deleted: 1,
-								author: 1,
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								localField: "author",
-								foreignField: "_id",
-								as: "author",
-								pipeline: [
-									{
-										$project: {
-											_id: 0,
-											username: 1,
-										},
-									},
-								],
-							},
-						},
-						{
-							$unwind: {
-								path: "$author",
-							},
-						},
-					],
-				},
-			},
-			{
-				$unwind: {
-					path: "$reply",
-					preserveNullAndEmptyArrays: true,
-				},
-			},
-		];
-
 		const replies = !isValidObjectId(commentId)
 			? []
-			: await Comment.aggregate(pipeline);
+			: await Comment.aggregate([
+					{
+						$match: {
+							parent: new Types.ObjectId(`${commentId}`),
+						},
+					},
+					{
+						$sort: {
+							createdAt: 1,
+							_id: 1,
+						},
+					},
+					{ $skip: Number(skip) },
+					{ $limit: 10 },
+					{
+						$lookup: {
+							from: "users",
+							localField: "author",
+							foreignField: "_id",
+							as: "author",
+							pipeline: [
+								{
+									$project: {
+										_id: 0,
+										username: 1,
+									},
+								},
+							],
+						},
+					},
+					{
+						$unwind: {
+							path: "$author",
+						},
+					},
+					{
+						$lookup: {
+							from: "comments",
+							localField: "reply",
+							foreignField: "_id",
+							as: "reply",
+							pipeline: [
+								{
+									$project: {
+										deleted: 1,
+										author: 1,
+									},
+								},
+								{
+									$lookup: {
+										from: "users",
+										localField: "author",
+										foreignField: "_id",
+										as: "author",
+										pipeline: [
+											{
+												$project: {
+													_id: 0,
+													username: 1,
+												},
+											},
+										],
+									},
+								},
+								{
+									$unwind: {
+										path: "$author",
+									},
+								},
+							],
+						},
+					},
+					{
+						$unwind: {
+							path: "$reply",
+							preserveNullAndEmptyArrays: true,
+						},
+					},
+			  ]);
 
 		res.json({
 			success: true,

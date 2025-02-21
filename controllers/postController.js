@@ -96,92 +96,91 @@ export const postDetail = [
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
 
-		const pipeline = [
-			{
-				$match: {
-					_id: new Types.ObjectId(`${postId}`),
-				},
-			},
-			{
-				$lookup: {
-					from: "users",
-					localField: "author",
-					foreignField: "_id",
-					as: "author",
-					pipeline: [
-						{
-							$project: {
-								_id: 0,
-								username: 1,
-							},
-						},
-					],
-				},
-			},
-			{
-				$unwind: {
-					path: "$author",
-				},
-			},
-			{
-				$lookup: {
-					from: "comments",
-					localField: "_id",
-					foreignField: "post",
-					as: "countComments",
-					pipeline: [
-						{
-							$project: {
-								_id: 0,
-								parent: 1,
-							},
-						},
-						{
-							$group: {
-								_id: "$parent",
-								count: { $count: {} },
-							},
-						},
-					],
-				},
-			},
-			{
-				$set: {
-					totalComments: {
-						$sum: "$countComments.count",
-					},
-				},
-			},
-			{
-				$unwind: {
-					path: "$countComments",
-					preserveNullAndEmptyArrays: true,
-				},
-			},
-			{
-				$match: {
-					"countComments._id": {
-						$eq: null,
-					},
-				},
-			},
-			{
-				$set: {
-					countComments: {
-						$cond: {
-							if: {
-								$eq: ["$countComments._id", null],
-							},
-							then: "$countComments.count",
-							else: 0,
-						},
-					},
-				},
-			},
-		];
-
 		const post =
-			isValidObjectId(postId) && (await Post.aggregate(pipeline));
+			isValidObjectId(postId) &&
+			(await Post.aggregate([
+				{
+					$match: {
+						_id: new Types.ObjectId(`${postId}`),
+					},
+				},
+				{
+					$lookup: {
+						from: "users",
+						localField: "author",
+						foreignField: "_id",
+						as: "author",
+						pipeline: [
+							{
+								$project: {
+									_id: 0,
+									username: 1,
+								},
+							},
+						],
+					},
+				},
+				{
+					$unwind: {
+						path: "$author",
+					},
+				},
+				{
+					$lookup: {
+						from: "comments",
+						localField: "_id",
+						foreignField: "post",
+						as: "countComments",
+						pipeline: [
+							{
+								$project: {
+									_id: 0,
+									parent: 1,
+								},
+							},
+							{
+								$group: {
+									_id: "$parent",
+									count: { $count: {} },
+								},
+							},
+						],
+					},
+				},
+				{
+					$set: {
+						totalComments: {
+							$sum: "$countComments.count",
+						},
+					},
+				},
+				{
+					$unwind: {
+						path: "$countComments",
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$match: {
+						"countComments._id": {
+							$eq: null,
+						},
+					},
+				},
+				{
+					$set: {
+						countComments: {
+							$cond: {
+								if: {
+									$eq: ["$countComments._id", null],
+								},
+								then: "$countComments.count",
+								else: 0,
+							},
+						},
+					},
+				},
+			]));
 
 		post?.length
 			? res.json({
