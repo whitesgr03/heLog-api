@@ -46,8 +46,6 @@ describe("Comment paths", () => {
 
 			const { status, body } = await request(app).get(`/posts`);
 
-			console.log(body);
-
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Get all posts successfully.");
