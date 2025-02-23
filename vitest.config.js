@@ -7,5 +7,6 @@ export default defineConfig({
 		exclude: ["__test__/**/delete_*.{test,spec}.?(c|m)[jt]s?(x)"],
 		setupFiles: "./__test__/setup.js",
 		env: loadEnv("", process.cwd(), ""),
+		fileParallelism: false,
 	},
 });
