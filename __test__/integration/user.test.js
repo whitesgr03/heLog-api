@@ -17,19 +17,21 @@ describe("User paths", () => {
 		app = express();
 		app.use(express.json());
 	});
-	it("should respond with a 400 status code and message if the user is not logged in", async () => {
-		app.use((req, res, next) => {
-			req.isAuthenticated = () => false;
-			next();
-		});
-		app.use("/", userRouter);
+	describe("Authenticate", () => {
+		it("should respond with a 400 status code and message if the user is not logged in", async () => {
+			app.use((req, res, next) => {
+				req.isAuthenticated = () => false;
+				next();
+			});
+			app.use("/", userRouter);
 
-		const { status, body } = await request(app).get(`/posts`);
+			const { status, body } = await request(app).get(`/posts`);
 
-		expect(status).toBe(404);
-		expect(body).toStrictEqual({
-			success: false,
-			message: "User could not been found.",
+			expect(status).toBe(404);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "User could not been found.",
+			});
 		});
 	});
 	describe("GET /posts", () => {
@@ -173,6 +175,5 @@ describe("User paths", () => {
 			});
 			expect(Comment.updateMany).toBeCalledTimes(1);
 		});
-		it(`should delete the authenticate user and all posts and comments of that user, then log out.`, async () => {});
 	});
 });
