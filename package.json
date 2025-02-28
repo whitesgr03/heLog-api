@@ -36,8 +36,7 @@
 		"passport": "^0.7.0",
 		"passport-facebook": "^3.0.0",
 		"passport-google-oauth20": "^2.0.0",
-		"passport-local": "^1.0.0",
-		"pug": "^3.0.3"
+		"passport-local": "^1.0.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^19.6.1",
