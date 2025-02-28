@@ -213,21 +213,24 @@ export const postCreate = [
 			trim: true,
 			custom: {
 				options: content => {
-					const wordCountLimit = 8000;
+					const limit = 8000;
 
-					const words = content
-						.match(/(?<=>)[^<>\n]+(?=<)/g)
-						?.join(" ")
-						?.replace(/\s/g, "");
-
-					const escapeCount = words?.match(/(?<=)&[\w]+;(?=)/g) ?? [];
-
-					const wordCount =
-						words?.replace(/(?<=)&[\w]+;(?=)/g, "") ?? [];
-
-					return (
-						escapeCount.length + wordCount.length <= wordCountLimit
+					const characterCountWithoutSpaces = content.replace(
+						/(<.+?>|\s|&nbsp;)/g,
+						""
 					);
+
+					const HTML_EntityCount =
+						characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)
+							?.length ?? 0;
+
+					const characterCount =
+						characterCountWithoutSpaces?.replace(
+							/(?<=)&[\w]+;(?=)/g,
+							""
+						)?.length ?? 0;
+
+					return HTML_EntityCount + characterCount <= limit;
 				},
 				errorMessage: "Content must be less than 8000 long.",
 			},
@@ -278,21 +281,24 @@ export const postUpdate = [
 			trim: true,
 			custom: {
 				options: content => {
-					const wordCountLimit = 8000;
+					const limit = 8000;
 
-					const words = content
-						.match(/(?<=>)[^<>\n]+(?=<)/g)
-						?.join(" ")
-						?.replace(/\s/g, "");
-
-					const escapeCount = words?.match(/(?<=)&[\w]+;(?=)/g) ?? [];
-
-					const wordCount =
-						words?.replace(/(?<=)&[\w]+;(?=)/g, "") ?? [];
-
-					return (
-						escapeCount.length + wordCount.length <= wordCountLimit
+					const characterCountWithoutSpaces = content.replace(
+						/(<.+?>|\s|&nbsp;)/g,
+						""
 					);
+
+					const HTML_EntityCount =
+						characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)
+							?.length ?? 0;
+
+					const characterCount =
+						characterCountWithoutSpaces?.replace(
+							/(?<=)&[\w]+;(?=)/g,
+							""
+						)?.length ?? 0;
+
+					return HTML_EntityCount + characterCount <= limit;
 				},
 				errorMessage: "Content must be less than 8000 long.",
 			},
