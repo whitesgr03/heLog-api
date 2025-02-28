@@ -207,6 +207,7 @@ export const postCreate = [
 		},
 		mainImage: {
 			trim: true,
+			isString: { errorMessage: "Main image url must be a string." },
 		},
 		content: {
 			trim: true,
