@@ -13,8 +13,6 @@ const handleError = err => {
 mongoose.connection.on("connecting", () =>
 	databaseLog("MongoDB connecting ...")
 );
-mongoose
-	.connect(process.env.DATABASE_STRING, { dbName: process.env.DATABASE_NAME })
-	.catch(err => handleError(err));
+mongoose.connect(process.env.DATABASE_STRING).catch(err => handleError(err));
 
 export { mongoose };
