@@ -93,6 +93,7 @@ export const userUpdate = [
 				select: {
 					username: 1,
 					isAdmin: 1,
+					email: 1,
 				},
 			}
 		).exec();
