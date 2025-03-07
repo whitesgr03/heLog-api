@@ -12,7 +12,7 @@ export const googleLogin = [
 ];
 export const googleRedirect = [
 	(req, res, next) => {
-		req.session.oauth2 ? next() : res.redirect("account/login/google");
+		req.session.oauth2 ? next() : res.redirect("/account/login/google");
 	},
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate("google", (err, user) => {
@@ -43,7 +43,7 @@ export const facebookLogin = [
 ];
 export const facebookRedirect = [
 	(req, res, next) => {
-		req.session.oauth2 ? next() : res.redirect("account/login/facebook");
+		req.session.oauth2 ? next() : res.redirect("/account/login/facebook");
 	},
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate(
