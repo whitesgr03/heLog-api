@@ -21,7 +21,7 @@ import { userRouter } from "./routes/user.js";
 export const app = express();
 
 app.use((req, res, next) => {
-	res.locals.cspNonce = randomBytes(32).toString("hex");
+	res.locals.cspNonce = randomBytes(32).toString("base64");
 	next();
 });
 
