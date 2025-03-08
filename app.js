@@ -22,6 +22,7 @@ export const app = express();
 
 app.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(32).toString("base64");
+	res.set("Cache-Control", "no-cache=Set-Cookie");
 	next();
 });
 
