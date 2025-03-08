@@ -38,13 +38,13 @@ const sessionOptions = {
 	resave: false,
 	saveUninitialized: false,
 	store: MongoStore.create(mongoose.connection),
+	name: "helog.id",
 	cookie: {
 		sameSite: "Lax",
 		httpOnly: true,
 		secure: !process.env.NODE_ENV === "development",
 		maxAge: 30 * 24 * 60 * 60 * 1000,
 	},
-	name: "helog.sid",
 };
 
 const helmetOptions = {
