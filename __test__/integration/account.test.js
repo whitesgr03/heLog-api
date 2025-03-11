@@ -96,9 +96,18 @@ describe("Account paths", () => {
 		});
 	});
 	describe("POST /logout", () => {
+		beforeEach(() => {
+			app.use((req, res, next) => {
+				req.body = {
+					username: "username",
+					password: "password",
+				};
+				next();
+			}, passport.authenticate("local"));
+		});
 		it(`should response with a 500 status code and message if the user logout fails`, async () => {
 			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
+				req.sessionID = fakeSessionId;
 				req.logout = cb =>
 					cb({
 						status: 500,
@@ -116,8 +125,9 @@ describe("Account paths", () => {
 				});
 			});
 
-			const { status, body } = await request(app).post(`/logout`);
-
+			const { status, body } = await request(app)
+				.post(`/logout`)
+				.set("x-csrf-token", `${fakeHmac}.${fakeRandomValue}`);
 			expect(status).toBe(500);
 			expect(body).toStrictEqual({
 				success: false,
@@ -126,13 +136,14 @@ describe("Account paths", () => {
 		});
 		it(`should logout user`, async () => {
 			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.logout = cb => cb(null);
+				req.sessionID = fakeSessionId;
 				next();
 			});
 			app.use("/", accountRouter);
 
-			const { status, body } = await request(app).post(`/logout`);
+			const { status, body } = await request(app)
+				.post(`/logout`)
+				.set("x-csrf-token", `${fakeHmac}.${fakeRandomValue}`);
 
 			expect(status).toBe(200);
 			expect(body).toStrictEqual({
