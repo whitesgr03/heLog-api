@@ -3,9 +3,20 @@ import request from "supertest";
 import express from "express";
 import session from "express-session";
 import passport from "passport";
+import { createHmac } from "node:crypto";
 import { Strategy as LocalStrategy } from "passport-local";
 
 import { accountRouter } from "../../routes/account.js";
+
+const fakeUserId = "user";
+const fakeSessionId = "session";
+const fakeRandomValue = "random";
+const secret = process.env.CSRF_SECRETS;
+
+const message = `${fakeSessionId.length}!${fakeSessionId}!${fakeRandomValue.length}!${fakeRandomValue}`;
+
+const fakeHmac = createHmac("sha256", secret).update(message).digest("hex");
+
 passport.use(
 	new LocalStrategy((_username, _password, done) => {
 		done(null, { id: fakeUserId });
@@ -45,6 +56,43 @@ describe("Account paths", () => {
 			});
 		});
 	});
+	describe("Verify CSRF token", () => {
+		beforeEach(() => {
+			app.use((req, res, next) => {
+				req.body = {
+					username: "username",
+					password: "password",
+				};
+				next();
+			}, passport.authenticate("local"));
+		});
+		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
+			app.use(passport.authenticate("local"));
+			app.use("/", accountRouter);
+
+			const { status, body } = await request(app).post(`/logout`).send({
+				username: "username",
+				password: "password",
+			});
+
+			expect(status).toBe(403);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "CSRF custom header is invalid.",
+			});
+		});
+		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
+			app.use("/", accountRouter);
+
+			const { status, body } = await request(app)
+				.post(`/logout`)
+				.set("x-csrf-token", "123.456");
+
+			expect(status).toBe(403);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "CSRF token mismatch.",
+			});
 		});
 	});
 	describe("POST /logout", () => {
