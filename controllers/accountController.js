@@ -78,10 +78,12 @@ export const userLogout = [
 		req.logout(err =>
 			err
 				? next(err)
-				: res.json({
-						success: true,
-						message: "User logout successfully.",
-				  })
+				: req.session.destroy(() =>
+						res.clearCookie("id").clearCookie("token").json({
+							success: true,
+							message: "User logout successfully.",
+						})
+				  )
 		);
 	},
 ];
