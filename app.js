@@ -37,14 +37,14 @@ const corsOptions = {
 const sessionOptions = {
 	secret: process.env.SESSION_SECRETS.split(","),
 	resave: false,
-	saveUninitialized: false,
+	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the session.req is unmodified then will not be stored in the session store.
 	store: MongoStore.create(mongoose.connection),
-	name: "helog.id",
+	name: "id",
 	cookie: {
 		sameSite: "Lax",
 		httpOnly: true,
 		secure: !process.env.NODE_ENV === "development",
-		maxAge: 30 * 24 * 60 * 60 * 1000,
+		maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
 	},
 };
 
