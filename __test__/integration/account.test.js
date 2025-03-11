@@ -1,14 +1,35 @@
 import { expect, describe, it, beforeEach } from "vitest";
 import request from "supertest";
 import express from "express";
+import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
 
 import { accountRouter } from "../../routes/account.js";
+passport.use(
+	new LocalStrategy((_username, _password, done) => {
+		done(null, { id: fakeUserId });
+	})
+);
+
+passport.serializeUser((user, done) => {
+	done(null, user);
+});
 
 let app = null;
 
 describe("Account paths", () => {
 	beforeEach(() => {
 		app = express();
+		app.use(
+			session({
+				secret: "secret",
+				resave: false,
+				saveUninitialized: false,
+				name: "id",
+			})
+		);
+		app.use(passport.session());
 		app.use(express.json());
 	});
 	describe("Authenticate", () => {
