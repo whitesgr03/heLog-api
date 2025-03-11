@@ -22,7 +22,7 @@ export const app = express();
 
 app.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(32).toString("base64");
-	res.set("Cache-Control", "no-cache=Set-Cookie");
+	res.set("Cache-Control", "no-cache=Set-Cookie"); // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
 	next();
 });
 
