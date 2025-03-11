@@ -2,18 +2,8 @@ import passport from "passport";
 
 import { authenticate } from "../middlewares/authenticate.js";
 
-export const googleLogin = [
-	(req, res, next) => {
-		req.session.oauth2 = true;
-		req.session.referer = req.headers.referer;
-		next();
-	},
-	passport.authenticate("google"),
-];
+export const googleLogin = [passport.authenticate("google")];
 export const googleRedirect = [
-	(req, res, next) => {
-		req.session.oauth2 ? next() : res.redirect("/account/login/google");
-	},
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate("google", (err, user) => {
 			const redirect_origin =
