@@ -2,6 +2,7 @@ import passport from "passport";
 import { randomBytes, createHmac } from "node:crypto";
 
 import { authenticate } from "../middlewares/authenticate.js";
+import { validationCSRF } from "../middlewares/validationCSRF.js";
 
 const generateCSRFToken = sessionId => {
 	const secret = process.env.CSRF_SECRETS;
