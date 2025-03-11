@@ -80,6 +80,21 @@ app.use(compression());
 
 app.use(express.json());
 
+// session touch
+app.use((req, res, next) => {
+	const idleTimeout = 2 * 24 * 60 * 60 * 1000; // 48 hours
+
+	const expires = +req.session.cookie.expires;
+
+	req.user &&
+		(req.session.cookie.maxAge =
+			Date.now() + idleTimeout > expires
+				? expires - Date.now()
+				: idleTimeout);
+
+	next();
+});
+
 app.use("/account", accountRouter);
 app.use("/user", userRouter);
 app.use("/blog", blogRouter);
