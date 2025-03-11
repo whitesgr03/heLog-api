@@ -34,10 +34,6 @@ describe("Account paths", () => {
 	});
 	describe("Authenticate", () => {
 		it("should respond with a 400 status code and message if the user is not logged in", async () => {
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => false;
-				next();
-			});
 			app.use("/", accountRouter);
 
 			const { status, body } = await request(app).post(`/logout`);
