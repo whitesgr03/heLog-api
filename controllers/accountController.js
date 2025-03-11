@@ -22,19 +22,8 @@ export const googleRedirect = [
 		authenticateFn(req, res, next);
 	},
 ];
-export const facebookLogin = [
-	(req, res, next) => {
-		req.session.oauth2 = true;
-		req.session.referer = req.headers.referer;
-		next();
-	},
-
-	passport.authenticate("facebook"),
-];
+export const facebookLogin = [passport.authenticate("facebook")];
 export const facebookRedirect = [
-	(req, res, next) => {
-		req.session.oauth2 ? next() : res.redirect("/account/login/facebook");
-	},
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate(
 			"facebook",
