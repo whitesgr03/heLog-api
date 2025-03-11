@@ -106,7 +106,7 @@ export const userUpdate = [
 	}),
 ];
 export const userDelete = [
-	asyncHandler(async (req, res) => {
+	asyncHandler(async (req, res, next) => {
 		const posts = await Post.find(
 			{ author: req.user.id },
 			{ _id: 1 }
@@ -131,11 +131,13 @@ export const userDelete = [
 			).exec(),
 		]);
 
-		req.logout(() =>
-			res.json({
-				success: true,
-				message: "Delete user successfully.",
-			})
+		req.logout(err =>
+			err
+				? next(err)
+				: res.clearCookie("id").clearCookie("token").json({
+						success: true,
+						message: "Delete user successfully.",
+				  })
 		);
 	}),
 ];
