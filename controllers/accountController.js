@@ -30,9 +30,6 @@ export const facebookRedirect = [
 						origin => `${origin}/` === req.session.referer
 					) ?? process.env.HELOG_URL;
 
-				delete req.session.oauth2;
-				delete req.session.referer;
-
 				err && next(err);
 				user
 					? req.login(user, () => res.redirect(redirect_origin))
