@@ -74,6 +74,7 @@ export const facebookRedirect = [
 ];
 export const userLogout = [
 	authenticate,
+	validationCSRF,
 	(req, res, next) => {
 		req.logout(err =>
 			err
