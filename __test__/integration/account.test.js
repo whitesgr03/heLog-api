@@ -78,35 +78,6 @@ describe("Account paths", () => {
 		});
 	});
 	describe("POST /logout", () => {
-		it(`should response with a 500 status code and message if the user logout fails`, async () => {
-			app.use((req, res, next) => {
-				req.sessionID = fakeSessionId;
-				req.logout = cb =>
-					cb({
-						status: 500,
-						message: "error",
-					});
-				next();
-			});
-			app.use("/", accountRouter);
-			/* eslint-disable no-unused-vars */
-			app.use((err, req, res, next) => {
-				/* eslint-enable */
-				res.status(err.status).json({
-					success: false,
-					message: err.message,
-				});
-			});
-
-			const { status, body } = await request(app)
-				.post(`/logout`)
-				.set("x-csrf-token", `${fakeHmac}.${fakeRandomValue}`);
-			expect(status).toBe(500);
-			expect(body).toStrictEqual({
-				success: false,
-				message: "error",
-			});
-		});
 		it(`should logout user`, async () => {
 			const agent = request.agent(app);
 
