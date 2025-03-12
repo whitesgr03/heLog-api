@@ -37,7 +37,13 @@ export const googleRedirect = [
 		authenticateFn(req, res, next);
 	},
 ];
-export const facebookLogin = [passport.authenticate("facebook")];
+export const facebookLogin = [
+	(req, res, next) => {
+		req.session.referer = req.headers.referer;
+		next();
+	},
+	passport.authenticate("facebook"),
+];
 export const facebookRedirect = [
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate(
@@ -47,6 +53,8 @@ export const facebookRedirect = [
 					process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
 						origin => `${origin}/` === req.session.referer
 					) ?? process.env.HELOG_URL;
+
+				delete req.session.referer;
 
 				err && next(err);
 				user
