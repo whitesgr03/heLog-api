@@ -5,7 +5,13 @@ import { validationCSRF } from "../middlewares/validationCSRF.js";
 
 import { generateCSRFToken } from "../utils/generateCSRFToken.js";
 
-export const googleLogin = [passport.authenticate("google")];
+export const googleLogin = [
+	(req, res, next) => {
+		req.session.referer = req.headers.referer;
+		next();
+	},
+	passport.authenticate("google"),
+];
 export const googleRedirect = [
 	(req, res, next) => {
 		const authenticateFn = passport.authenticate("google", (err, user) => {
@@ -13,6 +19,8 @@ export const googleRedirect = [
 				process.env.ALLOW_CLIENT_ORIGINS.split(",").find(
 					origin => `${origin}/` === req.session.referer
 				) ?? process.env.HELOG_URL;
+
+			delete req.session.referer;
 
 			err && next(err);
 			user
