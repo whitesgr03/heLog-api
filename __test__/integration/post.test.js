@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, vi } from "vitest";
 import request from "supertest";
 import express from "express";
 import { Types } from "mongoose";
@@ -46,11 +46,6 @@ app.get("/login", (req, res, next) => {
 app.use("/", blogRouter);
 
 describe("Comment paths", () => {
-	beforeEach(() => {
-		app = express();
-		app.use(express.json());
-	});
-
 	describe("GET /posts", () => {
 		it("should respond with empty array, if there are not posts", async () => {
 			const { status, body } = await request(app).get(`/posts`);

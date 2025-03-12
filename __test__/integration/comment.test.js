@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import request from "supertest";
 import express from "express";
 import { Types } from "mongoose";
@@ -43,11 +43,6 @@ app.get("/login", (req, res, next) => {
 app.use("/", blogRouter);
 
 describe("Comment paths", () => {
-	beforeEach(() => {
-		app = express();
-		app.use(express.json());
-	});
-
 	describe("GET /posts/:postId/comments", () => {
 		it("should respond with empty array, if the provided comment id is invalid", async () => {
 			const fakePostId = "abc123";
