@@ -1,39 +1,43 @@
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import request from "supertest";
 import express from "express";
 import session from "express-session";
-import passport from "passport";
-import { createHmac } from "node:crypto";
-import { Strategy as LocalStrategy } from "passport-local";
+import { passport } from "../../lib/passport.js";
 
 import { accountRouter } from "../../routes/account.js";
 
-const fakeUserId = "user";
-const fakeSessionId = "session";
-const fakeRandomValue = "random";
-const secret = process.env.CSRF_SECRETS;
+import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
 
-const message = `${fakeSessionId.length}!${fakeSessionId}!${fakeRandomValue.length}!${fakeRandomValue}`;
-
-const fakeHmac = createHmac("sha256", secret).update(message).digest("hex");
-
-passport.use(
-	new LocalStrategy((_username, _password, done) => {
-		done(null, { id: fakeUserId });
+const app = express();
+app.use(
+	session({
+		secret: "secret",
+		resave: false,
+		saveUninitialized: false,
+		name: "id",
 	})
 );
+app.use(passport.session());
+app.use(express.json());
 
-passport.serializeUser((user, done) => {
-	done(null, user);
+app.get("/login", (req, res, next) => {
+	req.body = {
+		admin: req.query.isAdmin ?? "1",
+		_: " ",
+	};
+	passport.authenticate("local", (_err, user) => {
+		req.login(user, () => {
+			res.send({
+				token: generateCSRFToken(req.sessionID),
+			});
+		});
+	})(req, res, next);
 });
-
-let app = null;
+app.use("/", accountRouter);
 
 describe("Account paths", () => {
 	describe("Authenticate", () => {
 		it("should respond with a 400 status code and message if the user is not logged in", async () => {
-			app.use("/", accountRouter);
-
 			const { status, body } = await request(app).post(`/logout`);
 
 			expect(status).toBe(404);
@@ -45,13 +49,11 @@ describe("Account paths", () => {
 	});
 	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
-			app.use(passport.authenticate("local"));
-			app.use("/", accountRouter);
+			const agent = request.agent(app);
 
-			const { status, body } = await request(app).post(`/logout`).send({
-				username: "username",
-				password: "password",
-			});
+			await agent.get(`/login`);
+
+			const { status, body } = await agent.post(`/logout`);
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
@@ -60,9 +62,11 @@ describe("Account paths", () => {
 			});
 		});
 		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
-			app.use("/", accountRouter);
+			const agent = request.agent(app);
 
-			const { status, body } = await request(app)
+			await agent.get(`/login`);
+
+			const { status, body } = await agent
 				.post(`/logout`)
 				.set("x-csrf-token", "123.456");
 
@@ -104,15 +108,15 @@ describe("Account paths", () => {
 			});
 		});
 		it(`should logout user`, async () => {
-			app.use((req, res, next) => {
-				req.sessionID = fakeSessionId;
-				next();
-			});
-			app.use("/", accountRouter);
+			const agent = request.agent(app);
 
-			const { status, body } = await request(app)
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/logout`)
-				.set("x-csrf-token", `${fakeHmac}.${fakeRandomValue}`);
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body).toStrictEqual({
