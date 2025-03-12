@@ -2,8 +2,11 @@ import { expect, describe, it, beforeEach } from "vitest";
 import request from "supertest";
 import express from "express";
 import { Types } from "mongoose";
+import session from "express-session";
 
 import { blogRouter } from "../../routes/blog.js";
+
+import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
 
 import { User } from "../../models/user.js";
 
@@ -13,8 +16,36 @@ import {
 	createCommentReplies,
 	createReplies,
 } from "../../lib/seed.js";
+import { passport } from "../../lib/passport.js";
 
-let app = null;
+const app = express();
+
+app.use(
+	session({
+		secret: "secret",
+		resave: false,
+		saveUninitialized: false,
+		name: "id",
+	})
+);
+app.use(passport.session());
+app.use(express.json());
+
+app.get("/login", (req, res, next) => {
+	req.body = {
+		admin: req.query.isAdmin ?? "1",
+		_: " ",
+	};
+	passport.authenticate("local", (_err, user) => {
+		req.login(user, () => {
+			res.send({
+				token: generateCSRFToken(req.sessionID),
+			});
+		});
+	})(req, res, next);
+});
+
+app.use("/", blogRouter);
 
 describe("Reply paths", () => {
 	beforeEach(() => {
@@ -24,8 +55,6 @@ describe("Reply paths", () => {
 
 	describe("GET /comments/:commentId/replies", () => {
 		it("should respond with empty array, if the provided comment id is invalid", async () => {
-			app.use("/", blogRouter);
-
 			const fakeCommentId = "abc123";
 
 			const { status, body } = await request(app).get(
@@ -39,8 +68,6 @@ describe("Reply paths", () => {
 		});
 		it("should return with a specified comment's replies", async () => {
 			const users = await User.find({}).exec();
-
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users,
@@ -74,12 +101,7 @@ describe("Reply paths", () => {
 	});
 	describe("Authenticate", () => {
 		it("should respond with a 400 status code and message if the user is not logged in", async () => {
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => false;
-				next();
-			});
-			app.use("/", blogRouter);
-			const { status, body } = await request(app).post(`/posts`);
+			const { status, body } = await request(app).post(`/replies/testId`);
 			expect(status).toBe(404);
 			expect(body).toStrictEqual({
 				success: false,
@@ -89,60 +111,54 @@ describe("Reply paths", () => {
 	});
 	describe("POST /comments/:commentId/replies", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const agent = request.agent(app);
 
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
+			const loginResponse = await agent.get(`/login`);
 
-			const { status, body } = await request(app)
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/comments/test-id/replies`)
-				.send({ test: "new content" });
+				.send({ test: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeCommentId = "abc123";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/comments/${fakeCommentId}/replies`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
 			expect(body.message).toBe("Comment could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified comment is not found`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeCommentId = new Types.ObjectId();
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/comments/${fakeCommentId}/replies`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
@@ -150,13 +166,6 @@ describe("Reply paths", () => {
 		});
 		it("should create a comment's reply and return to client", async () => {
 			const [authenticatedUser, secondUser] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: authenticatedUser._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
@@ -171,10 +180,17 @@ describe("Reply paths", () => {
 			const secondUserCommentId = String(mockComments[0]._id);
 			const mockContent = "new content";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/comments/${secondUserCommentId}/replies`)
 				.type("json")
-				.send({ content: mockContent });
+				.send({ content: mockContent })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
@@ -188,61 +204,55 @@ describe("Reply paths", () => {
 	});
 	describe("POST /replies/:replyId", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const agent = request.agent(app);
 
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
+			const loginResponse = await agent.get(`/login`);
 
-			const { status, body } = await request(app)
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/replies/test123`)
 				.type("json")
-				.send({ text: "new content" });
+				.send({ text: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided reply id is invalid`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeReplyId = "abc123";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/replies/${fakeReplyId}`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
 			expect(body.message).toBe("Reply could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeReplyId = new Types.ObjectId();
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/replies/${fakeReplyId}`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
@@ -250,13 +260,6 @@ describe("Reply paths", () => {
 		});
 		it("should create a reply that is a comment on that other reply.", async () => {
 			const [authenticatedUser, secondUser] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: authenticatedUser._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
@@ -278,10 +281,17 @@ describe("Reply paths", () => {
 
 			const mockContent = "new content";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.post(`/replies/${secondUserReplyId}`)
 				.type("json")
-				.send({ content: mockContent });
+				.send({ content: mockContent })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
@@ -296,61 +306,55 @@ describe("Reply paths", () => {
 	});
 	describe("PATCH /replies/:replyId", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const agent = request.agent(app);
 
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
+			const loginResponse = await agent.get(`/login`);
 
-			const { status, body } = await request(app)
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/test123`)
 				.type("json")
-				.send({ text: "new content" });
+				.send({ text: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided reply id is invalid`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeReplyId = "abc123";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/${fakeReplyId}`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
 			expect(body.message).toBe("Reply could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeReplyId = new Types.ObjectId();
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/${fakeReplyId}`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
@@ -358,13 +362,6 @@ describe("Reply paths", () => {
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the reply nor the blog admin`, async () => {
 			const [admin, user] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [admin],
@@ -384,10 +381,17 @@ describe("Reply paths", () => {
 
 			const adminReplyId = String(mockCommentReplies[0]._id);
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login?isAdmin=0`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/${adminReplyId}`)
 				.type("json")
-				.send({ content: "new content" });
+				.send({ content: "new content" })
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(403);
 			expect(body.success).toBe(false);
@@ -397,13 +401,6 @@ describe("Reply paths", () => {
 		});
 		it("should successfully updated comment's reply and return to client, if the authenticate user is a blog admin", async () => {
 			const [admin, user] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: admin._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -426,12 +423,19 @@ describe("Reply paths", () => {
 			const mockContent =
 				"This message is updated by admin not second user";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/${userReplyId}`)
 				.type("json")
 				.send({
 					content: mockContent,
-				});
+				})
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
@@ -444,13 +448,6 @@ describe("Reply paths", () => {
 		});
 		it("should successfully updated comment's reply and return to client, if the authenticate user is owner of the comment's reply", async () => {
 			const [firstUser, secondUser] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: secondUser._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
@@ -472,12 +469,19 @@ describe("Reply paths", () => {
 
 			const mockContent = "This message is updated by owner";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/${secondUserReplyId}`)
 				.type("json")
 				.send({
 					content: mockContent,
-				});
+				})
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
@@ -490,13 +494,6 @@ describe("Reply paths", () => {
 		});
 		it("should successfully updated reply and return to client, if the authenticate user is owner of the reply", async () => {
 			const [firstUser, secondUser] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: secondUser._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [firstUser],
@@ -524,12 +521,19 @@ describe("Reply paths", () => {
 
 			const mockContent = "This message is updated by owner";
 
-			const { status, body } = await request(app)
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
 				.patch(`/replies/${secondUserReplyId}`)
 				.type("json")
 				.send({
 					content: mockContent,
-				});
+				})
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
@@ -544,40 +548,34 @@ describe("Reply paths", () => {
 	});
 	describe("DELETE /replies/:replyId", () => {
 		it(`should respond with a 404 status code and an error message, if the provided reply id is invalid`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeReplyId = "abc123";
 
-			const { status, body } = await request(app).delete(
-				`/replies/${fakeReplyId}`
-			);
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
+				.delete(`/replies/${fakeReplyId}`)
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
 			expect(body.message).toBe("Reply could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
-
 			const fakeReplyId = new Types.ObjectId();
 
-			const { status, body } = await request(app).delete(
-				`/replies/${fakeReplyId}`
-			);
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
+				.delete(`/replies/${fakeReplyId}`)
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
@@ -585,13 +583,6 @@ describe("Reply paths", () => {
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the reply nor the blog admin`, async () => {
 			const [admin, user] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [admin],
@@ -611,9 +602,15 @@ describe("Reply paths", () => {
 
 			const adminReplyId = String(mockCommentReplies[0]._id);
 
-			const { status, body } = await request(app).delete(
-				`/replies/${adminReplyId}`
-			);
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login?isAdmin=0`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
+				.delete(`/replies/${adminReplyId}`)
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(403);
 			expect(body.success).toBe(false);
@@ -623,13 +620,6 @@ describe("Reply paths", () => {
 		});
 		it("should successfully delete reply and return to client, if the authenticate user is a blog admin", async () => {
 			const [admin, user] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: admin._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -651,9 +641,15 @@ describe("Reply paths", () => {
 
 			const editor = String(admin._id);
 
-			const { status, body } = await request(app).delete(
-				`/replies/${userReplyId}`
-			);
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
+				.delete(`/replies/${userReplyId}`)
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
@@ -667,13 +663,6 @@ describe("Reply paths", () => {
 		});
 		it("should successfully delete reply and return to client, if the authenticate user is owner of the reply", async () => {
 			const [firstUser, secondUser] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: secondUser._id };
-				next();
-			});
-			app.use("/", blogRouter);
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
@@ -693,9 +682,15 @@ describe("Reply paths", () => {
 
 			const secondUserReplyId = String(mockCommentReplies[0]._id);
 
-			const { status, body } = await request(app).delete(
-				`/replies/${secondUserReplyId}`
-			);
+			const agent = request.agent(app);
+
+			const loginResponse = await agent.get(`/login?isAdmin=0`);
+
+			const [token, value] = loginResponse.body.token.split(".");
+
+			const { status, body } = await agent
+				.delete(`/replies/${secondUserReplyId}`)
+				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
