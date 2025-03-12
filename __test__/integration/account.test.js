@@ -30,19 +30,6 @@ passport.serializeUser((user, done) => {
 let app = null;
 
 describe("Account paths", () => {
-	beforeEach(() => {
-		app = express();
-		app.use(
-			session({
-				secret: "secret",
-				resave: false,
-				saveUninitialized: false,
-				name: "id",
-			})
-		);
-		app.use(passport.session());
-		app.use(express.json());
-	});
 	describe("Authenticate", () => {
 		it("should respond with a 400 status code and message if the user is not logged in", async () => {
 			app.use("/", accountRouter);
@@ -57,15 +44,6 @@ describe("Account paths", () => {
 		});
 	});
 	describe("Verify CSRF token", () => {
-		beforeEach(() => {
-			app.use((req, res, next) => {
-				req.body = {
-					username: "username",
-					password: "password",
-				};
-				next();
-			}, passport.authenticate("local"));
-		});
 		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
 			app.use(passport.authenticate("local"));
 			app.use("/", accountRouter);
@@ -96,15 +74,6 @@ describe("Account paths", () => {
 		});
 	});
 	describe("POST /logout", () => {
-		beforeEach(() => {
-			app.use((req, res, next) => {
-				req.body = {
-					username: "username",
-					password: "password",
-				};
-				next();
-			}, passport.authenticate("local"));
-		});
 		it(`should response with a 500 status code and message if the user logout fails`, async () => {
 			app.use((req, res, next) => {
 				req.sessionID = fakeSessionId;
