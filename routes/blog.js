@@ -5,6 +5,7 @@ import * as commentControllers from "../controllers/commentController.js";
 import * as replyControllers from "../controllers/replyController.js";
 
 import { authenticate } from "../middlewares/authenticate.js";
+import { validationCSRF } from "../middlewares/validationCSRF.js";
 
 export const blogRouter = express.Router();
 
@@ -14,6 +15,7 @@ blogRouter.get("/posts/:postId/comments", commentControllers.commentList);
 blogRouter.get("/comments/:commentId/replies", replyControllers.replyList);
 
 blogRouter.use(authenticate);
+blogRouter.use(validationCSRF);
 
 blogRouter.post("/posts", postControllers.postCreate);
 
