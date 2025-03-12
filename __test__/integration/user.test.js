@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, vi } from "vitest";
 import request from "supertest";
 import express from "express";
 import { faker } from "@faker-js/faker";
@@ -13,10 +13,6 @@ import { createPosts } from "../../lib/seed.js";
 let app = null;
 
 describe("User paths", () => {
-	beforeEach(() => {
-		app = express();
-		app.use(express.json());
-	});
 	describe("Authenticate", () => {
 		it("should respond with a 400 status code and message if the user is not logged in", async () => {
 			app.use((req, res, next) => {
