@@ -63,14 +63,12 @@ export const facebookRedirect = [
 export const userLogout = [
 	authenticate,
 	validationCSRF,
-	(req, res, next) => {
-		req.logout(err =>
-			err
-				? next(err)
-				: res.clearCookie("id").clearCookie("token").json({
-						success: true,
-						message: "User logout successfully.",
-				  })
+	(req, res) => {
+		req.logout(() =>
+			res.clearCookie("id").clearCookie("token").json({
+				success: true,
+				message: "User logout successfully.",
+			})
 		);
 	},
 ];
