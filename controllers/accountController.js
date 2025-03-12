@@ -1,17 +1,9 @@
 import passport from "passport";
-import { randomBytes, createHmac } from "node:crypto";
 
 import { authenticate } from "../middlewares/authenticate.js";
 import { validationCSRF } from "../middlewares/validationCSRF.js";
 
-const generateCSRFToken = sessionId => {
-	const secret = process.env.CSRF_SECRETS;
-	const randomValue = randomBytes(64).toString("hex");
-	const message = `${sessionId.length}!${sessionId}!${randomValue.length}!${randomValue}`;
-	const hmac = createHmac("sha256", secret).update(message).digest("hex");
-
-	return hmac + "." + randomValue;
-};
+import { generateCSRFToken } from "../utils/generateCSRFToken.js";
 
 export const googleLogin = [passport.authenticate("google")];
 export const googleRedirect = [
@@ -24,16 +16,14 @@ export const googleRedirect = [
 
 			err && next(err);
 			user
-				? req.login(user, () =>
-						res
-							.cookie("token", generateCSRFToken(req.sessionID), {
-								sameSite: "strict",
-								httpOnly: false,
-								secure: true,
-								maxAge: req.session.cookie.originalMaxAge,
-							})
-							.redirect(redirect_origin)
-				  )
+				? req.login(user, () => {
+						res.cookie("token", generateCSRFToken(req.sessionID), {
+							sameSite: "strict",
+							httpOnly: false,
+							secure: true,
+							maxAge: req.session.cookie.originalMaxAge,
+						}).redirect(redirect_origin);
+				  })
 				: res.redirect(redirect_origin);
 		});
 		authenticateFn(req, res, next);
@@ -52,21 +42,18 @@ export const facebookRedirect = [
 
 				err && next(err);
 				user
-					? req.login(user, () =>
-							res
-								.cookie(
-									"token",
-									generateCSRFToken(req.sessionID),
-									{
-										sameSite: "strict",
-										httpOnly: false,
-										secure: true,
-										maxAge: req.session.cookie
-											.originalMaxAge,
-									}
-								)
-								.redirect(redirect_origin)
-					  )
+					? req.login(user, () => {
+							res.cookie(
+								"token",
+								generateCSRFToken(req.sessionID),
+								{
+									sameSite: "strict",
+									httpOnly: false,
+									secure: true,
+									maxAge: req.session.cookie.originalMaxAge,
+								}
+							).redirect(redirect_origin);
+					  })
 					: res.redirect(redirect_origin);
 			}
 		);
