@@ -77,6 +77,36 @@ describe("User paths", () => {
 			expect(body.data.length).toBe(mockPosts.length);
 		});
 	});
+	describe("Verify CSRF token", () => {
+		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
+			const agent = request.agent(app);
+
+			await agent.get(`/login`);
+
+			const { status, body } = await agent.get(`/`);
+
+			expect(status).toBe(403);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "CSRF custom header is invalid.",
+			});
+		});
+		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
+			const agent = request.agent(app);
+
+			await agent.get(`/login`);
+
+			const { status, body } = await agent
+				.get(`/`)
+				.set("x-csrf-token", "123.456");
+
+			expect(status).toBe(403);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "CSRF token mismatch.",
+			});
+		});
+	});
 	describe("GET /", () => {
 		it(`should response with the authenticate user detail`, async () => {
 			const authenticatedUser = await User.findOne().exec();

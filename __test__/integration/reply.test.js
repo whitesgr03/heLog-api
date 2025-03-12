@@ -104,6 +104,36 @@ describe("Reply paths", () => {
 			});
 		});
 	});
+	describe("Verify CSRF token", () => {
+		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
+			const agent = request.agent(app);
+
+			await agent.get(`/login`);
+
+			const { status, body } = await agent.post(`/replies/testId`);
+
+			expect(status).toBe(403);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "CSRF custom header is invalid.",
+			});
+		});
+		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
+			const agent = request.agent(app);
+
+			await agent.get(`/login`);
+
+			const { status, body } = await agent
+				.post(`/replies/testId`)
+				.set("x-csrf-token", "123.456");
+
+			expect(status).toBe(403);
+			expect(body).toStrictEqual({
+				success: false,
+				message: "CSRF token mismatch.",
+			});
+		});
+	});
 	describe("POST /comments/:commentId/replies", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
