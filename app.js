@@ -109,11 +109,13 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
 	/* eslint-enable */
 	errorLog(err);
+	errorLog(err.status);
+	errorLog(err.message);
 
-	err.status ?? (err = createError(500));
+	err = createError(500);
 
 	res.status(err.status).json({
 		success: false,
-		message: err.message,
+		message: "The server encountered an unexpected condition.",
 	});
 });
