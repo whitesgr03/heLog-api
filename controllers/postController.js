@@ -198,12 +198,13 @@ export const postDetail = [
 export const postCreate = [
 	checkSchema({
 		title: {
-			unescape: true,
 			trim: true,
+			unescape: true,
 			isLength: {
 				options: { min: 0, max: 100 },
 				errorMessage: "Title must be less than 100 long.",
 			},
+			escape: true,
 		},
 		mainImage: {
 			trim: true,
@@ -258,13 +259,14 @@ export const postCreate = [
 export const postUpdate = [
 	checkSchema({
 		title: {
-			unescape: true,
 			trim: true,
+			unescape: true,
 			isLength: {
 				options: { min: 0, max: 100 },
 				errorMessage: "Title must be less than 100 long.",
 				bail: true,
 			},
+			escape: true,
 			notEmpty: {
 				if: (_value, { req }) => req.body.publish,
 				errorMessage: "Title is required.",
