@@ -31,7 +31,7 @@ const corsOptions = {
 	methods: ["GET", "POST", "PATCH", "DELETE"],
 	credentials: true,
 	allowedHeaders: ["Content-Type", "X-CSRF-TOKEN"],
-	maxAge: 3600,
+	maxAge: 10,
 };
 const sessionOptions = {
 	secret: process.env.SESSION_SECRETS.split(","),
