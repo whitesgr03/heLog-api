@@ -25,13 +25,15 @@ export const googleRedirect = [
 			err && next(err);
 			user
 				? req.login(user, () => {
-						res.cookie("token", generateCSRFToken(req.sessionID), {
-							sameSite: "strict",
-							httpOnly: false,
-							secure: true,
-							domain: process.env.CSRF_DOMAIN ?? "",
-							maxAge: req.session.cookie.originalMaxAge,
-						}).redirect(redirect_origin);
+						res.set("Cache-Control", "no-cache=Set-Cookie") // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
+							.cookie("token", generateCSRFToken(req.sessionID), {
+								sameSite: "strict",
+								httpOnly: false,
+								secure: true,
+								domain: process.env.CSRF_DOMAIN ?? "",
+								maxAge: req.session.cookie.originalMaxAge,
+							})
+							.redirect(redirect_origin);
 				  })
 				: res.redirect(redirect_origin);
 		});
@@ -60,17 +62,20 @@ export const facebookRedirect = [
 				err && next(err);
 				user
 					? req.login(user, () => {
-							res.cookie(
-								"token",
-								generateCSRFToken(req.sessionID),
-								{
-									sameSite: "strict",
-									httpOnly: false,
-									domain: process.env.CSRF_DOMAIN ?? "",
-									secure: true,
-									maxAge: req.session.cookie.originalMaxAge,
-								}
-							).redirect(redirect_origin);
+							res.set("Cache-Control", "no-cache=Set-Cookie") // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
+								.cookie(
+									"token",
+									generateCSRFToken(req.sessionID),
+									{
+										sameSite: "strict",
+										httpOnly: false,
+										domain: process.env.CSRF_DOMAIN ?? "",
+										secure: true,
+										maxAge: req.session.cookie
+											.originalMaxAge,
+									}
+								)
+								.redirect(redirect_origin);
 					  })
 					: res.redirect(redirect_origin);
 			}
