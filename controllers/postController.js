@@ -208,7 +208,13 @@ export const postCreate = [
 		},
 		mainImage: {
 			trim: true,
-			isString: { errorMessage: "Main image url must be a string." },
+			isURL: {
+				if: value => value !== "",
+				options: {
+					protocols: ["https"],
+				},
+				errorMessage: "Main image is not a valid HTTP URL.",
+			},
 		},
 		content: {
 			trim: true,
@@ -276,7 +282,15 @@ export const postUpdate = [
 			trim: true,
 			notEmpty: {
 				if: (_url, { req }) => req.body.publish,
-				errorMessage: "Main Image is required.",
+				errorMessage: "Main image is required.",
+				bail: true,
+			},
+			isURL: {
+				if: value => value !== "",
+				options: {
+					protocols: ["https"],
+				},
+				errorMessage: "Main image is not a valid HTTP URL.",
 			},
 		},
 		content: {
