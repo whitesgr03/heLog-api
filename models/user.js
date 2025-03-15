@@ -12,9 +12,6 @@ export const User = mongoose.model(
 				immutable: true,
 				lowercase: true,
 			},
-			password: {
-				type: String,
-			},
 			username: { type: String },
 			isAdmin: { type: Boolean, immutable: true },
 			provider: { type: Array, required: true },
