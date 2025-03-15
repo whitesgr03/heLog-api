@@ -88,10 +88,14 @@ export const userLogout = [
 	validationCSRF,
 	(req, res) => {
 		req.logout(() =>
-			res.clearCookie("id").clearCookie("token").json({
-				success: true,
-				message: "User logout successfully.",
-			})
+			res
+				.clearCookie("id")
+				.clearCookie("token")
+				.set("Clear-Site-Data", ["cache", "cookies", "storage"])
+				.json({
+					success: true,
+					message: "User logout successfully.",
+				})
 		);
 	},
 ];

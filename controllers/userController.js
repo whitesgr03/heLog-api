@@ -132,10 +132,14 @@ export const userDelete = [
 		]);
 
 		req.logout(() =>
-			res.clearCookie("id").clearCookie("token").json({
-				success: true,
-				message: "Delete user successfully.",
-			})
+			res
+				.clearCookie("id")
+				.clearCookie("token")
+				.set("Clear-Site-Data", ["cache", "cookies", "storage"])
+				.json({
+					success: true,
+					message: "Delete user successfully.",
+				})
 		);
 	}),
 ];
