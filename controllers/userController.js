@@ -35,7 +35,7 @@ export const userDetail = [
 			email: 1,
 		}).exec();
 
-		res.json({
+		res.set("Cache-Control", "no-store, max-age=0").json({
 			success: true,
 			message: "Get user info successfully.",
 			data: user,
@@ -98,7 +98,7 @@ export const userUpdate = [
 			}
 		).exec();
 
-		res.json({
+		res.set("Cache-Control", "no-store, max-age=0").json({
 			success: true,
 			message: "Update user successfully.",
 			data: user,
