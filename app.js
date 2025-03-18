@@ -48,8 +48,16 @@ const sessionOptions = {
 };
 
 const helmetOptions = {
-	// Strict CSP
+	xFrameOptions: { action: "deny" }, // To avoid clickjacking attacks, by ensuring that their content is not embedded into other sites.
+	strictTransportSecurity: {
+		//  It should only be accessed using HTTPS, instead of using HTTP.
+		maxAge: 63072000,
+		preload: true,
+	},
+	crossOriginEmbedderPolicy: true, // A document can only load resources from the same origin.
+	crossOriginResourcePolicy: { policy: "same-site" }, // Limit current resource loading to the site and sub-domains only.
 	contentSecurityPolicy: {
+		// Strict CSP
 		directives: {
 			defaultSrc: ["'none'"],
 			scriptSrc: [
