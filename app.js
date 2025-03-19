@@ -3,7 +3,6 @@ import createError from "http-errors";
 import morgan from "morgan";
 import debug from "debug";
 import session from "express-session";
-import compression from "compression";
 import helmet from "helmet";
 import cors from "cors";
 import MongoStore from "connect-mongo";
@@ -83,7 +82,6 @@ app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(morgan(process.env.production ? "common" : "dev"));
-app.use(compression());
 
 app.use(express.json());
 
