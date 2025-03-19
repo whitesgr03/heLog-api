@@ -348,7 +348,10 @@ describe("Comment paths", () => {
 				.send({
 					title: "new title",
 					content: "new content",
-					mainImage: "new image resource url",
+					mainImage: faker.image.urlPicsumPhotos({
+						width: 10,
+						height: 10,
+					}),
 					publish: true,
 				})
 				.set("x-csrf-token", `${token}.${value}`);
@@ -372,7 +375,10 @@ describe("Comment paths", () => {
 				.send({
 					title: "new title",
 					content: "new content",
-					mainImage: "new image resource url",
+					mainImage: faker.image.urlPicsumPhotos({
+						width: 10,
+						height: 10,
+					}),
 					publish: true,
 				})
 				.set("x-csrf-token", `${token}.${value}`);
@@ -403,7 +409,10 @@ describe("Comment paths", () => {
 				.send({
 					title: "new title",
 					content: "new content",
-					mainImage: "new image resource url",
+					mainImage: faker.image.urlPicsumPhotos({
+						width: 10,
+						height: 10,
+					}),
 					publish: true,
 				})
 				.set("x-csrf-token", `${token}.${value}`);
