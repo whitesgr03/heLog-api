@@ -5,8 +5,10 @@ import debug from "debug";
 import session from "express-session";
 import helmet from "helmet";
 import cors from "cors";
-import MongoStore from "connect-mongo";
+import sessionStore from "connect-mongo";
 import { randomBytes } from "node:crypto";
+import { rateLimit } from "express-rate-limit";
+import ratelimitStore from "rate-limit-mongo";
 
 // config
 import { mongoose } from "./config/database.js";
@@ -36,7 +38,7 @@ const sessionOptions = {
 	secret: process.env.SESSION_SECRETS.split(","),
 	resave: false,
 	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the session.req is unmodified then will not be stored in the session store.
-	store: MongoStore.create(mongoose.connection),
+	store: sessionStore.create(mongoose.connection),
 	name: "id",
 	cookie: {
 		sameSite: "Lax",
@@ -45,7 +47,6 @@ const sessionOptions = {
 		maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
 	},
 };
-
 const helmetOptions = {
 	xFrameOptions: { action: "deny" }, // To avoid clickjacking attacks, by ensuring that their content is not embedded into other sites.
 	strictTransportSecurity: {
@@ -74,9 +75,22 @@ const helmetOptions = {
 		},
 	},
 };
+const rateLimitOption = {
+	windowMs: 10 * 60 * 1000, // 10 minutes
+	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	store: new ratelimitStore({
+		uri: process.env.DATABASE_STRING,
+		collectionName: "ratelimit",
+		expireTimeMs: 10 * 60 * 1000,
+		errorHandler: err => errorLog(err),
+	}),
+};
 
 app.set("trust proxy", 1);
 
+app.use(rateLimit(rateLimitOption));
 app.use(cors(corsOptions));
 app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
