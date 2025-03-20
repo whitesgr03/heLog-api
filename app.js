@@ -21,6 +21,7 @@ import { userRouter } from "./routes/user.js";
 
 export const app = express();
 
+app.get("/favicon.ico", (req, res) => res.status(204));
 app.use((req, res, next) => {
 	res.locals.cspNonce = randomBytes(32).toString("base64");
 	next();
