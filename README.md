@@ -1,22 +1,18 @@
-# HeLog API 
+# HeLog API
 
-This project is a cookie-based authentication and API server built with Express. Used to receive requests from the HeLog and HeLog-Editor frond-ends.
+This project is a cookie-based authentication and API server built with Express. Hosted on Fly.io.
 
+The server uses Mongoose to build data models and query data and uses the MongoDB database to store data.
 
 ## Links
 
-Frontend Repositories: 
+Frontend Repositories:
 
 1. [https://github.com/whitesgr03/helog](https://github.com/whitesgr03/helog)
 
 2. [https://github.com/whitesgr03/helog-editor](https://github.com/whitesgr03/helog-editor)
 
-
-## Description:
-
-HeLog API build data models and query data with Mongoose, uses MongoDb database to store data.
-
-## Technologies:  
+## Technologies:
 
 1. [Passport](https://www.passportjs.org/) uses Google and Facebook for social authentication.
 
