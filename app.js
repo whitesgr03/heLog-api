@@ -42,7 +42,7 @@ const sessionOptions = {
 	store: sessionStore.create(mongoose.connection),
 	name: "id",
 	cookie: {
-		sameSite: "Lax",
+		sameSite: "Strict",
 		domain: process.env.DOMAIN ?? "",
 		httpOnly: true,
 		secure: process.env.NODE_ENV !== "development",
