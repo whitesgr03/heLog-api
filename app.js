@@ -43,6 +43,7 @@ const sessionOptions = {
 	name: "id",
 	cookie: {
 		sameSite: "Lax",
+		domain: process.env.DOMAIN ?? "",
 		httpOnly: true,
 		secure: process.env.NODE_ENV !== "development",
 		maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
