@@ -30,7 +30,7 @@ export const googleRedirect = [
 								sameSite: "strict",
 								httpOnly: false,
 								secure: true,
-								domain: process.env.CSRF_DOMAIN ?? "",
+								domain: process.env.DOMAIN ?? "",
 								maxAge: req.session.cookie.originalMaxAge,
 							})
 							.redirect(redirect_origin);
@@ -69,7 +69,7 @@ export const facebookRedirect = [
 									{
 										sameSite: "strict",
 										httpOnly: false,
-										domain: process.env.CSRF_DOMAIN ?? "",
+										domain: process.env.DOMAIN ?? "",
 										secure: true,
 										maxAge: req.session.cookie
 											.originalMaxAge,
