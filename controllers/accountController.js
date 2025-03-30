@@ -87,7 +87,7 @@ export const userLogout = [
 	authenticate,
 	validationCSRF,
 	(req, res) => {
-		req.logout(() =>
+		req.session.destroy(() =>
 			res
 				.clearCookie("id")
 				.clearCookie("token")
