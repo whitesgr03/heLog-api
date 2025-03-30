@@ -26,13 +26,20 @@ export const googleRedirect = [
 			user
 				? req.login(user, () => {
 						res.set("Cache-Control", "no-cache=Set-Cookie") // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
-							.cookie("token", generateCSRFToken(req.sessionID), {
-								sameSite: "strict",
-								httpOnly: false,
-								secure: true,
-								domain: process.env.DOMAIN ?? "",
-								maxAge: req.session.cookie.originalMaxAge,
-							})
+							.cookie(
+								process.env.NODE_ENV === "production"
+									? "__Secure-token"
+									: "token",
+								generateCSRFToken(req.sessionID),
+								{
+									sameSite: "strict",
+									httpOnly: false,
+									secure:
+										process.env.NODE_ENV === "production",
+									domain: process.env.DOMAIN ?? "",
+									maxAge: req.session.cookie.originalMaxAge,
+								}
+							)
 							.redirect(redirect_origin);
 				  })
 				: res.redirect(redirect_origin);
@@ -64,13 +71,17 @@ export const facebookRedirect = [
 					? req.login(user, () => {
 							res.set("Cache-Control", "no-cache=Set-Cookie") // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
 								.cookie(
-									"token",
+									process.env.NODE_ENV === "production"
+										? "__Secure-token"
+										: "token",
 									generateCSRFToken(req.sessionID),
 									{
 										sameSite: "strict",
 										httpOnly: false,
 										domain: process.env.DOMAIN ?? "",
-										secure: true,
+										secure:
+											process.env.NODE_ENV ===
+											"production",
 										maxAge: req.session.cookie
 											.originalMaxAge,
 									}

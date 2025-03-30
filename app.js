@@ -40,12 +40,12 @@ const sessionOptions = {
 	resave: false,
 	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the session.req is unmodified then will not be stored in the session store.
 	store: sessionStore.create(mongoose.connection),
-	name: "id",
+	name: process.env.NODE_ENV === "production" ? "__Secure-id" : "id",
 	cookie: {
 		sameSite: "Strict",
 		domain: process.env.DOMAIN ?? "",
 		httpOnly: true,
-		secure: process.env.NODE_ENV !== "development",
+		secure: process.env.NODE_ENV === "production",
 		maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
 	},
 };
