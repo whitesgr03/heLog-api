@@ -99,14 +99,10 @@ export const userLogout = [
 	validationCSRF,
 	(req, res) => {
 		req.session.destroy(() =>
-			res
-				.clearCookie("id")
-				.clearCookie("token")
-				.set("Clear-Site-Data", ["cache", "cookies", "storage"])
-				.json({
-					success: true,
-					message: "User logout successfully.",
-				})
+			res.set("Clear-Site-Data", ["cache", "cookies", "storage"]).json({
+				success: true,
+				message: "User logout successfully.",
+			})
 		);
 	},
 ];
