@@ -51,7 +51,7 @@ passport.use(
 			clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/facebook`,
 			profileFields: ["email"],
-			state: true,
+			enableProof: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
 			const user = await User.findOne({
