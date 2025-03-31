@@ -10,7 +10,7 @@ passport.use(
 			clientID: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
-			scope: ["profile", "email"],
+			scope: ["email"],
 			state: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
