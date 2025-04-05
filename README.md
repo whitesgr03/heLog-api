@@ -1,8 +1,8 @@
 # HeLog API
 
-This project is a cookie-based authentication and API server built with Express. Hosted on Fly.io.
+This project is a cookie-based authentication and REST API design server built with Express. Hosted on Fly.io.
 
-The server uses Mongoose to build data models and query data and uses the MongoDB database to store data.
+The server uses Mongoose to build data models and query data and uses the MongoDB atlas database to store data.
 
 ## Links
 
