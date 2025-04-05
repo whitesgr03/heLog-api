@@ -22,6 +22,5 @@ Frontend Repositories:
 
 -   This project consists of a backend for API and two different front-ends for accessing and editing blog posts.
 
--   The backend's authentication is cookie-based to prevent the need to log in again when switching between two different front-ends.
+-   The backend using cookie-based authentication to prevent the need to log in again when switching between two different front-ends.
 
--   In the future, I plan to add email and password authentication to the backend for users to have more ways to sign up.
