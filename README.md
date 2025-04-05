@@ -24,3 +24,67 @@ Frontend Repositories:
 
 -   The backend using cookie-based authentication to prevent the need to log in again when switching between two different front-ends.
 
+## API Endpoints
+
+**Authentication**
+
+```
+GET /account/login/google
+
+GET /account/oauth2/redirect/google
+
+GET /account/login/facebook
+
+GET /account/oauth2/redirect/facebook
+
+POST /account/logout
+```
+
+**Blog Resource**
+
+```
+GET /blog/posts
+
+GET /blog/posts/:postId
+
+GET /blog/posts/:postId/comments
+
+GET /blog/comments/:commentId/replies
+
+
+POST /blog/posts
+
+PATCH /blog/posts/:postId
+
+DELETE /blog/posts/:postId
+
+
+POST /blog/posts/:postId/comments
+
+PATCH /blog/comments/:commentId
+
+DELETE /blog/comments/:commentId
+
+
+POST /blog/comments/:commentId/replies
+
+POST /blog/replies/:replyId
+
+PATCH /blog/replies/:replyId
+
+DELETE /blog/replies/:replyId
+```
+
+**User Resource**
+
+```
+GET /user/posts
+
+GET /user
+
+POST /user
+
+PATCH /user
+
+DELETE /user
+```
