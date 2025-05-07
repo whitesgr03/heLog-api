@@ -56,95 +56,26 @@ export const postDetail = [
 
 		const post =
 			isValidObjectId(postId) &&
-			(await Post.aggregate([
+			(await Post.findOne(
 				{
-					$match: {
-						_id: new Types.ObjectId(`${postId}`),
-					},
+					_id: new Types.ObjectId(`${postId}`),
+					publish: true,
 				},
 				{
-					$lookup: {
-						from: "users",
-						localField: "author",
-						foreignField: "_id",
-						as: "author",
-						pipeline: [
-							{
-								$project: {
-									_id: 0,
-									username: 1,
-								},
-							},
-						],
-					},
-				},
-				{
-					$unwind: {
-						path: "$author",
-					},
-				},
-				{
-					$lookup: {
-						from: "comments",
-						localField: "_id",
-						foreignField: "post",
-						as: "countComments",
-						pipeline: [
-							{
-								$project: {
-									_id: 0,
-									parent: 1,
-								},
-							},
-							{
-								$group: {
-									_id: "$parent",
-									count: { $count: {} },
-								},
-							},
-						],
-					},
-				},
-				{
-					$set: {
-						totalComments: {
-							$sum: "$countComments.count",
-						},
-					},
-				},
-				{
-					$unwind: {
-						path: "$countComments",
-						preserveNullAndEmptyArrays: true,
-					},
-				},
-				{
-					$match: {
-						"countComments._id": {
-							$eq: null,
-						},
-					},
-				},
-				{
-					$set: {
-						countComments: {
-							$cond: {
-								if: {
-									$eq: ["$countComments._id", null],
-								},
-								then: "$countComments.count",
-								else: 0,
-							},
-						},
-					},
-				},
-			]));
+					publish: 0,
+				}
+			)
+				.populate("author", {
+					_id: 0,
+					username: 1,
+				})
+				.exec());
 
-		post?.length
+		post
 			? res.json({
 					success: true,
 					message: "Get post successfully.",
-					data: post[0],
+					data: post,
 			  })
 			: res.status(404).json({
 					success: false,
