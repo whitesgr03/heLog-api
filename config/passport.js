@@ -25,6 +25,8 @@ passport.use(
 					isAdmin: process.env.NODE_ENV === "development",
 				});
 
+				newUser.username = `User-${String(newUser._id).slice(-5)}`;
+
 				await newUser.save();
 
 				done(null, { id: newUser._id });
@@ -64,6 +66,8 @@ passport.use(
 					provider: ["facebook"],
 					isAdmin: process.env.NODE_ENV === "development",
 				});
+
+				newUser.username = `User-${String(newUser._id).slice(-5)}`;
 
 				await newUser.save();
 
