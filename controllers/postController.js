@@ -15,79 +15,37 @@ export const postList = [
 	asyncHandler(async (req, res) => {
 		const { skip = 0 } = req.query;
 
-		const pipeline = [
-			{
-				$match: {
-					publish: true,
+		const [posts, postsCount] = await Promise.all([
+			Post.find(
+				{ publish: true },
+				{
+					content: 0,
+					publish: 0,
 				},
-			},
-			{
-				$facet: {
-					posts: [
-						{
-							$sort: {
-								createdAt: -1,
-								_id: -1,
-							},
+				{
+					skip: Number(skip),
+					limit: 100,
+					sort: {
+						createdAt: -1,
+						_id: -1,
+					},
+					populate: {
+						path: "author",
+						select: {
+							_id: 0,
+							username: 1,
 						},
-						{ $skip: Number(skip) },
-						{ $limit: 10 },
-						{
-							$project: {
-								content: 0,
-								publish: 0,
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								localField: "author",
-								foreignField: "_id",
-								as: "author",
-								pipeline: [
-									{
-										$project: {
-											_id: 0,
-											username: 1,
-										},
-									},
-								],
-							},
-						},
-						{
-							$unwind: {
-								path: "$author",
-							},
-						},
-					],
-					countPosts: [
-						{
-							$count: "count",
-						},
-					],
-				},
-			},
-			{
-				$unwind: {
-					path: "$countPosts",
-				},
-			},
-			{
-				$set: {
-					countPosts: "$countPosts.count",
-				},
-			},
-		];
+					},
+				}
+			).exec(),
+			Post.countDocuments(),
+		]);
 
-		const posts = await Post.aggregate(pipeline);
-
+		
 		res.json({
 			success: true,
 			message: "Get all posts successfully.",
-			data: posts[0] ?? {
-				posts: [],
-				countPosts: 0,
-			},
+			data: { posts, postsCount },
 		});
 	}),
 ];
