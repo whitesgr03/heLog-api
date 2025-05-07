@@ -16,60 +16,44 @@ export const commentList = [
 		const { postId } = req.params;
 		const { skip = 0 } = req.query;
 
-		const comments = !isValidObjectId(postId)
-			? []
-			: await Comment.aggregate([
+		const result =
+			isValidObjectId(postId) &&
+			(await Promise.all([
+				Comment.find(
+					{ post: new Types.ObjectId(`${postId}`), parent: null },
+					{},
 					{
-						$match: {
-							post: new Types.ObjectId(`${postId}`),
-							parent: null,
-						},
-					},
-					{
-						$sort: {
+						skip: Number(skip),
+						limit: 100,
+						sort: {
 							createdAt: -1,
 							_id: -1,
 						},
-					},
-					{ $skip: Number(skip) },
-					{ $limit: 10 },
-					{
-						$lookup: {
-							from: "users",
-							localField: "author",
-							foreignField: "_id",
-							as: "author",
-							pipeline: [
-								{
-									$project: {
-										_id: 0,
-										username: 1,
-									},
-								},
-							],
-						},
-					},
-					{
-						$unwind: {
-							path: "$author",
-						},
-					},
-					{
-						$lookup: {
-							from: "comments",
-							localField: "_id",
-							foreignField: "parent",
-							as: "countReplies",
-						},
-					},
-					{
-						$set: {
-							countReplies: {
-								$size: "$countReplies",
+						populate: {
+							path: "author",
+							select: {
+								_id: 0,
+								username: 1,
 							},
 						},
-					},
-			  ]);
+					}
+				).exec(),
+				Comment.countDocuments({
+					post: new Types.ObjectId(`${postId}`),
+					parent: null,
+				}),
+				Comment.countDocuments({
+					post: new Types.ObjectId(`${postId}`),
+				}),
+			]));
+
+		const comments = !result
+			? []
+			: {
+					comments: result[0],
+					commentsCount: result[1],
+					commentAndReplyCounts: result[2],
+			  };
 
 		res.json({
 			success: true,
