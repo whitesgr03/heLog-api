@@ -80,7 +80,9 @@ export const userUpdate = [
 		existingUserName
 			? res.status(409).json({
 					success: false,
-					message: "Username is been used.",
+					fields: {
+						username: "Username is been used.",
+					},
 			  })
 			: next();
 	}),
