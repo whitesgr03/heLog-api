@@ -12,7 +12,7 @@ export const User = mongoose.model(
 				immutable: true,
 				lowercase: true,
 			},
-			username: { type: String },
+			username: { type: String, required: true },
 			isAdmin: { type: Boolean, immutable: true },
 			provider: { type: Array, required: true },
 		},
