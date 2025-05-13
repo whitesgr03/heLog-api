@@ -133,11 +133,7 @@ export const commentUpdate = [
 
 		const comment =
 			isValidObjectId(commentId) &&
-			(await Comment.findById(commentId)
-				.populate("author", {
-					username: 1,
-				})
-				.exec());
+			(await Comment.findById(commentId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.comment = comment;
@@ -152,10 +148,12 @@ export const commentUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+		const [user, comment] = await Promise.all([
+			User.findById(req.user.id, { isAdmin: 1 }).exec(),
+			req.comment.populate("author"),
+		]);
 
-		user.isAdmin ||
-		user._id.toString() === req.comment.author._id.toString()
+		user.isAdmin || user._id.toString() === comment.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -165,12 +163,12 @@ export const commentUpdate = [
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.data.content;
 
-		const comment = await req.comment.save();
+		await req.comment.save();
 
-		const updatedComment = {
-			...comment._doc,
-			author: { username: comment._doc.author.username },
-		};
+		const updatedComment = await req.comment.populate("author", {
+			_id: 0,
+			username: 1,
+		});
 
 		res.json({
 			success: true,
