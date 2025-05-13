@@ -145,16 +145,16 @@ export const replyCreate = [
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
 
-		const reply =
+		const comment =
 			isValidObjectId(replyId) &&
-			(await Comment.findById(replyId).exec());
+			(await Comment.findOne({ child: replyId }).exec());
 
 		const handleSetLocalVariable = () => {
-			req.reply = reply;
+			req.comment = comment;
 			next();
 		};
 
-		reply
+		comment
 			? handleSetLocalVariable()
 			: res.status(404).json({
 					success: false,
@@ -164,36 +164,34 @@ export const replyCreate = [
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
 
-		const newReply = await new Comment({
+		const newReply = new Comment({
 			author: req.user.id,
-			post: req.reply.post,
-			parent: req.reply.parent,
+			post: req.comment.post,
+			parent: req.comment.id,
 			reply: replyId,
 			...req.data,
-		}).save();
-
-		let createdReply = await newReply.populate({
-			path: "author",
-			select: {
-				username: 1,
-				_id: 0,
-			},
 		});
 
-		createdReply = await newReply.populate({
-			path: "reply",
-			select: {
-				author: 1,
-				deleted: 1,
-			},
-			populate: {
-				path: "author",
+		req.comment.child.push(newReply._id);
+
+		await Promise.all([newReply.save(), req.comment.save()]);
+
+		const createdReply = await Comment.findById(newReply._id)
+			.populate("author", { username: 1, _id: 0 })
+			.populate({
+				path: "reply",
 				select: {
-					username: 1,
-					_id: 0,
+					author: 1,
+					deleted: 1,
 				},
-			},
-		});
+				populate: {
+					path: "author",
+					select: {
+						username: 1,
+						_id: 0,
+					},
+				},
+			});
 
 		res.json({
 			success: true,
