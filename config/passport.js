@@ -11,7 +11,6 @@ passport.use(
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
 			scope: ["email"],
-			state: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
 			const user = await User.findOne({
