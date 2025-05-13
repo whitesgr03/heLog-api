@@ -92,7 +92,7 @@ const rateLimitOption = {
 
 app.set("trust proxy", 1);
 
-app.use(rateLimit(rateLimitOption));
+process.env.NODE_ENV === "production" && app.use(rateLimit(rateLimitOption));
 app.use(cors(corsOptions));
 app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
