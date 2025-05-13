@@ -17,85 +17,46 @@ export const replyList = [
 
 		const replies = !isValidObjectId(commentId)
 			? []
-			: await Comment.aggregate([
+			: await Comment.find(
+					{ parent: new Types.ObjectId(`${commentId}`) },
+					{},
 					{
-						$match: {
-							parent: new Types.ObjectId(`${commentId}`),
-						},
-					},
-					{
-						$sort: {
+						skip: Number(skip),
+						limit: 100,
+						sort: {
 							createdAt: 1,
-							_id: 1,
+							_id: -1,
 						},
-					},
-					{ $skip: Number(skip) },
-					{ $limit: 10 },
-					{
-						$lookup: {
-							from: "users",
-							localField: "author",
-							foreignField: "_id",
-							as: "author",
-							pipeline: [
-								{
-									$project: {
-										_id: 0,
-										username: 1,
-									},
+						populate: {
+							path: "reply",
+							select: {
+								deleted: 1,
+								author: 1,
+							},
+						},
+					}
+			  )
+					.populate("author", {
+						_id: 0,
+						username: 1,
+					})
+					.populate({
+						path: "reply",
+						select: {
+							deleted: 1,
+							author: 1,
+						},
+						options: {
+							populate: {
+								path: "author",
+								select: {
+									_id: 0,
+									username: 1,
 								},
-							],
+							},
 						},
-					},
-					{
-						$unwind: {
-							path: "$author",
-						},
-					},
-					{
-						$lookup: {
-							from: "comments",
-							localField: "reply",
-							foreignField: "_id",
-							as: "reply",
-							pipeline: [
-								{
-									$project: {
-										deleted: 1,
-										author: 1,
-									},
-								},
-								{
-									$lookup: {
-										from: "users",
-										localField: "author",
-										foreignField: "_id",
-										as: "author",
-										pipeline: [
-											{
-												$project: {
-													_id: 0,
-													username: 1,
-												},
-											},
-										],
-									},
-								},
-								{
-									$unwind: {
-										path: "$author",
-									},
-								},
-							],
-						},
-					},
-					{
-						$unwind: {
-							path: "$reply",
-							preserveNullAndEmptyArrays: true,
-						},
-					},
-			  ]);
+					})
+					.exec();
 
 		res.json({
 			success: true,
