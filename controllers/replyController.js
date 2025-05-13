@@ -103,12 +103,16 @@ export const replyComment = [
 	asyncHandler(async (req, res) => {
 		const { commentId } = req.params;
 
-		const newReply = await new Comment({
+		const newReply = new Comment({
 			author: req.user.id,
 			post: req.comment.post,
 			parent: commentId,
 			...req.data,
-		}).save();
+		});
+
+		req.comment.child.push(newReply._id);
+
+		await Promise.all([newReply.save(), req.comment.save()]);
 
 		const createdReply = await newReply.populate("author", {
 			username: 1,
