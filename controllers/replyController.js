@@ -221,11 +221,7 @@ export const replyUpdate = [
 
 		const reply =
 			isValidObjectId(replyId) &&
-			(await Comment.findById(replyId)
-				.populate("author", {
-					username: 1,
-				})
-				.exec());
+			(await Comment.findById(replyId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.reply = reply;
@@ -240,9 +236,12 @@ export const replyUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+		const [user, reply] = await Promise.all([
+			User.findById(req.user.id, { isAdmin: 1 }).exec(),
+			req.reply.populate("author"),
+		]);
 
-		user.isAdmin || user._id.toString() === req.reply.author._id.toString()
+		user.isAdmin || user._id.toString() === reply.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -250,28 +249,30 @@ export const replyUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res) => {
+		const { replyId } = req.params;
 		req.reply.content = req.data.content;
 
-		const reply = await req.reply.save();
+		await req.reply.save();
 
-		const updatedReply = req.reply?.reply
-			? await reply.populate({
-					path: "reply",
+		const updatedReply = await Comment.findById(replyId)
+			.populate("author", {
+				_id: 0,
+				username: 1,
+			})
+			.populate({
+				path: "reply",
+				select: {
+					author: 1,
+					deleted: 1,
+				},
+				populate: {
+					path: "author",
 					select: {
-						author: 1,
-						deleted: 1,
+						username: 1,
+						_id: 0,
 					},
-					populate: {
-						path: "author",
-						select: {
-							username: 1,
-							_id: 0,
-						},
-					},
-			  })
-			: reply._doc;
-
-		updatedReply.author = { username: reply._doc.author.username };
+				},
+			});
 
 		res.json({
 			success: true,
