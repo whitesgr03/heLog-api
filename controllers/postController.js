@@ -41,7 +41,6 @@ export const postList = [
 			Post.countDocuments(),
 		]);
 
-		
 		res.json({
 			success: true,
 			message: "Get all posts successfully.",
