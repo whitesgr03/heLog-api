@@ -23,6 +23,18 @@ export const Comment = mongoose.model(
 				ref: "Comment",
 				immutable: true,
 			},
+			child: [
+				{
+					type: Schema.Types.ObjectId,
+					ref: "Comment",
+					validate: {
+						validator: function () {
+							return !!this.parent === false;
+						},
+						message: "The child comment cannot have a child",
+					},
+				},
+			],
 			reply: {
 				type: Schema.Types.ObjectId,
 				ref: "Comment",
