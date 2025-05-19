@@ -320,14 +320,34 @@ export const replyDelete = [
 			  });
 	}),
 	asyncHandler(async (req, res) => {
+		const { replyId } = req.params;
+
 		req.reply.content = req.deletedByAdmin
 			? "Reply deleted by admin"
 			: "Reply deleted by user";
 		req.reply.deleted = true;
 
-		const reply = await req.reply.save();
+		await req.reply.save();
 
-		const { _author, ...deletedReply } = reply._doc;
+		const deletedReply = await Comment.findById(replyId)
+			.populate("author", {
+				_id: 0,
+				username: 1,
+			})
+			.populate({
+				path: "reply",
+				select: {
+					author: 1,
+					deleted: 1,
+				},
+				populate: {
+					path: "author",
+					select: {
+						username: 1,
+						_id: 0,
+					},
+				},
+			});
 
 		res.json({
 			success: true,
