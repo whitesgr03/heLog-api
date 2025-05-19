@@ -236,12 +236,11 @@ export const replyUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const [user, reply] = await Promise.all([
-			User.findById(req.user.id, { isAdmin: 1 }).exec(),
-			req.reply.populate("author"),
-		]);
+		const user = await User.findById(req.user.id, {
+			isAdmin: 1,
+		}).exec();
 
-		user.isAdmin || user._id.toString() === reply.author._id.toString()
+		user.isAdmin || user._id.toString() === req.reply.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
