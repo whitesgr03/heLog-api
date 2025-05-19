@@ -220,9 +220,12 @@ export const commentDelete = [
 			: "Comment deleted by user";
 		req.comment.deleted = true;
 
-		const comment = await req.comment.save();
+		await req.comment.save();
 
-		const { _author, ...deletedComment } = comment._doc;
+		const deletedComment = await req.comment.populate("author", {
+			_id: 0,
+			username: 1,
+		});
 
 		res.json({
 			success: true,
