@@ -114,15 +114,12 @@ export const replyComment = [
 
 		await Promise.all([newReply.save(), req.comment.save()]);
 
-		const createdReply = await newReply.populate("author", {
-			username: 1,
-			_id: 0,
-		});
-
 		res.json({
 			success: true,
 			message: "Create comment successfully.",
-			data: createdReply,
+			data: {
+				_id: newReply._id,
+			},
 		});
 	}),
 ];
