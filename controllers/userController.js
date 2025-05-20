@@ -13,17 +13,28 @@ import { Comment } from "../models/comment.js";
 
 export const userPostList = [
 	asyncHandler(async (req, res) => {
-		const userPosts = await Post.find(
-			{ author: req.user.id },
-			{ author: 0 }
-		)
-			.sort({ createdAt: -1, _id: -1 })
-			.exec();
+		const { skip = 0 } = req.query;
+
+		const [userPosts, userPostsCount] = await Promise.all([
+			Post.find(
+				{ author: req.user.id },
+				{ author: 0, mainImage: 0, content: 0 },
+				{
+					skip: Number(skip),
+					limit: 100,
+					sort: {
+						createdAt: -1,
+						_id: -1,
+					},
+				}
+			).exec(),
+			Post.countDocuments({ author: req.user.id }),
+		]);
 
 		res.json({
 			success: true,
 			message: "Get user's post list successfully.",
-			data: userPosts,
+			data: { userPosts, userPostsCount },
 		});
 	}),
 ];
