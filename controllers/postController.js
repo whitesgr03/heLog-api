@@ -276,8 +276,7 @@ export const postDelete = [
 		const { postId } = req.params;
 
 		const post =
-			isValidObjectId(postId) &&
-			(await Post.findById(postId).populate("author").exec());
+			isValidObjectId(postId) && (await Post.findById(postId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.post = post;
