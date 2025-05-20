@@ -10,6 +10,7 @@ export const userRouter = express.Router();
 userRouter.use(authenticate);
 
 userRouter.get("/posts", userControllers.userPostList);
+userRouter.get("/posts/:postId", userControllers.userPostDetail);
 
 userRouter.use(validationCSRF);
 

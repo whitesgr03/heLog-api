@@ -2,6 +2,7 @@
 import asyncHandler from "express-async-handler";
 import { Types } from "mongoose";
 import { checkSchema } from "express-validator";
+import { isValidObjectId } from "mongoose";
 
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
@@ -36,6 +37,34 @@ export const userPostList = [
 			message: "Get user's post list successfully.",
 			data: { userPosts, userPostsCount },
 		});
+	}),
+];
+export const userPostDetail = [
+	asyncHandler(async (req, res) => {
+		const { postId } = req.params;
+
+		const post =
+			isValidObjectId(postId) &&
+			(await Post.findOne(
+				{
+					_id: new Types.ObjectId(`${postId}`),
+					author: req.user.id,
+				},
+				{
+					author: 0,
+				}
+			).exec());
+
+		post
+			? res.json({
+					success: true,
+					message: "Get post successfully.",
+					data: post,
+			  })
+			: res.status(404).json({
+					success: false,
+					message: `Post could not be found.`,
+			  });
 	}),
 ];
 export const userDetail = [
