@@ -94,21 +94,15 @@ export const commentCreate = [
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
 
-		const newComment = await new Comment({
+		await new Comment({
 			author: req.user.id,
 			post: postId,
 			...req.data,
 		}).save();
 
-		const createdComment = await newComment.populate("author", {
-			username: 1,
-			_id: 0,
-		});
-
 		res.json({
 			success: true,
 			message: "Create comment successfully.",
-			data: createdComment,
 		});
 	}),
 ];
