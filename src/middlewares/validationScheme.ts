@@ -1,20 +1,19 @@
+import { RequestHandler } from "express";
 import { validationResult, matchedData } from "express-validator";
 
-export const validationScheme = (req, res, next) => {
+export const validationScheme: RequestHandler = (req, res, next) => {
 	const schemaErrors = validationResult(req);
 
 	const handleSchemaErrors = () => {
 		const errors = schemaErrors.mapped();
 
-		let fields = {};
-
-		for (const key of Object.keys(errors)) {
-			fields[key] = errors[key]["msg"];
-		}
-
 		res.status(400).json({
 			success: false,
-			fields,
+			fields: Object.keys(errors).reduce(
+				(obj: any, error: any) =>
+					Object.assign(obj, { [error]: errors[error]["msg"] }),
+				{}
+			),
 		});
 	};
 

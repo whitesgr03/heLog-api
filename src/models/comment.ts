@@ -27,12 +27,6 @@ export const Comment = mongoose.model(
 				{
 					type: Schema.Types.ObjectId,
 					ref: "Comment",
-					validate: {
-						validator: function () {
-							return !!this.parent === false;
-						},
-						message: "The child comment cannot have a child",
-					},
 				},
 			],
 			reply: {

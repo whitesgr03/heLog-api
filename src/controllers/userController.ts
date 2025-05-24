@@ -1,7 +1,7 @@
 // Modules
 import asyncHandler from "express-async-handler";
 import { Types } from "mongoose";
-import { checkSchema } from "express-validator";
+import { body } from "express-validator";
 import { isValidObjectId } from "mongoose";
 
 // Middlewares
@@ -18,7 +18,7 @@ export const userPostList = [
 
 		const [userPosts, userPostsCount] = await Promise.all([
 			Post.find(
-				{ author: req.user.id },
+				{ author: req.user!.id },
 				{ author: 0, mainImage: 0, content: 0 },
 				{
 					skip: Number(skip),
@@ -29,7 +29,7 @@ export const userPostList = [
 					},
 				}
 			).exec(),
-			Post.countDocuments({ author: req.user.id }),
+			Post.countDocuments({ author: req.user!.id }),
 		]);
 
 		res.json({
@@ -48,7 +48,7 @@ export const userPostDetail = [
 			(await Post.findOne(
 				{
 					_id: new Types.ObjectId(`${postId}`),
-					author: req.user.id,
+					author: req.user!.id,
 				},
 				{
 					author: 0,
@@ -69,7 +69,7 @@ export const userPostDetail = [
 ];
 export const userDetail = [
 	asyncHandler(async (req, res) => {
-		const user = await User.findById(req.user.id, {
+		const user = await User.findById(req.user!.id, {
 			username: 1,
 			isAdmin: 1,
 			email: 1,
@@ -83,26 +83,40 @@ export const userDetail = [
 	}),
 ];
 export const userUpdate = [
-	checkSchema({
-		username: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "Username is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 30 },
-				errorMessage: "username must be less than 30 long.",
-				bail: true,
-			},
-			custom: {
-				options: username =>
-					username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/),
-				errorMessage: "Username must be alphanumeric.",
-				bail: true,
-			},
-		},
-	}),
+	body("username")
+		.trim()
+		.notEmpty()
+		.withMessage("Username is required.")
+		.bail()
+		.isLength({ max: 30 })
+		.withMessage("username must be less than 30 long.")
+		.bail()
+		.custom(username =>
+			username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/)
+		)
+		.withMessage("Username must be alphanumeric."),
+	// checkExact(
+	// 	checkSchema({
+	// 		username: {
+	// 			trim: true,
+	// 			notEmpty: {
+	// 				errorMessage: "Username is required.",
+	// 				bail: true,
+	// 			},
+	// 			isLength: {
+	// 				options: { max: 30 },
+	// 				errorMessage: "username must be less than 30 long.",
+	// 				bail: true,
+	// 			},
+	// 			custom: {
+	// 				options: username =>
+	// 					username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/),
+	// 				errorMessage: "Username must be alphanumeric.",
+	// 				bail: true,
+	// 			},
+	// 		},
+	// 	})
+	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { username } = req.data;
@@ -111,7 +125,7 @@ export const userUpdate = [
 				{ username },
 				{
 					_id: {
-						$ne: new Types.ObjectId(`${req.user.id}`),
+						$ne: new Types.ObjectId(`${req.user!.id}`),
 					},
 				},
 			],
@@ -128,7 +142,7 @@ export const userUpdate = [
 	}),
 	asyncHandler(async (req, res) => {
 		const user = await User.findByIdAndUpdate(
-			req.user.id,
+			req.user!.id,
 			{ ...req.data },
 			{
 				new: true,
@@ -150,7 +164,7 @@ export const userUpdate = [
 export const userDelete = [
 	asyncHandler(async (req, res) => {
 		const posts = await Post.find(
-			{ author: req.user.id },
+			{ author: req.user!.id },
 			{ _id: 1 }
 		).exec();
 
@@ -161,10 +175,10 @@ export const userDelete = [
 					post.deleteOne(),
 				]);
 			}),
-			User.findByIdAndDelete(req.user.id).exec(),
+			User.findByIdAndDelete(req.user!.id).exec(),
 			Comment.updateMany(
 				{
-					author: req.user.id,
+					author: req.user!.id,
 				},
 				{
 					content: "Comment deleted by user",

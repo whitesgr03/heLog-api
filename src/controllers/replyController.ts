@@ -1,7 +1,7 @@
 // Modules
 import asyncHandler from "express-async-handler";
 import { isValidObjectId, Types } from "mongoose";
-import { checkSchema } from "express-validator";
+import { body } from "express-validator";
 
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
@@ -67,19 +67,28 @@ export const replyList = [
 ];
 
 export const replyComment = [
-	checkSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "Content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "Content must be less than 500 long.",
-			},
-		},
-	}),
+	body("content")
+		.trim()
+		.notEmpty()
+		.withMessage("Content is required.")
+		.bail()
+		.isLength({ max: 500 })
+		.withMessage("Content must be less than 500 long."),
+	// checkExact(
+	// 	checkSchema({
+	// 		content: {
+	// 			trim: true,
+	// 			notEmpty: {
+	// 				errorMessage: "Content is required.",
+	// 				bail: true,
+	// 			},
+	// 			isLength: {
+	// 				options: { max: 500 },
+	// 				errorMessage: "Content must be less than 500 long.",
+	// 			},
+	// 		},
+	// 	})
+	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
@@ -104,7 +113,7 @@ export const replyComment = [
 		const { commentId } = req.params;
 
 		const newReply = new Comment({
-			author: req.user.id,
+			author: req.user!.id,
 			post: req.comment.post,
 			parent: commentId,
 			...req.data,
@@ -125,19 +134,28 @@ export const replyComment = [
 ];
 
 export const replyCreate = [
-	checkSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "Content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "Content must be less than 500 long.",
-			},
-		},
-	}),
+	body("content")
+		.trim()
+		.notEmpty()
+		.withMessage("Content is required.")
+		.bail()
+		.isLength({ max: 500 })
+		.withMessage("Content must be less than 500 long."),
+	// checkExact(
+	// 	checkSchema({
+	// 		content: {
+	// 			trim: true,
+	// 			notEmpty: {
+	// 				errorMessage: "Content is required.",
+	// 				bail: true,
+	// 			},
+	// 			isLength: {
+	// 				options: { max: 500 },
+	// 				errorMessage: "Content must be less than 500 long.",
+	// 			},
+	// 		},
+	// 	})
+	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
@@ -162,7 +180,7 @@ export const replyCreate = [
 		const { replyId } = req.params;
 
 		const newReply = new Comment({
-			author: req.user.id,
+			author: req.user!.id,
 			post: req.comment.post,
 			parent: req.comment.id,
 			reply: replyId,
@@ -199,19 +217,28 @@ export const replyCreate = [
 ];
 
 export const replyUpdate = [
-	checkSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "Content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "Content must be less than 500 long.",
-			},
-		},
-	}),
+	body("content")
+		.trim()
+		.notEmpty()
+		.withMessage("Content is required.")
+		.bail()
+		.isLength({ max: 500 })
+		.withMessage("Content must be less than 500 long."),
+	// checkExact(
+	// 	checkSchema({
+	// 		content: {
+	// 			trim: true,
+	// 			notEmpty: {
+	// 				errorMessage: "Content is required.",
+	// 				bail: true,
+	// 			},
+	// 			isLength: {
+	// 				options: { max: 500 },
+	// 				errorMessage: "Content must be less than 500 long.",
+	// 			},
+	// 		},
+	// 	})
+	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
@@ -233,11 +260,12 @@ export const replyUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, {
+		const user = await User.findById(req.user!.id, {
 			isAdmin: 1,
 		}).exec();
 
-		user.isAdmin || user._id.toString() === req.reply.author._id.toString()
+		user?.isAdmin ||
+		user?._id.toString() === req.reply.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -299,17 +327,17 @@ export const replyDelete = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
 		const isReplyOwner =
-			user._id.toString() === req.reply.author._id.toString();
+			user?._id.toString() === req.reply.author._id.toString();
 
 		const handleSetLocalVariable = () => {
-			req.deletedByAdmin = user.isAdmin && !isReplyOwner;
+			req.deletedByAdmin = user?.isAdmin && !isReplyOwner;
 			next();
 		};
 
-		user.isAdmin || isReplyOwner
+		user?.isAdmin || isReplyOwner
 			? handleSetLocalVariable()
 			: res.status(403).json({
 					success: false,

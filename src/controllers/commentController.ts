@@ -1,7 +1,7 @@
 // Modules
 import asyncHandler from "express-async-handler";
 import { isValidObjectId, Types } from "mongoose";
-import { checkSchema } from "express-validator";
+import { body } from "express-validator";
 
 // Middlewares
 import { validationScheme } from "../middlewares/validationScheme.js";
@@ -64,19 +64,26 @@ export const commentList = [
 ];
 
 export const commentCreate = [
-	checkSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "The content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "The content must be less than 500 long.",
-			},
-		},
-	}),
+	body("content")
+		.trim()
+		.notEmpty()
+		.withMessage("The content is required.")
+		.bail()
+		.isLength({ max: 500 })
+		.withMessage("The content must be less than 500 long."),
+	// checkSchema({
+	// 	content: {
+	// 		trim: true,
+	// 		notEmpty: {
+	// 			errorMessage: "The content is required.",
+	// 			bail: true,
+	// 		},
+	// 		isLength: {
+	// 			options: { max: 500 },
+	// 			errorMessage: "The content must be less than 500 long.",
+	// 		},
+	// 	},
+	// }),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
@@ -95,7 +102,7 @@ export const commentCreate = [
 		const { postId } = req.params;
 
 		await new Comment({
-			author: req.user.id,
+			author: req.user!.id,
 			post: postId,
 			...req.data,
 		}).save();
@@ -108,19 +115,26 @@ export const commentCreate = [
 ];
 
 export const commentUpdate = [
-	checkSchema({
-		content: {
-			trim: true,
-			notEmpty: {
-				errorMessage: "Content is required.",
-				bail: true,
-			},
-			isLength: {
-				options: { max: 500 },
-				errorMessage: "Content must be less than 500 long.",
-			},
-		},
-	}),
+	body("content")
+		.trim()
+		.notEmpty()
+		.withMessage("The content is required.")
+		.bail()
+		.isLength({ max: 500 })
+		.withMessage("The content must be less than 500 long."),
+	// checkSchema({
+	// 	content: {
+	// 		trim: true,
+	// 		notEmpty: {
+	// 			errorMessage: "Content is required.",
+	// 			bail: true,
+	// 		},
+	// 		isLength: {
+	// 			options: { max: 500 },
+	// 			errorMessage: "Content must be less than 500 long.",
+	// 		},
+	// 	},
+	// }),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
@@ -142,10 +156,10 @@ export const commentUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
-		user.isAdmin ||
-		user._id.toString() === req.comment.author._id.toString()
+		user?.isAdmin ||
+		user?._id.toString() === req.comment.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -191,17 +205,17 @@ export const commentDelete = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user.id, { isAdmin: 1 }).exec();
+		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
 		const isCommentOwner =
-			user._id.toString() === req.comment.author._id.toString();
+			user?._id.toString() === req.comment.author._id.toString();
 
 		const handleSetLocalVariable = () => {
-			req.deletedByAdmin = user.isAdmin && !isCommentOwner;
+			req.deletedByAdmin = user?.isAdmin && !isCommentOwner;
 			next();
 		};
 
-		user.isAdmin || isCommentOwner
+		user?.isAdmin || isCommentOwner
 			? handleSetLocalVariable()
 			: res.status(403).json({
 					success: false,
