@@ -9,7 +9,7 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"start": "NODE_ENV=production node ./dist/index.js",
+		"start": "NODE_ENV=production node dist/src/index.js",
 		"build": "tsc -p tsconfig.build.json",
 		"dev": "NODE_ENV=development tsx watch --env-file=.env src/index.ts",
 		"seed": "tsx --env-file=.env src/lib/seed.ts",
