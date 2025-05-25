@@ -3,7 +3,7 @@ import { mongoose } from "./config/database.js";
 
 import { app } from "./app.js";
 
-import { checkEnv } from "./config/envConfig.js";
+import { checkEnv } from "./utils/checkEnv.js";
 
 const databaseLog = debug("Mongoose");
 const serverLog = debug("Server");
