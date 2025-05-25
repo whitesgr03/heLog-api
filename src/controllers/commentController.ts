@@ -156,10 +156,12 @@ export const commentUpdate = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
+		const user =
+			req.user &&
+			(await User.findById(req.user.id, { isAdmin: 1 }).exec());
 
 		user?.isAdmin ||
-		user?._id.toString() === req.comment.author._id.toString()
+		user?.id.toString() === req.comment.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -205,10 +207,12 @@ export const commentDelete = [
 			  });
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
+		const user =
+			req.user &&
+			(await User.findById(req.user.id, { isAdmin: 1 }).exec());
 
 		const isCommentOwner =
-			user?._id.toString() === req.comment.author._id.toString();
+			user?.id.toString() === req.comment.author._id.toString();
 
 		const handleSetLocalVariable = () => {
 			req.deletedByAdmin = user?.isAdmin && !isCommentOwner;

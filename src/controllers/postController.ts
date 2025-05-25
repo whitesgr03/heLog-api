@@ -341,7 +341,7 @@ export const postUpdate = [
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
-		user?.isAdmin || user?._id.toString() === req.post.author._id.toString()
+		user?.isAdmin || user?.id.toString() === req.post.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -390,7 +390,7 @@ export const postDelete = [
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
-		user?.isAdmin || user?._id.toString() === req.post.author._id.toString()
+		user?.isAdmin || user?.id.toString() === req.post.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,

@@ -264,8 +264,7 @@ export const replyUpdate = [
 			isAdmin: 1,
 		}).exec();
 
-		user?.isAdmin ||
-		user?._id.toString() === req.reply.author._id.toString()
+		user?.isAdmin || user?.id.toString() === req.reply.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
@@ -330,7 +329,7 @@ export const replyDelete = [
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
 		const isReplyOwner =
-			user?._id.toString() === req.reply.author._id.toString();
+			user?.id.toString() === req.reply.author._id.toString();
 
 		const handleSetLocalVariable = () => {
 			req.deletedByAdmin = user?.isAdmin && !isReplyOwner;
