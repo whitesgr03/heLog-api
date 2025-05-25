@@ -40,7 +40,7 @@ passport.use(
 
 				await newUser.save();
 
-				done(null, { id: newUser._id });
+				done(null, { id: newUser.id });
 			};
 
 			const handleUpdate = async () => {
@@ -85,7 +85,7 @@ passport.use(
 
 				await newUser.save();
 
-				done(null, { id: newUser._id });
+				done(null, { id: newUser.id });
 			};
 
 			const handleUpdate = async () => {
