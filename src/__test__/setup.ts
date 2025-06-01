@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, beforeAll, vi } from "vitest";
 import { mongoose } from "../config/database.js";
-import { clearAllCollections, createUsers } from "../lib/seed";
+import { clearAllCollections, createUsers } from "../lib/seed.js";
 import debug from "debug";
 
 const databaseLog = debug("Mongoose");
