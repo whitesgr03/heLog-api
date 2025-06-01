@@ -71,19 +71,6 @@ export const commentCreate = [
 		.bail()
 		.isLength({ max: 500 })
 		.withMessage("The content must be less than 500 long."),
-	// checkSchema({
-	// 	content: {
-	// 		trim: true,
-	// 		notEmpty: {
-	// 			errorMessage: "The content is required.",
-	// 			bail: true,
-	// 		},
-	// 		isLength: {
-	// 			options: { max: 500 },
-	// 			errorMessage: "The content must be less than 500 long.",
-	// 		},
-	// 	},
-	// }),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
@@ -122,19 +109,6 @@ export const commentUpdate = [
 		.bail()
 		.isLength({ max: 500 })
 		.withMessage("The content must be less than 500 long."),
-	// checkSchema({
-	// 	content: {
-	// 		trim: true,
-	// 		notEmpty: {
-	// 			errorMessage: "Content is required.",
-	// 			bail: true,
-	// 		},
-	// 		isLength: {
-	// 			options: { max: 500 },
-	// 			errorMessage: "Content must be less than 500 long.",
-	// 		},
-	// 	},
-	// }),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;

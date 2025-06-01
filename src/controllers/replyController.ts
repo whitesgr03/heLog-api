@@ -74,21 +74,6 @@ export const replyComment = [
 		.bail()
 		.isLength({ max: 500 })
 		.withMessage("Content must be less than 500 long."),
-	// checkExact(
-	// 	checkSchema({
-	// 		content: {
-	// 			trim: true,
-	// 			notEmpty: {
-	// 				errorMessage: "Content is required.",
-	// 				bail: true,
-	// 			},
-	// 			isLength: {
-	// 				options: { max: 500 },
-	// 				errorMessage: "Content must be less than 500 long.",
-	// 			},
-	// 		},
-	// 	})
-	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
@@ -141,21 +126,6 @@ export const replyCreate = [
 		.bail()
 		.isLength({ max: 500 })
 		.withMessage("Content must be less than 500 long."),
-	// checkExact(
-	// 	checkSchema({
-	// 		content: {
-	// 			trim: true,
-	// 			notEmpty: {
-	// 				errorMessage: "Content is required.",
-	// 				bail: true,
-	// 			},
-	// 			isLength: {
-	// 				options: { max: 500 },
-	// 				errorMessage: "Content must be less than 500 long.",
-	// 			},
-	// 		},
-	// 	})
-	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
@@ -224,21 +194,6 @@ export const replyUpdate = [
 		.bail()
 		.isLength({ max: 500 })
 		.withMessage("Content must be less than 500 long."),
-	// checkExact(
-	// 	checkSchema({
-	// 		content: {
-	// 			trim: true,
-	// 			notEmpty: {
-	// 				errorMessage: "Content is required.",
-	// 				bail: true,
-	// 			},
-	// 			isLength: {
-	// 				options: { max: 500 },
-	// 				errorMessage: "Content must be less than 500 long.",
-	// 			},
-	// 		},
-	// 	})
-	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;

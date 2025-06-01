@@ -119,53 +119,6 @@ export const postCreate = [
 			return HTML_EntityCount + characterCount <= limit;
 		})
 		.withMessage("Content must be less than 8000 long."),
-	// checkSchema({
-	// 	title: {
-	// 		trim: true,
-	// 		unescape: true,
-	// 		isLength: {
-	// 			options: { min: 0, max: 100 },
-	// 			errorMessage: "Title must be less than 100 long.",
-	// 		},
-	// 		escape: true,
-	// 	},
-	// 	mainImage: {
-	// 		trim: true,
-	// 		isURL: {
-	// 			if: (value: string) => value !== "",
-	// 			options: {
-	// 				protocols: ["https"],
-	// 			},
-	// 			errorMessage: "Main image is not a valid HTTP URL.",
-	// 		},
-	// 	},
-	// 	content: {
-	// 		trim: true,
-	// 		custom: {
-	// 			options: content => {
-	// 				const limit = 8000;
-
-	// 				const characterCountWithoutSpaces = content.replace(
-	// 					/(<.+?>|\s|&nbsp;)/g,
-	// 					""
-	// 				);
-
-	// 				const HTML_EntityCount =
-	// 					characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)
-	// 						?.length ?? 0;
-
-	// 				const characterCount =
-	// 					characterCountWithoutSpaces?.replace(
-	// 						/(?<=)&[\w]+;(?=)/g,
-	// 						""
-	// 					)?.length ?? 0;
-
-	// 				return HTML_EntityCount + characterCount <= limit;
-	// 			},
-	// 			errorMessage: "Content must be less than 8000 long.",
-	// 		},
-	// 	},
-	// }),
 	validationScheme,
 	asyncHandler(async (req, res) => {
 		const newPost = new Post({
@@ -242,83 +195,6 @@ export const postUpdate = [
 			loose: false,
 		})
 		.withMessage("The publish must be boolean."),
-	// checkExact(
-	// 	checkSchema({
-	// 		title: {
-	// 			trim: true,
-	// 			unescape: true,
-	// 			isLength: {
-	// 				options: { min: 0, max: 100 },
-	// 				errorMessage: "Title must be less than 100 long.",
-	// 				bail: true,
-	// 			},
-	// 			escape: true,
-	// 			notEmpty: {
-	// 				if: (_value: string, { req }: { req: Request | any }) =>
-	// 					req.body.publish,
-	// 				errorMessage: "Title is required.",
-	// 			},
-	// 		},
-	// 		mainImage: {
-	// 			trim: true,
-	// 			notEmpty: {
-	// 				if: (_value: string, { req }: { req: Request | any }) =>
-	// 					req.body.publish,
-	// 				errorMessage: "Main image is required.",
-	// 				bail: true,
-	// 			},
-	// 			isURL: {
-	// 				if: (value: string) => value !== "",
-	// 				options: {
-	// 					protocols: ["https"],
-	// 				},
-	// 				errorMessage: "Main image is not a valid HTTP URL.",
-	// 			},
-	// 		},
-	// 		content: {
-	// 			trim: true,
-	// 			custom: {
-	// 				options: content => {
-	// 					const limit = 8000;
-
-	// 					const characterCountWithoutSpaces = content.replace(
-	// 						/(<.+?>|\s|&nbsp;)/g,
-	// 						""
-	// 					);
-
-	// 					const HTML_EntityCount =
-	// 						characterCountWithoutSpaces?.match(
-	// 							/(?<=)&[\w]+;(?=)/g
-	// 						)?.length ?? 0;
-
-	// 					const characterCount =
-	// 						characterCountWithoutSpaces?.replace(
-	// 							/(?<=)&[\w]+;(?=)/g,
-	// 							""
-	// 						)?.length ?? 0;
-
-	// 					return HTML_EntityCount + characterCount <= limit;
-	// 				},
-	// 				errorMessage: "Content must be less than 8000 long.",
-	// 			},
-	// 			notEmpty: {
-	// 				if: (_value: string, { req }: { req: Request | any }) =>
-	// 					req.body.publish,
-	// 				errorMessage: "Content is required.",
-	// 			},
-	// 		},
-	// 		publish: {
-	// 			trim: true,
-	// 			toLowerCase: true,
-	// 			isBoolean: {
-	// 				options: {
-	// 					loose: false,
-	// 				},
-	// 				errorMessage: "The publish must be boolean.",
-	// 			},
-	// 		},
-	// 	})
-	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;

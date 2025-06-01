@@ -95,28 +95,6 @@ export const userUpdate = [
 			username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/)
 		)
 		.withMessage("Username must be alphanumeric."),
-	// checkExact(
-	// 	checkSchema({
-	// 		username: {
-	// 			trim: true,
-	// 			notEmpty: {
-	// 				errorMessage: "Username is required.",
-	// 				bail: true,
-	// 			},
-	// 			isLength: {
-	// 				options: { max: 30 },
-	// 				errorMessage: "username must be less than 30 long.",
-	// 				bail: true,
-	// 			},
-	// 			custom: {
-	// 				options: username =>
-	// 					username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/),
-	// 				errorMessage: "Username must be alphanumeric.",
-	// 				bail: true,
-	// 			},
-	// 		},
-	// 	})
-	// ),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { username } = req.data;
