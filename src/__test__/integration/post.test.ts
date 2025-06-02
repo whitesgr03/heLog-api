@@ -16,6 +16,8 @@ import { Post } from "../../models/post.js";
 import { createPosts, createComments } from "../../lib/seed.js";
 import { passport } from "../../lib/passport.js";
 
+import { UserDocument } from "../../models/user.js";
+
 const app = express();
 
 app.use(
@@ -34,7 +36,7 @@ app.post("/login", (req, res, next) => {
 		...req.body,
 		password: " ",
 	};
-	passport.authenticate("local", (_err, user) => {
+	passport.authenticate("local", (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
@@ -49,7 +51,7 @@ app.post("/login", (req, res, next) => {
 
 app.use("/", blogRouter);
 
-describe("Comment paths", () => {
+describe("Post paths", () => {
 	describe("GET /posts", () => {
 		it("should respond with empty array, if there are not posts", async () => {
 			const { status, body } = await request(app).get(`/posts`);
@@ -103,7 +105,7 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it("should return a specified post detail", async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -135,8 +137,7 @@ describe("Comment paths", () => {
 	});
 	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
-			// const user = (await User.findOne({}).exec()) as UserDocument;
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			await agent.post(`/login`).send({ username: user.username });
@@ -150,8 +151,7 @@ describe("Comment paths", () => {
 			});
 		});
 		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
-			// const user = (await User.findOne({}).exec()) as UserDocument;
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -171,7 +171,7 @@ describe("Comment paths", () => {
 	describe("POST /posts", () => {
 		it(`should respond with a 400 status code and an error field message, if the length of title value is greater then 100`, async () => {
 			// const user = (await User.findOne().exec()) as UserDocument;
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			const loginResponse = await agent
@@ -190,7 +190,7 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("title");
 		});
 		it(`should respond with a 400 status code and an error field message, if the length of content value is greater then 8000`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			const loginResponse = await agent
@@ -214,7 +214,7 @@ describe("Comment paths", () => {
 				mainImage: faker.image.url(),
 				content: "new content",
 			};
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -241,7 +241,7 @@ describe("Comment paths", () => {
 	});
 	describe("PATCH /posts/:postId", () => {
 		it(`should respond with a 400 status code and the error field message, if the value of publish is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -273,7 +273,7 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("publish");
 		});
 		it(`should respond with a 400 status code and the message for each error fields, if all required fields are not provided when the value of publish is true`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -303,7 +303,7 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 400 status code and an error field message, if the length of content value is greater then 8000`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -333,7 +333,7 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakePostId = "123abc";
 
 			const agent = request.agent(app);
@@ -363,7 +363,7 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakePostId = new Types.ObjectId();
 
 			const agent = request.agent(app);
@@ -514,7 +514,7 @@ describe("Comment paths", () => {
 	describe("DELETE/posts/:postId", () => {
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
 			const fakePostId = new Types.ObjectId();
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -563,7 +563,7 @@ describe("Comment paths", () => {
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
 			const fakePostId = "123abc";
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			const loginResponse = await agent
@@ -647,9 +647,8 @@ describe("Comment paths", () => {
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Delete post successfully.");
 
-			expect(Comment.deleteMany)
-				.toBeCalledWith({ post: userPostId })
-				.toBeCalledTimes(1);
+			expect(Comment.deleteMany).toBeCalledWith({ post: userPostId });
+			expect(Comment.deleteMany).toBeCalledTimes(1);
 			expect(Post.deleteOne).toBeCalledTimes(1);
 		});
 	});
