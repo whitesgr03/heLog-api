@@ -1,21 +1,13 @@
-import { afterAll, beforeEach, beforeAll, vi } from "vitest";
+import { afterAll, beforeEach, vi } from "vitest";
 import { mongoose } from "../config/database.js";
 import { clearAllCollections, createUsers } from "../lib/seed.js";
-import debug from "debug";
-
-const databaseLog = debug("Mongoose");
-
-beforeAll(async () => {
-	databaseLog("MongoDB is connected.");
-});
 
 beforeEach(async () => {
 	vi.clearAllMocks();
-	await clearAllCollections();
-	await createUsers({ amount: 2 });
+	await clearAllCollections({ forTesting: true });
+	await createUsers({ amount: 2, forTesting: true });
 });
 
 afterAll(() => {
 	mongoose.disconnect();
-	databaseLog("MongoDB is disconnected.");
 });
