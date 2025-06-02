@@ -86,7 +86,7 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Get all comments successfully.");
 			expect(body.data.commentsCount).toBe(mockComments.length);
 
-			const commentsTitles = mockComments.map(post => post.content);
+			const commentsTitles = mockComments.map(comment => comment.content);
 			body.data.comments.forEach((comment: CommentDocument) => {
 				expect(commentsTitles).toContain(comment.content);
 			});
