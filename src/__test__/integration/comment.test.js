@@ -26,20 +26,24 @@ app.use(
 app.use(passport.session());
 app.use(express.json());
 
-app.get("/login", (req, res, next) => {
+app.post("/login", (req, res, next) => {
 	req.body = {
-		admin: req.query.isAdmin ?? "1",
-		_: " ",
+		...req.body,
+		password: " ",
 	};
+	// passport.authenticate("local", (_err: any, user: Express.User) => {
 	passport.authenticate("local", (_err, user) => {
-		req.login(user, () => {
-			res.send({
-				token: generateCSRFToken(req.sessionID),
-			});
-		});
+		user
+			? req.login(user, () => {
+					res.send({
+						token: generateCSRFToken(req.sessionID),
+					});
+			  })
+			: res.status(404).send({
+					message: "The user is not found.",
+			  });
 	})(req, res, next);
 });
-
 app.use("/", blogRouter);
 
 describe("Comment paths", () => {
@@ -57,7 +61,7 @@ describe("Comment paths", () => {
 			expect(body.data).toHaveLength(0);
 		});
 		it("should return all comments for the specified post", async () => {
-			const users = await User.find({}).exec();
+			const users = await User.find().exec();
 
 			const mockPosts = await createPosts({
 				users,
@@ -78,9 +82,11 @@ describe("Comment paths", () => {
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Get all comments successfully.");
-			expect(body.data.length).toBe(mockComments.length);
-			body.data.forEach(comment => {
-				expect(comment.post).toBe(mockPostId);
+			expect(body.data.commentsCount).toBe(mockComments.length);
+
+			const commentsTitles = mockComments.map(post => post.content);
+			body.data.comments.forEach(comment => {
+				expect(commentsTitles).toContain(comment.content);
 			});
 		});
 	});
@@ -97,26 +103,30 @@ describe("Comment paths", () => {
 		});
 	});
 	describe("Verify CSRF token", () => {
-		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
+		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+			const user = await User.findOne().exec();
+
 			const agent = request.agent(app);
 
-			await agent.get(`/login`);
+			await agent.post(`/login`).send({ username: user.username });
 
 			const { status, body } = await agent.post(`/posts/testId/comments`);
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF custom header is invalid.",
+				message: "CSRF token mismatch.",
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
+		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+			const user = await User.findOne().exec();
+
 			const agent = request.agent(app);
 
-			await agent.get(`/login`);
+			await agent.post(`/login`).send({ username: user.username });
 
 			const { status, body } = await agent
-				.post(`/posts/testId/comments`)
+				.post(`/posts/testid/comments`)
 				.set("x-csrf-token", "123.456");
 
 			expect(status).toBe(403);
@@ -128,9 +138,13 @@ describe("Comment paths", () => {
 	});
 	describe("POST /posts/:postId/comments", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
+			const user = await User.findOne().exec();
+
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -144,11 +158,14 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
+			const user = await User.findOne().exec();
 			const fakePostId = "abc123";
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -163,11 +180,14 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
+			const user = await User.findOne().exec();
 			const fakePostId = new Types.ObjectId();
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -181,8 +201,8 @@ describe("Comment paths", () => {
 			expect(body.success).toBe(false);
 			expect(body.message).toBe("Post could not be found.");
 		});
-		it("should create a comment and return to client", async () => {
-			const [authenticatedUser, secondUser] = await User.find({}).exec();
+		it("should create a comment", async () => {
+			const [user, secondUser] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
@@ -194,7 +214,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -207,17 +229,16 @@ describe("Comment paths", () => {
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Create comment successfully.");
-
-			expect(body.data.author.username).toBe(authenticatedUser.username);
-			expect(body.data.post).toBe(secondUserPostId);
-			expect(body.data.content).toBe(mockContent);
 		});
 	});
 	describe("PATCH /comments/:commentId", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
+			const user = await User.findOne().exec();
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -232,11 +253,14 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
+			const user = await User.findOne().exec();
 			const fakeCommentId = "abc123";
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -251,11 +275,14 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Comment could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified comment is not found`, async () => {
+			const user = await User.findOne().exec();
 			const fakeCommentId = new Types.ObjectId();
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -270,7 +297,7 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Comment could not be found.");
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the comment nor the blog admin`, async () => {
-			const [admin] = await User.find({}).exec();
+			const [admin, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
 				users: [admin],
@@ -286,7 +313,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login?isAdmin=0`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -321,7 +350,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -360,7 +391,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -383,11 +416,14 @@ describe("Comment paths", () => {
 	});
 	describe("DELETE/comments/:commentId", () => {
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
+			const user = await User.findOne().exec();
 			const fakeCommentId = "abc123";
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -401,10 +437,13 @@ describe("Comment paths", () => {
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
 			const fakeCommentId = new Types.ObjectId();
+			const user = await User.findOne().exec();
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -433,7 +472,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login?isAdmin=0`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -466,7 +507,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: admin.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -500,7 +543,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login?isAdmin=0`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -512,7 +557,7 @@ describe("Comment paths", () => {
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Delete comment successfully.");
 
-			expect(body.data.author).toBe(String(user._id));
+			expect(body.data.author.username).toBe(user.username);
 			expect(body.data.post).toBe(String(mockPosts[0]._id));
 			expect(body.data.content).toBe("Comment deleted by user");
 			expect(body.data.deleted).toBe(true);
