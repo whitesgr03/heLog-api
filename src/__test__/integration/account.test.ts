@@ -5,6 +5,7 @@ import session from "express-session";
 import { passport } from "../../lib/passport.js";
 
 import { User } from "../../models/user.js";
+import { UserDocument } from "../../models/user.js";
 
 import { accountRouter } from "../../routes/account.js";
 
@@ -27,7 +28,7 @@ app.post("/login", (req, res, next) => {
 		...req.body,
 		password: " ",
 	};
-	passport.authenticate("local", (_err, user) => {
+	passport.authenticate("local", (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
@@ -55,7 +56,7 @@ describe("Account paths", () => {
 	});
 	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -70,7 +71,7 @@ describe("Account paths", () => {
 			});
 		});
 		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			await agent.post(`/login`).send({ username: user.username });
@@ -88,7 +89,7 @@ describe("Account paths", () => {
 	});
 	describe("POST /logout", () => {
 		it(`should logout user`, async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			const loginResponse = await agent
