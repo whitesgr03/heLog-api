@@ -15,6 +15,9 @@ import { Comment } from "../../models/comment.js";
 import { createPosts } from "../../lib/seed.js";
 import { passport } from "../../lib/passport.js";
 
+import { UserDocument } from "../../models/user.js";
+import { PostDocument } from "../../models/post.js";
+
 const app = express();
 
 app.use(
@@ -33,7 +36,7 @@ app.post("/login", (req, res, next) => {
 		...req.body,
 		password: " ",
 	};
-	passport.authenticate("local", (_err, user) => {
+	passport.authenticate("local", (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
@@ -62,7 +65,7 @@ describe("User paths", () => {
 	});
 	describe("GET /posts", () => {
 		it(`should response with all posts of a specified user`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -82,14 +85,14 @@ describe("User paths", () => {
 			expect(body.data.userPostsCount).toBe(mockPosts.length);
 
 			const postsTitles = mockPosts.map(post => post.title);
-			body.data.userPosts.forEach(post => {
+			body.data.userPosts.forEach((post: PostDocument) => {
 				expect(postsTitles).toContain(post.title);
 			});
 		});
 	});
 	describe("GET /posts/:postId", () => {
 		it(`should response with with a 404 status, if a specified post of the user is not found`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			await createPosts({
 				users: [user],
@@ -111,7 +114,7 @@ describe("User paths", () => {
 			expect(body.message).toBe(`Post could not be found.`);
 		});
 		it(`should response with a specified post of the authenticate user`, async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -135,7 +138,7 @@ describe("User paths", () => {
 	});
 	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -150,7 +153,7 @@ describe("User paths", () => {
 			});
 		});
 		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
-			const user = await User.findOne({}).exec();
+			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -169,7 +172,7 @@ describe("User paths", () => {
 	});
 	describe("GET /", () => {
 		it(`should response with a specified user detail`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -193,7 +196,7 @@ describe("User paths", () => {
 	});
 	describe("PATCH /", () => {
 		it(`should respond with a 400 status code and error fields message if a new username is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -233,7 +236,7 @@ describe("User paths", () => {
 			expect(body.fields.username).toBe("Username is been used.");
 		});
 		it(`should update the user's username to a new username`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const mockNewUsername = faker.person.middleName();
 
@@ -259,12 +262,12 @@ describe("User paths", () => {
 	});
 	describe("DELETE /", () => {
 		it(`should delete the user and all posts and comments of that user, then log out.`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			vi.spyOn(Post, "deleteOne");
 			vi.spyOn(User, "findByIdAndDelete");
-			vi.spyOn(Comment, "deleteMany");
-			vi.spyOn(Comment, "updateMany");
+			const mockDeleteMany = vi.spyOn(Comment, "deleteMany");
+			const mockUpdateMany = vi.spyOn(Comment, "updateMany");
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -286,15 +289,14 @@ describe("User paths", () => {
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Delete user successfully.");
 
-			expect(Comment.deleteMany.mock.calls).toStrictEqual(
+			expect(mockDeleteMany.mock.calls).toStrictEqual(
 				mockPosts.map(item => [{ post: item._id }])
 			);
 			expect(Comment.deleteMany).toBeCalledTimes(mockPosts.length);
 			expect(Post.deleteOne).toBeCalledTimes(mockPosts.length);
-			expect(User.findByIdAndDelete)
-				.toBeCalledWith(`${user._id}`)
-				.toBeCalledTimes(1);
-			expect(Comment.updateMany.mock.calls[0][0]).toStrictEqual({
+			expect(User.findByIdAndDelete).toBeCalledWith(`${user._id}`);
+			expect(User.findByIdAndDelete).toBeCalledTimes(1);
+			expect(mockUpdateMany.mock.calls[0][0]).toStrictEqual({
 				author: `${user._id}`,
 			});
 			expect(Comment.updateMany).toBeCalledTimes(1);
