@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 
-import { User } from "../models/user";
+import { User } from "../models/user.js";
 
 passport.use(
 	new LocalStrategy({}, async (username, _passport, done) => {
@@ -9,7 +9,7 @@ passport.use(
 			username,
 		}).exec();
 
-		done(null, user ? { id: user._id } : false);
+		done(null, user ? { id: user.id } : undefined);
 	})
 );
 
