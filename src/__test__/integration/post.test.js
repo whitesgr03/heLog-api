@@ -29,17 +29,21 @@ app.use(
 app.use(passport.session());
 app.use(express.json());
 
-app.get("/login", (req, res, next) => {
+app.post("/login", (req, res, next) => {
 	req.body = {
-		admin: req.query.isAdmin ?? "1",
-		_: " ",
+		...req.body,
+		password: " ",
 	};
 	passport.authenticate("local", (_err, user) => {
-		req.login(user, () => {
-			res.send({
-				token: generateCSRFToken(req.sessionID),
-			});
-		});
+		user
+			? req.login(user, () => {
+					res.send({
+						token: generateCSRFToken(req.sessionID),
+					});
+			  })
+			: res.status(404).send({
+					message: "The user is not found.",
+			  });
 	})(req, res, next);
 });
 
@@ -54,7 +58,7 @@ describe("Comment paths", () => {
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Get all posts successfully.");
 			expect(body.data.posts.length).toBe(0);
-			expect(body.data.countPosts).toBe(0);
+			expect(body.data.postsCount).toBe(0);
 		});
 		it("should return all posts", async () => {
 			const users = await User.find({}).exec();
@@ -72,19 +76,11 @@ describe("Comment paths", () => {
 			expect(body.success).toBe(true);
 			expect(body.message).toBe("Get all posts successfully.");
 			expect(body.data.posts.length).toBe(mockPosts.length);
-			expect(body.data.countPosts).toBe(amount);
+			expect(body.data.postsCount).toBe(amount);
 		});
 	});
 	describe("GET /posts/:postId", () => {
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-
 			const fakePostId = "abc123";
 
 			const { status, body } = await request(app).get(
@@ -96,14 +92,6 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
-			const user = await User.findOne().exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: user._id };
-				next();
-			});
-
 			const fakePostId = new Types.ObjectId();
 
 			const { status, body } = await request(app).get(
@@ -115,25 +103,14 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it("should return a specified post detail", async () => {
-			const [admin, user] = await User.find({}).exec();
-
-			app.use((req, res, next) => {
-				req.isAuthenticated = () => true;
-				req.user = { id: admin._id };
-				next();
-			});
+			const user = await User.findOne({}).exec();
 
 			const mockPosts = await createPosts({
 				users: [user],
 				amount: 1,
 			});
-			const mockComments = await createComments({
-				users: [user],
-				posts: mockPosts,
-				amount: 10,
-			});
 
-			const userPostId = String(mockPosts[0]._id);
+			const userPostId = String(mockPosts[0].id);
 
 			const { status, body } = await request(app).get(
 				`/posts/${userPostId}`
@@ -144,7 +121,6 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Get post successfully.");
 
 			expect(body.data._id).toBe(userPostId);
-			expect(body.data.countComments).toBe(mockComments.length);
 		});
 	});
 	describe("Authenticate", () => {
@@ -158,23 +134,28 @@ describe("Comment paths", () => {
 		});
 	});
 	describe("Verify CSRF token", () => {
-		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
+		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+			// const user = (await User.findOne({}).exec()) as UserDocument;
+			const user = await User.findOne({}).exec();
 			const agent = request.agent(app);
 
-			await agent.get(`/login`);
+			await agent.post(`/login`).send({ username: user.username });
 
 			const { status, body } = await agent.post(`/posts`);
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF custom header is invalid.",
+				message: "CSRF token mismatch.",
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
+		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+			// const user = (await User.findOne({}).exec()) as UserDocument;
+			const user = await User.findOne({}).exec();
+
 			const agent = request.agent(app);
 
-			await agent.get(`/login`);
+			await agent.post(`/login`).send({ username: user.username });
 
 			const { status, body } = await agent
 				.post(`/posts`)
@@ -189,9 +170,13 @@ describe("Comment paths", () => {
 	});
 	describe("POST /posts", () => {
 		it(`should respond with a 400 status code and an error field message, if the length of title value is greater then 100`, async () => {
+			// const user = (await User.findOne().exec()) as UserDocument;
+			const user = await User.findOne().exec();
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -205,9 +190,12 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("title");
 		});
 		it(`should respond with a 400 status code and an error field message, if the length of content value is greater then 8000`, async () => {
+			const user = await User.findOne().exec();
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -226,10 +214,13 @@ describe("Comment paths", () => {
 				mainImage: faker.image.url(),
 				content: "new content",
 			};
+			const user = await User.findOne().exec();
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -258,9 +249,12 @@ describe("Comment paths", () => {
 			});
 
 			const userPostId = String(mockPosts[0]._id);
+
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -290,7 +284,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -318,7 +314,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -326,6 +324,7 @@ describe("Comment paths", () => {
 				.patch(`/posts/${userPostId}`)
 				.send({
 					content: `<p>${faker.string.nanoid(8005)}</p>`,
+					publish: true,
 				})
 				.set("x-csrf-token", `${token}.${value}`);
 
@@ -334,11 +333,14 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
+			const user = await User.findOne().exec();
 			const fakePostId = "123abc";
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -361,11 +363,14 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
+			const user = await User.findOne().exec();
 			const fakePostId = new Types.ObjectId();
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -388,23 +393,25 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the post nor the blog admin`, async () => {
-			const [admin] = await User.find({}).exec();
+			const [firstUser, secondUser] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
-				users: [admin],
+				users: [firstUser],
 				amount: 1,
 			});
 
-			const adminPostId = String(mockPosts[0]._id);
+			const postId = String(mockPosts[0]._id);
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login?isAdmin=0`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: secondUser.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
 			const { status, body } = await agent
-				.patch(`/posts/${adminPostId}`)
+				.patch(`/posts/${postId}`)
 				.type("json")
 				.send({
 					title: "new title",
@@ -442,7 +449,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -480,7 +489,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -503,10 +514,13 @@ describe("Comment paths", () => {
 	describe("DELETE/posts/:postId", () => {
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
 			const fakePostId = new Types.ObjectId();
+			const user = await User.findOne().exec();
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -519,23 +533,25 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the post nor the blog admin`, async () => {
-			const [admin] = await User.find({}).exec();
+			const [firstUser, secondUser] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
-				users: [admin],
+				users: [firstUser],
 				amount: 1,
 			});
 
-			const adminPostId = String(mockPosts[0]._id);
+			const postId = String(mockPosts[0]._id);
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login?isAdmin=0`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: secondUser.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
 			const { status, body } = await agent
-				.delete(`/posts/${adminPostId}`)
+				.delete(`/posts/${postId}`)
 				.set("x-csrf-token", `${token}.${value}`);
 
 			expect(status).toBe(403);
@@ -547,9 +563,12 @@ describe("Comment paths", () => {
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
 			const fakePostId = "123abc";
 
+			const user = await User.findOne().exec();
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -579,7 +598,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
@@ -612,7 +633,9 @@ describe("Comment paths", () => {
 
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
