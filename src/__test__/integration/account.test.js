@@ -4,6 +4,8 @@ import express from "express";
 import session from "express-session";
 import { passport } from "../../lib/passport.js";
 
+import { User } from "../../models/user.js";
+
 import { accountRouter } from "../../routes/account.js";
 
 import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
@@ -20,17 +22,21 @@ app.use(
 app.use(passport.session());
 app.use(express.json());
 
-app.get("/login", (req, res, next) => {
+app.post("/login", (req, res, next) => {
 	req.body = {
-		admin: req.query.isAdmin ?? "1",
-		_: " ",
+		...req.body,
+		password: " ",
 	};
 	passport.authenticate("local", (_err, user) => {
-		req.login(user, () => {
-			res.send({
-				token: generateCSRFToken(req.sessionID),
-			});
-		});
+		user
+			? req.login(user, () => {
+					res.send({
+						token: generateCSRFToken(req.sessionID),
+					});
+			  })
+			: res.status(404).send({
+					message: "The user is not found.",
+			  });
 	})(req, res, next);
 });
 app.use("/", accountRouter);
@@ -48,23 +54,26 @@ describe("Account paths", () => {
 		});
 	});
 	describe("Verify CSRF token", () => {
-		it("should respond with a 403 status code and message if a CSRF custom header is invalid", async () => {
+		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+			const user = await User.findOne({}).exec();
+
 			const agent = request.agent(app);
 
-			await agent.get(`/login`);
+			await agent.post(`/login`).send({ username: user.username });
 
 			const { status, body } = await agent.post(`/logout`);
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF custom header is invalid.",
+				message: "CSRF token mismatch.",
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF custom header send by client mismatch", async () => {
+		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+			const user = await User.findOne({}).exec();
 			const agent = request.agent(app);
 
-			await agent.get(`/login`);
+			await agent.post(`/login`).send({ username: user.username });
 
 			const { status, body } = await agent
 				.post(`/logout`)
@@ -79,9 +88,12 @@ describe("Account paths", () => {
 	});
 	describe("POST /logout", () => {
 		it(`should logout user`, async () => {
+			const user = await User.findOne({}).exec();
 			const agent = request.agent(app);
 
-			const loginResponse = await agent.get(`/login`);
+			const loginResponse = await agent
+				.post(`/login`)
+				.send({ username: user.username });
 
 			const [token, value] = loginResponse.body.token.split(".");
 
