@@ -10,6 +10,9 @@ import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
 
 import { User } from "../../models/user.js";
 
+import { UserDocument } from "../../models/user.js";
+import { CommentDocument } from "../../models/comment.js";
+
 import { createPosts, createComments } from "../../lib/seed.js";
 import { passport } from "../../lib/passport.js";
 
@@ -31,8 +34,7 @@ app.post("/login", (req, res, next) => {
 		...req.body,
 		password: " ",
 	};
-	// passport.authenticate("local", (_err: any, user: Express.User) => {
-	passport.authenticate("local", (_err, user) => {
+	passport.authenticate("local", (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
@@ -85,7 +87,7 @@ describe("Comment paths", () => {
 			expect(body.data.commentsCount).toBe(mockComments.length);
 
 			const commentsTitles = mockComments.map(post => post.content);
-			body.data.comments.forEach(comment => {
+			body.data.comments.forEach((comment: CommentDocument) => {
 				expect(commentsTitles).toContain(comment.content);
 			});
 		});
@@ -104,7 +106,7 @@ describe("Comment paths", () => {
 	});
 	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -119,7 +121,7 @@ describe("Comment paths", () => {
 			});
 		});
 		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -138,7 +140,7 @@ describe("Comment paths", () => {
 	});
 	describe("POST /posts/:postId/comments", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -158,7 +160,7 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakePostId = "abc123";
 
 			const agent = request.agent(app);
@@ -180,7 +182,7 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Post could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakePostId = new Types.ObjectId();
 
 			const agent = request.agent(app);
@@ -233,7 +235,7 @@ describe("Comment paths", () => {
 	});
 	describe("PATCH /comments/:commentId", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			const loginResponse = await agent
@@ -253,7 +255,7 @@ describe("Comment paths", () => {
 			expect(body.fields).toHaveProperty("content");
 		});
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakeCommentId = "abc123";
 
 			const agent = request.agent(app);
@@ -275,7 +277,7 @@ describe("Comment paths", () => {
 			expect(body.message).toBe("Comment could not be found.");
 		});
 		it(`should respond with a 404 status code and an error message, if a specified comment is not found`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakeCommentId = new Types.ObjectId();
 
 			const agent = request.agent(app);
@@ -416,7 +418,7 @@ describe("Comment paths", () => {
 	});
 	describe("DELETE/comments/:commentId", () => {
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 			const fakeCommentId = "abc123";
 
 			const agent = request.agent(app);
@@ -437,7 +439,7 @@ describe("Comment paths", () => {
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
 			const fakeCommentId = new Types.ObjectId();
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
