@@ -10,6 +10,9 @@ import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
 
 import { User } from "../../models/user.js";
 
+import { UserDocument } from "../../models/user.js";
+import { CommentDocument } from "../../models/comment.js";
+
 import {
 	createPosts,
 	createComments,
@@ -36,7 +39,7 @@ app.post("/login", (req, res, next) => {
 		...req.body,
 		password: " ",
 	};
-	passport.authenticate("local", (_err, user) => {
+	passport.authenticate("local", (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
@@ -96,7 +99,7 @@ describe("Reply paths", () => {
 			const repliesTitles = mockCommentReplies.map(
 				reply => reply.content
 			);
-			body.data.forEach(reply => {
+			body.data.forEach((reply: CommentDocument) => {
 				expect(repliesTitles).toContain(reply.content);
 			});
 		});
@@ -113,7 +116,7 @@ describe("Reply paths", () => {
 	});
 	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -128,7 +131,7 @@ describe("Reply paths", () => {
 			});
 		});
 		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
 
@@ -148,7 +151,7 @@ describe("Reply paths", () => {
 	describe("POST /comments/:commentId/replies", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -170,7 +173,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -193,7 +196,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -251,7 +254,7 @@ describe("Reply paths", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -274,7 +277,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -297,7 +300,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -367,7 +370,7 @@ describe("Reply paths", () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -390,7 +393,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -413,7 +416,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -631,7 +634,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
@@ -652,7 +655,7 @@ describe("Reply paths", () => {
 
 			const agent = request.agent(app);
 
-			const user = await User.findOne().exec();
+			const user = (await User.findOne().exec()) as UserDocument;
 
 			const loginResponse = await agent
 				.post(`/login`)
