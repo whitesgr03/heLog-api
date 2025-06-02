@@ -15,6 +15,11 @@ interface ServeError extends Error {
 
 const missingEnv = checkEnv();
 
+mongoose.connection.on("close", () => {
+	databaseLog("Closes the connection.");
+	process.exit(1);
+});
+
 if (!!missingEnv.length) {
 	serverError(
 		"The certain requirements of the environment of the application were not met."
