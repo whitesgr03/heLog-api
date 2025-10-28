@@ -8,14 +8,11 @@ mongoose.connection
 	.on("connected", () => databaseLog("MongoDB is connected."))
 	.on("disconnected", () => databaseLog("MongoDB is disconnected."))
 	.on("error", err => {
-		databaseLog("Database has some error occurs");
-		databaseLog(err);
+		databaseLog("Database has some error occurs: ", err);
 	});
 
 mongoose.connect(process.env.DATABASE_STRING as string).catch((err: Error) => {
-	databaseLog("Database connecting error");
-	databaseLog(err);
-	mongoose.disconnect();
+	databaseLog("Database connecting error: ", err);
 });
 
 export { mongoose };
