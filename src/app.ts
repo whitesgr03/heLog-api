@@ -3,6 +3,7 @@ import express, {
 	RequestHandler,
 	Response,
 } from "express";
+import os from "node:os";
 import createError from "http-errors";
 import morgan from "morgan";
 import debug from "debug";
@@ -12,7 +13,7 @@ import sessionStore from "connect-mongo";
 import { randomBytes } from "node:crypto";
 import { rateLimit } from "express-rate-limit";
 // import ratelimitStore from "rate-limit-mongo";
-import mongoose from "mongoose";
+import { mongoose } from "./config/database.js";
 import helmet, { HelmetOptions } from "helmet";
 
 // config
@@ -52,6 +53,10 @@ app.use(((req, res, next) => {
 }) as RequestHandler);
 
 const errorLog = debug("ServerError");
+const serverLog = debug("Server");
+
+const port = process.env.PORT;
+
 const corsOptions = {
 	origin: process.env.ALLOW_CLIENT_ORIGINS?.split(","),
 	methods: ["GET", "POST", "PATCH", "DELETE"],
@@ -162,3 +167,30 @@ app.use(((err, req, res, next) => {
 		message: "The server encountered an unexpected condition.",
 	});
 }) as ErrorRequestHandler);
+
+const handleListening = async () => {
+	const IP_Address = os
+		.networkInterfaces()
+		.en0?.find(internet => internet.family === "IPv4")?.address;
+
+	serverLog(`Listening on Local:         http://localhost:${port}`);
+	serverLog(`Listening on Your Network:  http://${IP_Address}:${port}`);
+};
+
+const handleError = (error: { code?: string }) => {
+	switch (error.code) {
+		case "EACCES":
+			serverLog(`Port ${port} requires elevated privileges`);
+		case "EADDRINUSE":
+			serverLog(`Port ${port} is already in use`);
+		default:
+			serverLog(error);
+			process.exit(1);
+	}
+};
+
+process.env.NODE_ENV === "development"
+	? app.listen(port, handleListening).on("error", handleError)
+	: app.listen(port).on("error", handleError);
+
+serverLog(`Server is listened`);
