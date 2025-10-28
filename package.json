@@ -9,9 +9,9 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"start": "NODE_ENV=production node dist/src/index.js",
+		"start": "NODE_ENV=production node dist/src/app.js",
 		"build": "tsc -p tsconfig.build.json",
-		"dev": "NODE_ENV=development tsx watch --env-file=.env src/index.ts",
+		"dev": "NODE_ENV=development tsx watch --env-file=.env src/app.ts",
 		"seed": "tsx --env-file=.env src/lib/seed.ts",
 		"test": "vitest",
 		"coverage": "vitest --coverage"
