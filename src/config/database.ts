@@ -12,7 +12,7 @@ mongoose.connection
 		databaseLog(err);
 	});
 
-mongoose.connect(process.env.DATABASE_STRING ?? "").catch((err: Error) => {
+mongoose.connect(process.env.DATABASE_STRING as string).catch((err: Error) => {
 	databaseLog("Database connecting error");
 	databaseLog(err);
 	mongoose.disconnect();
