@@ -37,13 +37,7 @@ export const googleRedirect: RequestHandler[] = [
 		authenticateFn(req, res, next);
 	},
 ];
-export const facebookLogin: RequestHandler[] = [
-	(req, res, next) => {
-		req.session.referer = req.headers.referer;
-		next();
-	},
-	passport.authenticate("facebook"),
-];
+export const facebookLogin: RequestHandler = passport.authenticate("facebook");
 export const facebookRedirect: RequestHandler[] = [
 	(req, res, next) => {
 		const authenticateCb: AuthenticateCallback = (err, user) => {
