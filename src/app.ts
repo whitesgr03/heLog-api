@@ -12,7 +12,6 @@ import cors from "cors";
 import sessionStore from "connect-mongo";
 import { randomBytes } from "node:crypto";
 import { rateLimit } from "express-rate-limit";
-// import ratelimitStore from "rate-limit-mongo";
 import { mongoose } from "./config/database.js";
 import helmet, { HelmetOptions } from "helmet";
 
