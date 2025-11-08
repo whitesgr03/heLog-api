@@ -6,13 +6,7 @@ import { validationCSRF } from "../middlewares/validationCSRF.js";
 
 import { generateCSRFToken } from "../utils/generateCSRFToken.js";
 
-export const googleLogin: RequestHandler[] = [
-	(req, res, next) => {
-		req.session.referer = req.headers.referer;
-		next();
-	},
-	passport.authenticate("google"),
-];
+export const googleLogin: RequestHandler = passport.authenticate("google");
 export const googleRedirect: RequestHandler[] = [
 	(req, res, next) => {
 		const authenticateCb: AuthenticateCallback = (err, user) => {
