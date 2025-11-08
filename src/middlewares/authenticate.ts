@@ -8,3 +8,7 @@ export const authenticate: RequestHandler = (req, res, next) => {
 				message: "User could not been found.",
 		  });
 };
+
+export const isLogin: RequestHandler = (req, res, next) => {
+	req.isAuthenticated() ? res.redirect(process.env.HELOG_URL!) : next();
+};
