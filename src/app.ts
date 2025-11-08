@@ -4,6 +4,8 @@ import express, {
 	Response,
 } from "express";
 import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import createError from "http-errors";
 import morgan from "morgan";
 import debug from "debug";
@@ -103,8 +105,8 @@ const helmetOptions: HelmetOptions = {
 			baseUri: ["'none'"], // Block the injection of <base> tags
 			frameAncestors: ["'none'"], // To prevent all framing of your content
 			connectSrc: ["'self'"], // AJAX from the same origin only
-			imgSrc: ["'self'"], // mages from the same origin only
-			styleSrc: ["'self'"], // CSS from the same origin only
+			imgSrc: ["'self'", "data:"], // mages from the same origin only
+			styleSrc: ["'self'", "https://fonts.googleapis.com"], // CSS from the same origin only
 		},
 	},
 };
@@ -113,6 +115,15 @@ const rateLimitOption = {
 	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+};
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const viewPath = path.join(__dirname, "views");
+const publicPath = path.join(__dirname, "public");
+const staticOptions = {
+	index: false,
+	maxAge: "1d",
+	redirect: false,
 };
 
 app.set("trust proxy", 1);
@@ -125,6 +136,10 @@ app.use(passport.session());
 app.use(morgan(process.env.production ? "common" : "dev"));
 
 app.use(express.json());
+app.use(express.static(publicPath, staticOptions));
+
+app.set("views", viewPath);
+app.set("view engine", "pug");
 
 // session touch
 app.use((req, res, next) => {
