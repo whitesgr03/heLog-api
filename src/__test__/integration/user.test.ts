@@ -171,7 +171,7 @@ describe("User paths", () => {
 		});
 	});
 	describe("GET /", () => {
-		it(`should response with a specified user detail`, async () => {
+		it(`should response with the current login user detail`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -191,7 +191,6 @@ describe("User paths", () => {
 			expect(body.message).toBe("Get user info successfully.");
 			expect(body.data.username).toBe(user.username);
 			expect(body.data.isAdmin).toBe(user.isAdmin);
-			expect(body.data.email).toBe(user.email);
 		});
 	});
 	describe("PATCH /", () => {
