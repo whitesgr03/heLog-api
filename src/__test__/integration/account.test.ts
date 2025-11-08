@@ -43,18 +43,16 @@ app.post("/login", (req, res, next) => {
 app.use("/", accountRouter);
 
 describe("Account paths", () => {
-	describe("Authenticate", () => {
-		it("should respond with a 400 status code and message if the user is not logged in", async () => {
+	describe("POST /logout", () => {
+		it("should respond with a 401 status code and message if the user is not logged in", async () => {
 			const { status, body } = await request(app).post(`/logout`);
 
-			expect(status).toBe(404);
+			expect(status).toBe(401);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "User could not been found.",
+				message: "Missing authentication token.",
 			});
 		});
-	});
-	describe("Verify CSRF token", () => {
 		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 
@@ -86,8 +84,6 @@ describe("Account paths", () => {
 				message: "CSRF token mismatch.",
 			});
 		});
-	});
-	describe("POST /logout", () => {
 		it(`should logout user`, async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 			const agent = request.agent(app);
