@@ -64,7 +64,7 @@ describe("User paths", () => {
 		});
 	});
 	describe("GET /posts", () => {
-		it(`should response with all posts of a specified user`, async () => {
+		it(`should response with all posts of current login user`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
