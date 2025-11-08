@@ -41,37 +41,27 @@ export const facebookLogin: RequestHandler = passport.authenticate("facebook");
 export const facebookRedirect: RequestHandler[] = [
 	(req, res, next) => {
 		const authenticateCb: AuthenticateCallback = (err, user) => {
-			const redirect_origin =
-				process.env
-					.ALLOW_CLIENT_ORIGINS!.split(",")
-					.find(origin => `${origin}/` === req.session.referer) ??
-				process.env.HELOG_URL!;
-
-			delete req.session.referer;
-
 			err && next(err);
-			user
-				? req.login(user, () => {
-						res.set("Cache-Control", "no-cache=Set-Cookie") // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
-							.cookie(
-								process.env.NODE_ENV === "production"
-									? "__Secure-token"
-									: "token",
-								generateCSRFToken(req.sessionID),
-								{
-									sameSite: "strict",
-									httpOnly: false,
-									domain: process.env.DOMAIN ?? "",
-									secure:
-										process.env.NODE_ENV === "production",
-									maxAge:
-										req.session.cookie.originalMaxAge ??
-										Date.now(),
-								}
-							)
-							.redirect(redirect_origin);
-				  })
-				: res.redirect(redirect_origin);
+			user &&
+				req.login(user, () => {
+					res.set("Cache-Control", "no-cache=Set-Cookie") // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
+						.cookie(
+							process.env.NODE_ENV === "production"
+								? "__Secure-token"
+								: "token",
+							generateCSRFToken(req.sessionID),
+							{
+								sameSite: "strict",
+								httpOnly: false,
+								domain: process.env.DOMAIN ?? "",
+								secure: process.env.NODE_ENV === "production",
+								maxAge:
+									req.session.cookie.originalMaxAge ??
+									Date.now(),
+							}
+						)
+						.redirect(process.env.HELOG_URL!);
+				});
 		};
 		const authenticateFn = passport.authenticate(
 			"facebook",
