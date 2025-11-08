@@ -72,7 +72,6 @@ export const userDetail = [
 		const user = await User.findById(req.user!.id, {
 			username: 1,
 			isAdmin: 1,
-			email: 1,
 		}).exec();
 
 		res.set("Cache-Control", "no-store, max-age=0").json({
@@ -127,7 +126,6 @@ export const userUpdate = [
 				select: {
 					username: 1,
 					isAdmin: 1,
-					email: 1,
 				},
 			}
 		).exec();
