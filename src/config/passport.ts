@@ -3,7 +3,9 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { Types } from "mongoose";
 
+import { Federated } from "../models/federated.js";
 import { User } from "../models/user.js";
+import { UserDocument } from "../models/user.js";
 
 declare global {
 	namespace Express {
@@ -19,41 +21,42 @@ passport.use(
 			clientID: process.env.GOOGLE_CLIENT_ID!,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
-			scope: ["email"],
+			scope: ["profile"],
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
-			const userEmail =
-				Array.isArray(profile.emails) && profile.emails[0].value;
+			try {
+				const federated = await Federated.findOne({
+					provider: profile.provider,
+					subject: profile.id,
+				})
+					.populate<{ user: UserDocument }>("user", {
+						username: 1,
+					})
+					.exec();
 
-			const user = await User.findOne({
-				email: userEmail,
-			}).exec();
+				const handleRegistration = async () => {
+					const newUser = new User({
+						username: profile.displayName,
+						isAdmin: process.env.NODE_ENV === "development",
+					});
+					await newUser.save();
+					const newFederated = new Federated({
+						user: newUser.id,
+						provider: profile.provider,
+						subject: profile.id,
+					});
+					await newFederated.save();
+					done(null, { id: newUser.id });
+				};
 
-			const handleRegistration = async () => {
-				const newUser = new User({
-					email: userEmail,
-					provider: ["google"],
-					isAdmin: process.env.NODE_ENV === "development",
-				});
-
-				newUser.username = `User-${String(newUser._id).slice(-5)}`;
-
-				await newUser.save();
-
-				done(null, { id: newUser.id });
-			};
-
-			const handleUpdate = async () => {
-				user?.provider.push("google");
-				await user?.save();
-				done(null, { id: user?.id });
-			};
-
-			user
-				? user.provider.includes("google")
-					? done(null, { id: user.id })
-					: await handleUpdate()
-				: await handleRegistration();
+				federated?.user
+					? done(null, {
+							id: federated.user.id,
+					  })
+					: await handleRegistration();
+			} catch (error) {
+				done(error);
+			}
 		}
 	)
 );
