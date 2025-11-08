@@ -105,12 +105,12 @@ describe("Reply paths", () => {
 		});
 	});
 	describe("Authenticate", () => {
-		it("should respond with a 400 status code and message if the user is not logged in", async () => {
+		it("should respond with a 401 status code and message if the user is not logged in", async () => {
 			const { status, body } = await request(app).post(`/replies/testId`);
-			expect(status).toBe(404);
+			expect(status).toBe(401);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "User could not been found.",
+				message: "Missing authentication token.",
 			});
 		});
 	});
