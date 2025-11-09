@@ -21,7 +21,7 @@ export const googleRedirect: RequestHandler[] = [
 							generateCSRFToken(req.sessionID),
 							{
 								sameSite: "strict",
-								httpOnly: process.env.NODE_ENV === "production",
+								httpOnly: false, // Front-end need to access __Secure-token cookie
 								secure: process.env.NODE_ENV === "production",
 								domain: process.env.DOMAIN ?? "",
 								maxAge:
@@ -52,7 +52,7 @@ export const facebookRedirect: RequestHandler[] = [
 							generateCSRFToken(req.sessionID),
 							{
 								sameSite: "strict",
-								httpOnly: false,
+								httpOnly: false, // Front-end need to access __Secure-token cookie
 								domain: process.env.DOMAIN ?? "",
 								secure: process.env.NODE_ENV === "production",
 								maxAge:
