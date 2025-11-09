@@ -4,8 +4,6 @@ import express, {
 	Response,
 } from "express";
 import os from "node:os";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import createError from "http-errors";
 import morgan from "morgan";
 import debug from "debug";
@@ -117,9 +115,6 @@ const rateLimitOption = {
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 };
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const viewPath = path.join(__dirname, "views");
-const publicPath = path.join(__dirname, "public");
 const staticOptions = {
 	index: false,
 	maxAge: "1d",
@@ -136,9 +131,9 @@ app.use(passport.session());
 app.use(morgan(process.env.production ? "common" : "dev"));
 
 app.use(express.json());
-app.use(express.static(publicPath, staticOptions));
+app.use(express.static("./src/public", staticOptions));
 
-app.set("views", viewPath);
+app.set("views", "./src/views");
 app.set("view engine", "pug");
 
 // session touch
