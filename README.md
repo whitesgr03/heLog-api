@@ -40,6 +40,8 @@ GET /account/login/facebook
 GET /account/oauth2/redirect/facebook
 
 POST /account/logout
+
+GET /account/login
 ```
 
 **Blog Resource**
