@@ -9,6 +9,7 @@ import { validationScheme } from "../middlewares/validationScheme.js";
 
 // Models
 import { User } from "../models/user.js";
+import { Federated } from "../models/federated.js";
 import { Post } from "../models/post.js";
 import { Comment } from "../models/comment.js";
 
@@ -151,7 +152,6 @@ export const userDelete = [
 					post.deleteOne(),
 				]);
 			}),
-			User.findByIdAndDelete(req.user!.id).exec(),
 			Comment.updateMany(
 				{
 					author: req.user!.id,
@@ -161,6 +161,8 @@ export const userDelete = [
 					deleted: true,
 				}
 			).exec(),
+			Federated.deleteOne({ user: req.user!.id }).exec(),
+			User.findByIdAndDelete(req.user!.id).exec(),
 		]);
 
 		req.logout(() =>
