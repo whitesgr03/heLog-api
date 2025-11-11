@@ -84,21 +84,5 @@ export const userLogout: RequestHandler[] = [
 ];
 
 export const login: RequestHandler = (req, res) => {
-	const { redirect_uri = null, theme = true } = req.query;
-
-	const uri = process.env
-		.ALLOW_CLIENT_ORIGINS!.split(",")
-		.find(origin => origin === redirect_uri);
-
-	if (uri) {
-		res.render("userSignIn", {
-			redirect_uri,
-			theme,
-		});
-	} else {
-		res.status(400).json({
-			success: false,
-			message: "Redirect uri mismatch.",
-		});
-	}
+	res.render("userSignIn");
 };
