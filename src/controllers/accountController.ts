@@ -40,6 +40,13 @@ export const googleRedirect: RequestHandler[] = [
 export const facebookLogin: RequestHandler = passport.authenticate("facebook");
 export const facebookRedirect: RequestHandler[] = [
 	(req, res, next) => {
+		if (req.query.code) {
+			next();
+		} else {
+			res.redirect("/account/login");
+		}
+	},
+	(req, res, next) => {
 		const authenticateCb: AuthenticateCallback = (err, user) => {
 			err && next(err);
 			user &&
