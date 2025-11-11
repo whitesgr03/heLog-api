@@ -49,19 +49,3 @@
 		padding: 20px 5%;
 	}
 }
-
-/* Dark scheme classes */
-.dark .footer {
-	box-shadow: none;
-	border-top: 1px solid var(--dark-scheme-color);
-	background-color: var(--dark-scheme-layout-bgc);
-	color: var(--dark-scheme-color);
-}
-
-.dark .link {
-	color: var(--dark-scheme-color);
-}
-
-.dark .link:hover {
-	color: var(--dark-scheme-highlight);
-}

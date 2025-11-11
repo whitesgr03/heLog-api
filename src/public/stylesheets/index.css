@@ -143,34 +143,3 @@ img {
 	background-color: currentcolor;
 	pointer-events: none;
 }
-
-/* Dark scheme classes */
-.dark * {
-	font-weight: 300;
-}
-
-.dark h1,
-.dark h2,
-.dark h3,
-.dark h4,
-.dark h5,
-.dark h6,
-.dark strong {
-	font-weight: 500;
-}
-
-.dark img {
-	filter: brightness(0.8) contrast(1.2);
-}
-
-.dark button {
-	color: var(--dark-scheme-color);
-}
-
-.dark a {
-	color: var(--dark-scheme-color);
-}
-
-.dark.app {
-	background-color: var(--dark-scheme-layout-bgc);
-}

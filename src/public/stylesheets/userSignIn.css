@@ -95,27 +95,3 @@
 		padding: 50px 0;
 	}
 }
-
-/* Dark scheme classes */
-.dark .federation-link {
-	border-width: 1px;
-	border-color: var(--dark-scheme-color);
-	background-color: var(--dark-scheme-google-bgc);
-	color: var(--dark-scheme-color);
-}
-
-.dark .federation-link:hover {
-	background-color: rgba(var(--dark-scheme-color-rgb), 0.2);
-}
-
-.dark .title {
-	color: var(--dark-scheme-color);
-}
-
-.dark .container {
-	border-color: var(--dark-scheme-color);
-}
-
-.dark .federation {
-	border-color: var(--dark-scheme-color);
-}

@@ -84,22 +84,3 @@
 		column-gap: 50px;
 	}
 }
-
-/* Dark scheme classes */
-.dark .header {
-	box-shadow: none;
-	border-bottom: 1px solid var(--dark-scheme-color);
-	background-color: var(--dark-scheme-layout-bgc);
-}
-
-.dark .logo h1 {
-	color: var(--dark-scheme-highlight);
-}
-
-.dark .list li > * {
-	color: var(--dark-scheme-color);
-}
-
-.dark .list li:hover {
-	background-color: rgba(var(--dark-scheme-color-rgb), 0.2);
-}
