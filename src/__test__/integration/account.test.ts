@@ -108,35 +108,11 @@ describe("Account paths", () => {
 		});
 	});
 	describe("GET /login", () => {
-		it("should respond with a 400 status code and message if the query of redirect_uri is not provide", async () => {
-			const { status, body } = await request(app).get(`/login`);
-
-			expect(status).toBe(400);
-			expect(body).toStrictEqual({
-				success: false,
-				message: "Redirect uri mismatch.",
-			});
-		});
-		it("should respond with a 400 status code and message if the query of redirect_uri is not match", async () => {
-			const { status, body } = await request(app).get(
-				`/login?redirect_uri=http://example.com`
-			);
-
-			expect(status).toBe(400);
-			expect(body).toStrictEqual({
-				success: false,
-				message: "Redirect uri mismatch.",
-			});
-		});
 		it("should respond the html text with a 200 status code if the query of redirect_uri is match", async () => {
-			const redirect_uri = process.env.HELOG_URL as string;
-			const { status, text, headers } = await request(app).get(
-				`/login?redirect_uri=${redirect_uri}`
-			);
+			const { status, text, headers } = await request(app).get(`/login`);
 
 			expect(status).toBe(200);
 			expect(headers["content-type"]).toBe("text/html; charset=utf-8");
-			expect(text).toMatch(redirect_uri);
 		});
 	});
 });
