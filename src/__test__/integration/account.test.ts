@@ -1,61 +1,61 @@
-import { expect, describe, it } from "vitest";
-import request from "supertest";
-import express from "express";
-import session from "express-session";
-import { passport } from "../../lib/passport.js";
+import { expect, describe, it } from 'vitest';
+import request from 'supertest';
+import express from 'express';
+import session from 'express-session';
+import { passport } from '../../lib/passport.js';
 
-import { User } from "../../models/user.js";
-import { UserDocument } from "../../models/user.js";
+import { User } from '../../models/user.js';
+import { UserDocument } from '../../models/user.js';
 
-import { accountRouter } from "../../routes/account.js";
+import { accountRouter } from '../../routes/account.js';
 
-import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
+import { generateCSRFToken } from '../../utils/generateCSRFToken.js';
 
 const app = express();
 app.use(
 	session({
-		secret: "secret",
+		secret: 'secret',
 		resave: false,
 		saveUninitialized: false,
-		name: "id",
-	})
+		name: 'id',
+	}),
 );
 app.use(passport.session());
 app.use(express.json());
-app.set("views", "./src/views");
-app.set("view engine", "pug");
+app.set('views', './src/views');
+app.set('view engine', 'pug');
 
-app.post("/login", (req, res, next) => {
+app.post('/login', (req, res, next) => {
 	req.body = {
 		...req.body,
-		password: " ",
+		password: ' ',
 	};
-	passport.authenticate("local", (_err: any, user: Express.User) => {
+	passport.authenticate('local', (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
 						token: generateCSRFToken(req.sessionID),
 					});
-			  })
+				})
 			: res.status(404).send({
-					message: "The user is not found.",
-			  });
+					message: 'The user is not found.',
+				});
 	})(req, res, next);
 });
-app.use("/", accountRouter);
+app.use('/', accountRouter);
 
-describe("Account paths", () => {
-	describe("POST /logout", () => {
-		it("should respond with a 401 status code and message if the user is not logged in", async () => {
+describe('Account paths', () => {
+	describe('POST /logout', () => {
+		it('should respond with a 401 status code and message if the user is not logged in', async () => {
 			const { status, body } = await request(app).post(`/logout`);
 
 			expect(status).toBe(401);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "Missing authentication token.",
+				message: 'Missing authentication token.',
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+		it('should respond with a 403 status code and message if a CSRF token is not provided', async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -67,10 +67,10 @@ describe("Account paths", () => {
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+		it('should respond with a 403 status code and message if a CSRF token send by client but mismatch', async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 			const agent = request.agent(app);
 
@@ -78,12 +78,12 @@ describe("Account paths", () => {
 
 			const { status, body } = await agent
 				.post(`/logout`)
-				.set("x-csrf-token", "123.456");
+				.set('x-csrf-token', '123.456');
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
 		it(`should logout user`, async () => {
@@ -94,25 +94,25 @@ describe("Account paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/logout`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body).toStrictEqual({
 				success: true,
-				message: "User logout successfully.",
+				message: 'User logout successfully.',
 			});
 		});
 	});
-	describe("GET /login", () => {
-		it("should respond the html text with a 200 status code if the query of redirect_uri is match", async () => {
+	describe('GET /login', () => {
+		it('should respond the html text with a 200 status code if the query of redirect_uri is match', async () => {
 			const { status, text, headers } = await request(app).get(`/login`);
 
 			expect(status).toBe(200);
-			expect(headers["content-type"]).toBe("text/html; charset=utf-8");
+			expect(headers['content-type']).toBe('text/html; charset=utf-8');
 		});
 	});
 });

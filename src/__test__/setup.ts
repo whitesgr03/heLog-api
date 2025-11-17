@@ -1,6 +1,6 @@
-import { afterAll, beforeEach, vi } from "vitest";
-import { mongoose } from "../config/database.js";
-import { clearAllCollections, createFakeUsers } from "../lib/seed.js";
+import { afterAll, beforeEach, vi } from 'vitest';
+import { mongoose } from '../config/database.js';
+import { clearAllCollections, createFakeUsers } from '../lib/seed.js';
 
 beforeEach(async () => {
 	vi.clearAllMocks();

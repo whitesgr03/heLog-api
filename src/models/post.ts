@@ -1,11 +1,11 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
 const postSchema = {
 	author: {
 		type: Schema.Types.ObjectId,
-		ref: "User",
+		ref: 'User',
 		required: true,
 		immutable: true,
 	},
@@ -19,8 +19,8 @@ export type PostDocument = mongoose.Document &
 	mongoose.InferRawDocType<typeof postSchema>;
 
 export const Post = mongoose.model(
-	"Post",
+	'Post',
 	new Schema<PostDocument>(postSchema, {
 		timestamps: true,
-	})
+	}),
 );

@@ -1,16 +1,16 @@
 // Modules
-import { Request } from "express";
-import asyncHandler from "express-async-handler";
-import { body } from "express-validator";
-import { isValidObjectId, Types } from "mongoose";
+import { Request } from 'express';
+import asyncHandler from 'express-async-handler';
+import { body } from 'express-validator';
+import { isValidObjectId, Types } from 'mongoose';
 
 // Middlewares
-import { validationScheme } from "../middlewares/validationScheme.js";
+import { validationScheme } from '../middlewares/validationScheme.js';
 
 // Models
-import { User } from "../models/user.js";
-import { Post } from "../models/post.js";
-import { Comment } from "../models/comment.js";
+import { User } from '../models/user.js';
+import { Post } from '../models/post.js';
+import { Comment } from '../models/comment.js';
 
 export const postList = [
 	asyncHandler(async (req, res) => {
@@ -31,20 +31,20 @@ export const postList = [
 						_id: -1,
 					},
 					populate: {
-						path: "author",
+						path: 'author',
 						select: {
 							_id: 0,
 							username: 1,
 						},
 					},
-				}
+				},
 			).exec(),
 			Post.countDocuments(),
 		]);
 
 		res.json({
 			success: true,
-			message: "Get all posts successfully.",
+			message: 'Get all posts successfully.',
 			data: { posts, postsCount },
 		});
 	}),
@@ -63,9 +63,9 @@ export const postDetail = [
 				},
 				{
 					publish: 0,
-				}
+				},
 			)
-				.populate("author", {
+				.populate('author', {
 					_id: 0,
 					username: 1,
 				})
@@ -74,51 +74,50 @@ export const postDetail = [
 		post
 			? res.json({
 					success: true,
-					message: "Get post successfully.",
+					message: 'Get post successfully.',
 					data: post,
-			  })
+				})
 			: res.status(404).json({
 					success: false,
 					message: `Post could not be found.`,
-			  });
+				});
 	}),
 ];
 
 export const postCreate = [
-	body("title")
+	body('title')
 		.trim()
 		.unescape()
 		.isLength({ min: 0, max: 100 })
-		.withMessage("Title must be less than 100 long.")
+		.withMessage('Title must be less than 100 long.')
 		.escape(),
-	body("mainImage")
+	body('mainImage')
 		.trim()
-		.if(value => value !== "")
+		.if(value => value !== '')
 		.isURL({
-			protocols: ["https"],
+			protocols: ['https'],
 		})
-		.withMessage("Main image is not a valid HTTP URL."),
-	body("content")
+		.withMessage('Main image is not a valid HTTP URL.'),
+	body('content')
 		.trim()
 		.custom(content => {
 			const limit = 8000;
 
 			const characterCountWithoutSpaces = content.replace(
 				/(<.+?>|\s|&nbsp;)/g,
-				""
+				'',
 			);
 
 			const HTML_EntityCount =
-				characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)
-					?.length ?? 0;
+				characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)?.length ?? 0;
 
 			const characterCount =
-				characterCountWithoutSpaces?.replace(/(?<=)&[\w]+;(?=)/g, "")
-					?.length ?? 0;
+				characterCountWithoutSpaces?.replace(/(?<=)&[\w]+;(?=)/g, '')?.length ??
+				0;
 
 			return HTML_EntityCount + characterCount <= limit;
 		})
-		.withMessage("Content must be less than 8000 long."),
+		.withMessage('Content must be less than 8000 long.'),
 	validationScheme,
 	asyncHandler(async (req, res) => {
 		const newPost = new Post({
@@ -133,68 +132,67 @@ export const postCreate = [
 		res.json({
 			success: true,
 			data: createdPost,
-			message: "Create post successfully.",
+			message: 'Create post successfully.',
 		});
 	}),
 ];
 
 export const postUpdate = [
-	body("title")
+	body('title')
 		.trim()
 		.if((_value, { req }) => req.body.publish)
 		.notEmpty()
-		.withMessage("Title is required.")
+		.withMessage('Title is required.')
 		.bail()
 		.unescape()
 		.isLength({ min: 0, max: 100 })
-		.withMessage("Title must be less than 100 long.")
+		.withMessage('Title must be less than 100 long.')
 		.escape(),
-	body("mainImage")
+	body('mainImage')
 		.trim()
 		.if((_value, { req }) => req.body.publish)
 		.notEmpty()
-		.withMessage("Main image is required.")
+		.withMessage('Main image is required.')
 		.bail()
-		.if(value => value !== "")
+		.if(value => value !== '')
 		.isURL({
-			protocols: ["https"],
+			protocols: ['https'],
 		})
-		.withMessage("Main image is not a valid HTTP URL."),
-	body("content")
+		.withMessage('Main image is not a valid HTTP URL.'),
+	body('content')
 		.trim()
 		.if((_value, { req }) => req.body.publish)
 		.notEmpty()
-		.withMessage("Content is required.")
+		.withMessage('Content is required.')
 		.bail()
 		.custom(content => {
 			const limit = 8000;
 
 			const characterCountWithoutSpaces = content.replace(
 				/(<.+?>|\s|&nbsp;)/g,
-				""
+				'',
 			);
 
 			const HTML_EntityCount =
-				characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)
-					?.length ?? 0;
+				characterCountWithoutSpaces?.match(/(?<=)&[\w]+;(?=)/g)?.length ?? 0;
 
 			const characterCount =
-				characterCountWithoutSpaces?.replace(/(?<=)&[\w]+;(?=)/g, "")
-					?.length ?? 0;
+				characterCountWithoutSpaces?.replace(/(?<=)&[\w]+;(?=)/g, '')?.length ??
+				0;
 
 			return HTML_EntityCount + characterCount <= limit;
 		})
-		.withMessage("Content must be less than 8000 long."),
-	body("publish")
+		.withMessage('Content must be less than 8000 long.'),
+	body('publish')
 		.trim()
 		.toLowerCase()
 		.notEmpty()
-		.withMessage("Publish is required.")
+		.withMessage('Publish is required.')
 		.bail()
 		.isBoolean({
 			loose: false,
 		})
-		.withMessage("The publish must be boolean."),
+		.withMessage('The publish must be boolean.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
@@ -212,7 +210,7 @@ export const postUpdate = [
 			: res.status(404).json({
 					success: false,
 					message: `Post could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
@@ -221,8 +219,8 @@ export const postUpdate = [
 			? next()
 			: res.status(403).json({
 					success: false,
-					message: "This request requires higher permissions.",
-			  });
+					message: 'This request requires higher permissions.',
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		const { title, mainImage, content, publish } = req.data;
@@ -238,7 +236,7 @@ export const postUpdate = [
 
 		res.json({
 			success: true,
-			message: "Update post successfully.",
+			message: 'Update post successfully.',
 			data: updatedPost,
 		});
 	}),
@@ -261,7 +259,7 @@ export const postDelete = [
 			: res.status(404).json({
 					success: false,
 					message: `Post could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
@@ -270,8 +268,8 @@ export const postDelete = [
 			? next()
 			: res.status(403).json({
 					success: false,
-					message: "This request requires higher permissions.",
-			  });
+					message: 'This request requires higher permissions.',
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		await Promise.all([
@@ -281,7 +279,7 @@ export const postDelete = [
 
 		res.json({
 			success: true,
-			message: "Delete post successfully.",
+			message: 'Delete post successfully.',
 		});
 	}),
 ];

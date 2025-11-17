@@ -1,11 +1,11 @@
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as FacebookStrategy } from "passport-facebook";
-import { Types } from "mongoose";
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { Types } from 'mongoose';
 
-import { Federated } from "../models/federated.js";
-import { User } from "../models/user.js";
-import { UserDocument } from "../models/user.js";
+import { Federated } from '../models/federated.js';
+import { User } from '../models/user.js';
+import { UserDocument } from '../models/user.js';
 
 declare global {
 	namespace Express {
@@ -21,7 +21,7 @@ passport.use(
 			clientID: process.env.GOOGLE_CLIENT_ID!,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
-			scope: ["profile"],
+			scope: ['profile'],
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
 			try {
@@ -29,7 +29,7 @@ passport.use(
 					provider: profile.provider,
 					subject: profile.id,
 				})
-					.populate<{ user: UserDocument }>("user", {
+					.populate<{ user: UserDocument }>('user', {
 						username: 1,
 					})
 					.exec();
@@ -37,7 +37,7 @@ passport.use(
 				const handleRegistration = async () => {
 					const newUser = new User({
 						username: profile.displayName,
-						isAdmin: process.env.NODE_ENV === "development",
+						isAdmin: process.env.NODE_ENV === 'development',
 					});
 					await newUser.save();
 					const newFederated = new Federated({
@@ -52,13 +52,13 @@ passport.use(
 				federated?.user
 					? done(null, {
 							id: federated.user.id,
-					  })
+						})
 					: await handleRegistration();
 			} catch (error) {
 				done(error);
 			}
-		}
-	)
+		},
+	),
 );
 passport.use(
 	new FacebookStrategy(
@@ -66,7 +66,7 @@ passport.use(
 			clientID: process.env.FACEBOOK_CLIENT_ID!,
 			clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/facebook`,
-			profileFields: ["id", "displayName"],
+			profileFields: ['id', 'displayName'],
 			enableProof: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
@@ -75,7 +75,7 @@ passport.use(
 					provider: profile.provider,
 					subject: profile.id,
 				})
-					.populate<{ user: UserDocument }>("user", {
+					.populate<{ user: UserDocument }>('user', {
 						username: 1,
 					})
 					.exec();
@@ -83,7 +83,7 @@ passport.use(
 				const handleRegistration = async () => {
 					const newUser = new User({
 						username: profile.displayName,
-						isAdmin: process.env.NODE_ENV === "development",
+						isAdmin: process.env.NODE_ENV === 'development',
 					});
 					await newUser.save();
 					const newFederated = new Federated({
@@ -98,13 +98,13 @@ passport.use(
 				federated?.user
 					? done(null, {
 							id: federated.user.id,
-					  })
+						})
 					: await handleRegistration();
 			} catch (error) {
 				done(error);
 			}
-		}
-	)
+		},
+	),
 );
 
 passport.serializeUser((user, done) => {

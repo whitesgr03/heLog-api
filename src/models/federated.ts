@@ -1,11 +1,11 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
 const federatedSchema = {
 	user: {
 		type: Schema.Types.ObjectId,
-		ref: "User",
+		ref: 'User',
 		required: true,
 		immutable: true,
 	},
@@ -20,9 +20,7 @@ const federatedSchema = {
 export type FederatedDocument = mongoose.Document &
 	mongoose.InferRawDocType<typeof federatedSchema>;
 
-
-
 export const Federated = mongoose.model(
-	"Federated",
-	new Schema<FederatedDocument>(federatedSchema, { timestamps: true })
+	'Federated',
+	new Schema<FederatedDocument>(federatedSchema, { timestamps: true }),
 );

@@ -1,69 +1,69 @@
-import { expect, describe, it, vi } from "vitest";
-import request from "supertest";
-import express from "express";
-import { faker } from "@faker-js/faker";
-import session from "express-session";
+import { expect, describe, it, vi } from 'vitest';
+import request from 'supertest';
+import express from 'express';
+import { faker } from '@faker-js/faker';
+import session from 'express-session';
 
-import { userRouter } from "../../routes/user.js";
+import { userRouter } from '../../routes/user.js';
 
-import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
+import { generateCSRFToken } from '../../utils/generateCSRFToken.js';
 
-import { User } from "../../models/user.js";
-import { Post } from "../../models/post.js";
-import { Comment } from "../../models/comment.js";
+import { User } from '../../models/user.js';
+import { Post } from '../../models/post.js';
+import { Comment } from '../../models/comment.js';
 
-import { createPosts } from "../../lib/seed.js";
-import { passport } from "../../lib/passport.js";
+import { createPosts } from '../../lib/seed.js';
+import { passport } from '../../lib/passport.js';
 
-import { UserDocument } from "../../models/user.js";
-import { PostDocument } from "../../models/post.js";
+import { UserDocument } from '../../models/user.js';
+import { PostDocument } from '../../models/post.js';
 
 const app = express();
 
 app.use(
 	session({
-		secret: "secret",
+		secret: 'secret',
 		resave: false,
 		saveUninitialized: false,
-		name: "id",
-	})
+		name: 'id',
+	}),
 );
 app.use(passport.session());
 app.use(express.json());
 
-app.post("/login", (req, res, next) => {
+app.post('/login', (req, res, next) => {
 	req.body = {
 		...req.body,
-		password: " ",
+		password: ' ',
 	};
-	passport.authenticate("local", (_err: any, user: Express.User) => {
+	passport.authenticate('local', (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
 						token: generateCSRFToken(req.sessionID),
 					});
-			  })
+				})
 			: res.status(404).send({
-					message: "The user is not found.",
-			  });
+					message: 'The user is not found.',
+				});
 	})(req, res, next);
 });
 
-app.use("/", userRouter);
+app.use('/', userRouter);
 
-describe("User paths", () => {
-	describe("Authenticate", () => {
-		it("should respond with a 401 status code and message if the user is not logged in", async () => {
+describe('User paths', () => {
+	describe('Authenticate', () => {
+		it('should respond with a 401 status code and message if the user is not logged in', async () => {
 			const { status, body } = await request(app).get(`/`);
 
 			expect(status).toBe(401);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "Missing authentication token.",
+				message: 'Missing authentication token.',
 			});
 		});
 	});
-	describe("GET /posts", () => {
+	describe('GET /posts', () => {
 		it(`should response with all posts of current login user`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -90,7 +90,7 @@ describe("User paths", () => {
 			});
 		});
 	});
-	describe("GET /posts/:postId", () => {
+	describe('GET /posts/:postId', () => {
 		it(`should response with with a 404 status, if a specified post of the user is not found`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -100,7 +100,7 @@ describe("User paths", () => {
 			});
 
 			const mockPost = {
-				_id: "test123",
+				_id: 'test123',
 			};
 
 			const agent = request.agent(app);
@@ -131,13 +131,13 @@ describe("User paths", () => {
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get post successfully.");
+			expect(body.message).toBe('Get post successfully.');
 
 			expect(body.data._id).toBe(mockPost.id);
 		});
 	});
-	describe("Verify CSRF token", () => {
-		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+	describe('Verify CSRF token', () => {
+		it('should respond with a 403 status code and message if a CSRF token is not provided', async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -149,10 +149,10 @@ describe("User paths", () => {
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+		it('should respond with a 403 status code and message if a CSRF token send by client but mismatch', async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -161,16 +161,16 @@ describe("User paths", () => {
 
 			const { status, body } = await agent
 				.get(`/`)
-				.set("x-csrf-token", "123.456");
+				.set('x-csrf-token', '123.456');
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
 	});
-	describe("GET /", () => {
+	describe('GET /', () => {
 		it(`should response with the current login user detail`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -180,20 +180,20 @@ describe("User paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.get(`/`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get user info successfully.");
+			expect(body.message).toBe('Get user info successfully.');
 			expect(body.data.username).toBe(user.username);
 			expect(body.data.isAdmin).toBe(user.isAdmin);
 		});
 	});
-	describe("PATCH /", () => {
+	describe('PATCH /', () => {
 		it(`should respond with a 400 status code and error fields message if a new username is not provided`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -203,15 +203,15 @@ describe("User paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("username");
+			expect(body.fields).toHaveProperty('username');
 		});
 		it(`should respond with a 409 status code and message if a new username exists`, async () => {
 			const [user, secondUser] = await User.find({}).exec();
@@ -222,17 +222,17 @@ describe("User paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/`)
-				.type("json")
+				.type('json')
 				.send({ username: secondUser.username })
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(409);
 			expect(body.success).toBe(false);
-			expect(body.fields.username).toBe("Username is been used.");
+			expect(body.fields.username).toBe('Username is been used.');
 		});
 		it(`should update the user's username to a new username`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -245,28 +245,28 @@ describe("User paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/`)
-				.type("json")
+				.type('json')
 				.send({ username: mockNewUsername })
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Update user successfully.");
+			expect(body.message).toBe('Update user successfully.');
 			expect(body.data.username).toBe(mockNewUsername);
 		});
 	});
-	describe("DELETE /", () => {
+	describe('DELETE /', () => {
 		it(`should delete the user and all posts and comments of that user, then log out.`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
-			vi.spyOn(Post, "deleteOne");
-			vi.spyOn(User, "findByIdAndDelete");
-			const mockDeleteMany = vi.spyOn(Comment, "deleteMany");
-			const mockUpdateMany = vi.spyOn(Comment, "updateMany");
+			vi.spyOn(Post, 'deleteOne');
+			vi.spyOn(User, 'findByIdAndDelete');
+			const mockDeleteMany = vi.spyOn(Comment, 'deleteMany');
+			const mockUpdateMany = vi.spyOn(Comment, 'updateMany');
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -278,18 +278,18 @@ describe("User paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Delete user successfully.");
+			expect(body.message).toBe('Delete user successfully.');
 
 			expect(mockDeleteMany.mock.calls).toStrictEqual(
-				mockPosts.map(item => [{ post: item._id }])
+				mockPosts.map(item => [{ post: item._id }]),
 			);
 			expect(Comment.deleteMany).toBeCalledTimes(mockPosts.length);
 			expect(Post.deleteOne).toBeCalledTimes(mockPosts.length);

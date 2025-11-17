@@ -1,68 +1,68 @@
-import { expect, describe, it } from "vitest";
-import request from "supertest";
-import express from "express";
-import { Types } from "mongoose";
-import session from "express-session";
+import { expect, describe, it } from 'vitest';
+import request from 'supertest';
+import express from 'express';
+import { Types } from 'mongoose';
+import session from 'express-session';
 
-import { blogRouter } from "../../routes/blog.js";
+import { blogRouter } from '../../routes/blog.js';
 
-import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
+import { generateCSRFToken } from '../../utils/generateCSRFToken.js';
 
-import { User } from "../../models/user.js";
+import { User } from '../../models/user.js';
 
-import { UserDocument } from "../../models/user.js";
-import { CommentDocument } from "../../models/comment.js";
+import { UserDocument } from '../../models/user.js';
+import { CommentDocument } from '../../models/comment.js';
 
-import { createPosts, createComments } from "../../lib/seed.js";
-import { passport } from "../../lib/passport.js";
+import { createPosts, createComments } from '../../lib/seed.js';
+import { passport } from '../../lib/passport.js';
 
 const app = express();
 
 app.use(
 	session({
-		secret: "secret",
+		secret: 'secret',
 		resave: false,
 		saveUninitialized: false,
-		name: "id",
-	})
+		name: 'id',
+	}),
 );
 app.use(passport.session());
 app.use(express.json());
 
-app.post("/login", (req, res, next) => {
+app.post('/login', (req, res, next) => {
 	req.body = {
 		...req.body,
-		password: " ",
+		password: ' ',
 	};
-	passport.authenticate("local", (_err: any, user: Express.User) => {
+	passport.authenticate('local', (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
 						token: generateCSRFToken(req.sessionID),
 					});
-			  })
+				})
 			: res.status(404).send({
-					message: "The user is not found.",
-			  });
+					message: 'The user is not found.',
+				});
 	})(req, res, next);
 });
-app.use("/", blogRouter);
+app.use('/', blogRouter);
 
-describe("Comment paths", () => {
-	describe("GET /posts/:postId/comments", () => {
-		it("should respond with empty array, if the provided comment id is invalid", async () => {
-			const fakePostId = "abc123";
+describe('Comment paths', () => {
+	describe('GET /posts/:postId/comments', () => {
+		it('should respond with empty array, if the provided comment id is invalid', async () => {
+			const fakePostId = 'abc123';
 
 			const { status, body } = await request(app).get(
-				`/posts/${fakePostId}/comments`
+				`/posts/${fakePostId}/comments`,
 			);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get all comments successfully.");
+			expect(body.message).toBe('Get all comments successfully.');
 			expect(body.data).toHaveLength(0);
 		});
-		it("should return all comments for the specified post", async () => {
+		it('should return all comments for the specified post', async () => {
 			const users = await User.find().exec();
 
 			const mockPosts = await createPosts({
@@ -78,12 +78,12 @@ describe("Comment paths", () => {
 			const mockPostId = String(mockPosts[0]._id);
 
 			const { status, body } = await request(app).get(
-				`/posts/${mockPostId}/comments`
+				`/posts/${mockPostId}/comments`,
 			);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get all comments successfully.");
+			expect(body.message).toBe('Get all comments successfully.');
 			expect(body.data.commentsCount).toBe(mockComments.length);
 
 			const commentsTitles = mockComments.map(comment => comment.content);
@@ -92,20 +92,20 @@ describe("Comment paths", () => {
 			});
 		});
 	});
-	describe("Authenticate", () => {
-		it("should respond with a 401 status code and message if the user is not logged in", async () => {
+	describe('Authenticate', () => {
+		it('should respond with a 401 status code and message if the user is not logged in', async () => {
 			const { status, body } = await request(app).post(
-				`/posts/testId/comments`
+				`/posts/testId/comments`,
 			);
-		expect(status).toBe(401);
-		expect(body).toStrictEqual({
-			success: false,
-			message: "Missing authentication token.",
-		});
+			expect(status).toBe(401);
+			expect(body).toStrictEqual({
+				success: false,
+				message: 'Missing authentication token.',
+			});
 		});
 	});
-	describe("Verify CSRF token", () => {
-		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+	describe('Verify CSRF token', () => {
+		it('should respond with a 403 status code and message if a CSRF token is not provided', async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -117,10 +117,10 @@ describe("Comment paths", () => {
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+		it('should respond with a 403 status code and message if a CSRF token send by client but mismatch', async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -129,16 +129,16 @@ describe("Comment paths", () => {
 
 			const { status, body } = await agent
 				.post(`/posts/testid/comments`)
-				.set("x-csrf-token", "123.456");
+				.set('x-csrf-token', '123.456');
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
 	});
-	describe("POST /posts/:postId/comments", () => {
+	describe('POST /posts/:postId/comments', () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -148,20 +148,20 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/comments/test-id/replies`)
-				.send({ text: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.send({ text: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("content");
+			expect(body.fields).toHaveProperty('content');
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
-			const fakePostId = "abc123";
+			const fakePostId = 'abc123';
 
 			const agent = request.agent(app);
 
@@ -169,17 +169,17 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/posts/${fakePostId}/comments`)
-				.type("json")
-				.send({ content: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.type('json')
+				.send({ content: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -191,19 +191,19 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/posts/${fakePostId}/comments`)
-				.type("json")
-				.send({ content: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.type('json')
+				.send({ content: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
-		it("should create a comment", async () => {
+		it('should create a comment', async () => {
 			const [user, secondUser] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -212,7 +212,7 @@ describe("Comment paths", () => {
 			});
 
 			const secondUserPostId = String(mockPosts[0]._id);
-			const mockContent = "new content";
+			const mockContent = 'new content';
 
 			const agent = request.agent(app);
 
@@ -220,20 +220,20 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/posts/${secondUserPostId}/comments`)
-				.type("json")
+				.type('json')
 				.send({ content: mockContent })
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Create comment successfully.");
+			expect(body.message).toBe('Create comment successfully.');
 		});
 	});
-	describe("PATCH /comments/:commentId", () => {
+	describe('PATCH /comments/:commentId', () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
@@ -242,21 +242,21 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/comments/test123`)
-				.type("json")
-				.send({ text: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.type('json')
+				.send({ text: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("content");
+			expect(body.fields).toHaveProperty('content');
 		});
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
-			const fakeCommentId = "abc123";
+			const fakeCommentId = 'abc123';
 
 			const agent = request.agent(app);
 
@@ -264,17 +264,17 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/comments/${fakeCommentId}`)
-				.type("json")
-				.send({ content: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.type('json')
+				.send({ content: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Comment could not be found.");
+			expect(body.message).toBe('Comment could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified comment is not found`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -286,17 +286,17 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/comments/${fakeCommentId}`)
-				.type("json")
-				.send({ content: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.type('json')
+				.send({ content: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Comment could not be found.");
+			expect(body.message).toBe('Comment could not be found.');
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the comment nor the blog admin`, async () => {
 			const [admin, user] = await User.find({}).exec();
@@ -319,21 +319,19 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/comments/${adminCommentId}`)
-				.type("json")
-				.send({ content: "new content" })
-				.set("x-csrf-token", `${token}.${value}`);
+				.type('json')
+				.send({ content: 'new content' })
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(403);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe(
-				"This request requires higher permissions."
-			);
+			expect(body.message).toBe('This request requires higher permissions.');
 		});
-		it("should successfully updated a specified comment and return to client, if the authenticate user is a blog admin", async () => {
+		it('should successfully updated a specified comment and return to client, if the authenticate user is a blog admin', async () => {
 			const [admin, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -348,7 +346,7 @@ describe("Comment paths", () => {
 
 			const userCommentId = String(mockComments[0]._id);
 
-			const mockContent = "This message is updated by admin not user";
+			const mockContent = 'This message is updated by admin not user';
 
 			const agent = request.agent(app);
 
@@ -356,25 +354,25 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/comments/${userCommentId}`)
-				.type("json")
+				.type('json')
 				.send({
 					content: mockContent,
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Update comment successfully.");
+			expect(body.message).toBe('Update comment successfully.');
 
 			expect(body.data.author.username).not.toBe(admin.username);
 			expect(body.data.post).toBe(String(mockPosts[0]._id));
 			expect(body.data.content).toBe(mockContent);
 		});
-		it("should successfully updated a specified comment and return to client, if the authenticate user is owner of the comment", async () => {
+		it('should successfully updated a specified comment and return to client, if the authenticate user is owner of the comment', async () => {
 			const [admin, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -389,7 +387,7 @@ describe("Comment paths", () => {
 
 			const userCommentId = String(mockComments[0]._id);
 
-			const mockContent = "This message is updated by owner";
+			const mockContent = 'This message is updated by owner';
 
 			const agent = request.agent(app);
 
@@ -397,29 +395,29 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/comments/${userCommentId}`)
-				.type("json")
+				.type('json')
 				.send({
 					content: mockContent,
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Update comment successfully.");
+			expect(body.message).toBe('Update comment successfully.');
 
 			expect(body.data.author.username).toBe(user.username);
 			expect(body.data.post).toBe(String(mockPosts[0]._id));
 			expect(body.data.content).toBe(mockContent);
 		});
 	});
-	describe("DELETE/comments/:commentId", () => {
+	describe('DELETE/comments/:commentId', () => {
 		it(`should respond with a 404 status code and an error message, if the provided comment id is invalid`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
-			const fakeCommentId = "abc123";
+			const fakeCommentId = 'abc123';
 
 			const agent = request.agent(app);
 
@@ -427,15 +425,15 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/comments/${fakeCommentId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Comment could not be found.");
+			expect(body.message).toBe('Comment could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
 			const fakeCommentId = new Types.ObjectId();
@@ -447,15 +445,15 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/comments/${fakeCommentId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Comment could not be found.");
+			expect(body.message).toBe('Comment could not be found.');
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the comment nor the blog admin`, async () => {
 			const [admin, user] = await User.find({}).exec();
@@ -478,19 +476,17 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/comments/${adminCommentId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(403);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe(
-				"This request requires higher permissions."
-			);
+			expect(body.message).toBe('This request requires higher permissions.');
 		});
-		it("should successfully delete a specified comment and return to client, if the authenticate user is a blog admin", async () => {
+		it('should successfully delete a specified comment and return to client, if the authenticate user is a blog admin', async () => {
 			const [admin, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -513,22 +509,22 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: admin.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/comments/${userCommentId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Delete comment successfully.");
+			expect(body.message).toBe('Delete comment successfully.');
 
 			expect(body.data.author).not.toBe(editor);
 			expect(body.data.post).toBe(String(mockPosts[0]._id));
-			expect(body.data.content).toBe("Comment deleted by admin");
+			expect(body.data.content).toBe('Comment deleted by admin');
 			expect(body.data.deleted).toBe(true);
 		});
-		it("should successfully delete a specified comment and return to client, if the authenticate user is owner of the comment", async () => {
+		it('should successfully delete a specified comment and return to client, if the authenticate user is owner of the comment', async () => {
 			const [admin, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -549,19 +545,19 @@ describe("Comment paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/comments/${userCommentId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Delete comment successfully.");
+			expect(body.message).toBe('Delete comment successfully.');
 
 			expect(body.data.author.username).toBe(user.username);
 			expect(body.data.post).toBe(String(mockPosts[0]._id));
-			expect(body.data.content).toBe("Comment deleted by user");
+			expect(body.data.content).toBe('Comment deleted by user');
 			expect(body.data.deleted).toBe(true);
 		});
 	});

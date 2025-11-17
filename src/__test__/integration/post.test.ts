@@ -1,68 +1,68 @@
-import { expect, describe, it, vi } from "vitest";
-import request from "supertest";
-import express from "express";
-import { Types } from "mongoose";
-import { faker } from "@faker-js/faker";
-import session from "express-session";
+import { expect, describe, it, vi } from 'vitest';
+import request from 'supertest';
+import express from 'express';
+import { Types } from 'mongoose';
+import { faker } from '@faker-js/faker';
+import session from 'express-session';
 
-import { blogRouter } from "../../routes/blog.js";
+import { blogRouter } from '../../routes/blog.js';
 
-import { generateCSRFToken } from "../../utils/generateCSRFToken.js";
+import { generateCSRFToken } from '../../utils/generateCSRFToken.js';
 
-import { User } from "../../models/user.js";
-import { Comment } from "../../models/comment.js";
-import { Post } from "../../models/post.js";
+import { User } from '../../models/user.js';
+import { Comment } from '../../models/comment.js';
+import { Post } from '../../models/post.js';
 
-import { createPosts, createComments } from "../../lib/seed.js";
-import { passport } from "../../lib/passport.js";
+import { createPosts, createComments } from '../../lib/seed.js';
+import { passport } from '../../lib/passport.js';
 
-import { UserDocument } from "../../models/user.js";
+import { UserDocument } from '../../models/user.js';
 
 const app = express();
 
 app.use(
 	session({
-		secret: "secret",
+		secret: 'secret',
 		resave: false,
 		saveUninitialized: false,
-		name: "id",
-	})
+		name: 'id',
+	}),
 );
 app.use(passport.session());
 app.use(express.json());
 
-app.post("/login", (req, res, next) => {
+app.post('/login', (req, res, next) => {
 	req.body = {
 		...req.body,
-		password: " ",
+		password: ' ',
 	};
-	passport.authenticate("local", (_err: any, user: Express.User) => {
+	passport.authenticate('local', (_err: any, user: Express.User) => {
 		user
 			? req.login(user, () => {
 					res.send({
 						token: generateCSRFToken(req.sessionID),
 					});
-			  })
+				})
 			: res.status(404).send({
-					message: "The user is not found.",
-			  });
+					message: 'The user is not found.',
+				});
 	})(req, res, next);
 });
 
-app.use("/", blogRouter);
+app.use('/', blogRouter);
 
-describe("Post paths", () => {
-	describe("GET /posts", () => {
-		it("should respond with empty array, if there are not posts", async () => {
+describe('Post paths', () => {
+	describe('GET /posts', () => {
+		it('should respond with empty array, if there are not posts', async () => {
 			const { status, body } = await request(app).get(`/posts`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get all posts successfully.");
+			expect(body.message).toBe('Get all posts successfully.');
 			expect(body.data.posts.length).toBe(0);
 			expect(body.data.postsCount).toBe(0);
 		});
-		it("should return all posts", async () => {
+		it('should return all posts', async () => {
 			const users = await User.find({}).exec();
 
 			const amount = 5;
@@ -76,35 +76,31 @@ describe("Post paths", () => {
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get all posts successfully.");
+			expect(body.message).toBe('Get all posts successfully.');
 			expect(body.data.posts.length).toBe(mockPosts.length);
 			expect(body.data.postsCount).toBe(amount);
 		});
 	});
-	describe("GET /posts/:postId", () => {
+	describe('GET /posts/:postId', () => {
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
-			const fakePostId = "abc123";
+			const fakePostId = 'abc123';
 
-			const { status, body } = await request(app).get(
-				`/posts/${fakePostId}`
-			);
+			const { status, body } = await request(app).get(`/posts/${fakePostId}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
 			const fakePostId = new Types.ObjectId();
 
-			const { status, body } = await request(app).get(
-				`/posts/${fakePostId}`
-			);
+			const { status, body } = await request(app).get(`/posts/${fakePostId}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
-		it("should return a specified post detail", async () => {
+		it('should return a specified post detail', async () => {
 			const user = (await User.findOne({}).exec()) as UserDocument;
 
 			const mockPosts = await createPosts({
@@ -114,29 +110,27 @@ describe("Post paths", () => {
 
 			const userPostId = String(mockPosts[0].id);
 
-			const { status, body } = await request(app).get(
-				`/posts/${userPostId}`
-			);
+			const { status, body } = await request(app).get(`/posts/${userPostId}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Get post successfully.");
+			expect(body.message).toBe('Get post successfully.');
 
 			expect(body.data._id).toBe(userPostId);
 		});
 	});
-	describe("Authenticate", () => {
-		it("should respond with a 401 status code and message if the user is not logged in", async () => {
+	describe('Authenticate', () => {
+		it('should respond with a 401 status code and message if the user is not logged in', async () => {
 			const { status, body } = await request(app).post(`/posts`);
 			expect(status).toBe(401);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "Missing authentication token.",
+				message: 'Missing authentication token.',
 			});
 		});
 	});
-	describe("Verify CSRF token", () => {
-		it("should respond with a 403 status code and message if a CSRF token is not provided", async () => {
+	describe('Verify CSRF token', () => {
+		it('should respond with a 403 status code and message if a CSRF token is not provided', async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
@@ -147,10 +141,10 @@ describe("Post paths", () => {
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
-		it("should respond with a 403 status code and message if a CSRF token send by client but mismatch", async () => {
+		it('should respond with a 403 status code and message if a CSRF token send by client but mismatch', async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
 			const agent = request.agent(app);
@@ -159,16 +153,16 @@ describe("Post paths", () => {
 
 			const { status, body } = await agent
 				.post(`/posts`)
-				.set("x-csrf-token", "123.456");
+				.set('x-csrf-token', '123.456');
 
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
-				message: "CSRF token mismatch.",
+				message: 'CSRF token mismatch.',
 			});
 		});
 	});
-	describe("POST /posts", () => {
+	describe('POST /posts', () => {
 		it(`should respond with a 400 status code and an error field message, if the length of title value is greater then 100`, async () => {
 			// const user = (await User.findOne().exec()) as UserDocument;
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -178,16 +172,16 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/posts`)
 				.send({ title: faker.string.nanoid(105) })
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("title");
+			expect(body.fields).toHaveProperty('title');
 		});
 		it(`should respond with a 400 status code and an error field message, if the length of content value is greater then 8000`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -197,22 +191,22 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/posts`)
 				.send({ content: `<p>${faker.string.nanoid(8005)}</p>` })
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("content");
+			expect(body.fields).toHaveProperty('content');
 		});
-		it("should create a post and return to client", async () => {
+		it('should create a post and return to client', async () => {
 			const mockData = {
-				title: "new title",
+				title: 'new title',
 				mainImage: faker.image.url(),
-				content: "new content",
+				content: 'new content',
 			};
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -222,24 +216,24 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.post(`/posts`)
-				.type("json")
+				.type('json')
 				.send(mockData)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Create post successfully.");
+			expect(body.message).toBe('Create post successfully.');
 
 			expect(body.data.title).toBe(mockData.title);
 			expect(body.data.mainImage).toBe(mockData.mainImage);
 			expect(body.data.content).toBe(mockData.content);
 		});
 	});
-	describe("PATCH /posts/:postId", () => {
+	describe('PATCH /posts/:postId', () => {
 		it(`should respond with a 400 status code and the error field message, if the value of publish is not provided`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 
@@ -256,21 +250,21 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${userPostId}`)
-				.type("json")
+				.type('json')
 				.send({
-					title: "new title",
-					content: "new content",
-					mainImage: "new image resource url",
+					title: 'new title',
+					content: 'new content',
+					mainImage: 'new image resource url',
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("publish");
+			expect(body.fields).toHaveProperty('publish');
 		});
 		it(`should respond with a 400 status code and the message for each error fields, if all required fields are not provided when the value of publish is true`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -288,19 +282,19 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${userPostId}`)
-				.type("json")
+				.type('json')
 				.send({ publish: true })
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("title");
-			expect(body.fields).toHaveProperty("mainImage");
-			expect(body.fields).toHaveProperty("content");
+			expect(body.fields).toHaveProperty('title');
+			expect(body.fields).toHaveProperty('mainImage');
+			expect(body.fields).toHaveProperty('content');
 		});
 		it(`should respond with a 400 status code and an error field message, if the length of content value is greater then 8000`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -318,7 +312,7 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${userPostId}`)
@@ -326,15 +320,15 @@ describe("Post paths", () => {
 					content: `<p>${faker.string.nanoid(8005)}</p>`,
 					publish: true,
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(400);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty("content");
+			expect(body.fields).toHaveProperty('content');
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
-			const fakePostId = "123abc";
+			const fakePostId = '123abc';
 
 			const agent = request.agent(app);
 
@@ -342,25 +336,25 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${fakePostId}`)
-				.type("json")
+				.type('json')
 				.send({
-					title: "new title",
-					content: "new content",
+					title: 'new title',
+					content: 'new content',
 					mainImage: faker.image.urlPicsumPhotos({
 						width: 10,
 						height: 10,
 					}),
 					publish: true,
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -372,25 +366,25 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${fakePostId}`)
-				.type("json")
+				.type('json')
 				.send({
-					title: "new title",
-					content: "new content",
+					title: 'new title',
+					content: 'new content',
 					mainImage: faker.image.urlPicsumPhotos({
 						width: 10,
 						height: 10,
 					}),
 					publish: true,
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the post nor the blog admin`, async () => {
 			const [firstUser, secondUser] = await User.find({}).exec();
@@ -408,29 +402,27 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: secondUser.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${postId}`)
-				.type("json")
+				.type('json')
 				.send({
-					title: "new title",
-					content: "new content",
+					title: 'new title',
+					content: 'new content',
 					mainImage: faker.image.urlPicsumPhotos({
 						width: 10,
 						height: 10,
 					}),
 					publish: true,
 				})
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(403);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe(
-				"This request requires higher permissions."
-			);
+			expect(body.message).toBe('This request requires higher permissions.');
 		});
-		it("should successfully updated a specified post and return to client, if the authenticate user is a blog admin", async () => {
+		it('should successfully updated a specified post and return to client, if the authenticate user is a blog admin', async () => {
 			const [, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -441,9 +433,9 @@ describe("Post paths", () => {
 			const userPostId = String(mockPosts[0]._id);
 
 			const mockData = {
-				title: "new title",
-				content: "new content",
-				mainImage: "new image resource url",
+				title: 'new title',
+				content: 'new content',
+				mainImage: 'new image resource url',
 				publish: false,
 			};
 
@@ -453,24 +445,24 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${userPostId}`)
-				.type("json")
+				.type('json')
 				.send(mockData)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Update post successfully.");
+			expect(body.message).toBe('Update post successfully.');
 
 			expect(body.data.title).toBe(mockData.title);
 			expect(body.data.content).toBe(mockData.content);
 			expect(body.data.mainImage).toBe(mockData.mainImage);
 			expect(body.data.publish).toBe(mockData.publish);
 		});
-		it("should successfully updated a specified post and return to client, if the authenticate user is owner of the post", async () => {
+		it('should successfully updated a specified post and return to client, if the authenticate user is owner of the post', async () => {
 			const [, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -481,9 +473,9 @@ describe("Post paths", () => {
 			const userPostId = String(mockPosts[0]._id);
 
 			const mockData = {
-				title: "new title",
-				content: "new content",
-				mainImage: "new image resource url",
+				title: 'new title',
+				content: 'new content',
+				mainImage: 'new image resource url',
 				publish: false,
 			};
 
@@ -493,17 +485,17 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.patch(`/posts/${userPostId}`)
-				.type("json")
+				.type('json')
 				.send(mockData)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Update post successfully.");
+			expect(body.message).toBe('Update post successfully.');
 
 			expect(body.data.title).toBe(mockData.title);
 			expect(body.data.content).toBe(mockData.content);
@@ -511,7 +503,7 @@ describe("Post paths", () => {
 			expect(body.data.publish).toBe(mockData.publish);
 		});
 	});
-	describe("DELETE/posts/:postId", () => {
+	describe('DELETE/posts/:postId', () => {
 		it(`should respond with a 404 status code and an error message, if a specified post is not found`, async () => {
 			const fakePostId = new Types.ObjectId();
 			const user = (await User.findOne().exec()) as UserDocument;
@@ -522,15 +514,15 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/posts/${fakePostId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the post nor the blog admin`, async () => {
 			const [firstUser, secondUser] = await User.find({}).exec();
@@ -548,20 +540,18 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: secondUser.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/posts/${postId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(403);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe(
-				"This request requires higher permissions."
-			);
+			expect(body.message).toBe('This request requires higher permissions.');
 		});
 		it(`should respond with a 404 status code and an error message, if the provided post id is invalid`, async () => {
-			const fakePostId = "123abc";
+			const fakePostId = '123abc';
 
 			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
@@ -570,17 +560,17 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/posts/${fakePostId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
 			expect(body.success).toBe(false);
-			expect(body.message).toBe("Post could not be found.");
+			expect(body.message).toBe('Post could not be found.');
 		});
-		it("should successfully delete a specified post, if the authenticate user is a blog admin", async () => {
+		it('should successfully delete a specified post, if the authenticate user is a blog admin', async () => {
 			const [, user] = await User.find({}).exec();
 
 			const mockPosts = await createPosts({
@@ -602,21 +592,21 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/posts/${userPostId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Delete post successfully.");
+			expect(body.message).toBe('Delete post successfully.');
 		});
-		it("should successfully delete a specified post, if the authenticate user is owner of the post", async () => {
+		it('should successfully delete a specified post, if the authenticate user is owner of the post', async () => {
 			const [, user] = await User.find({}).exec();
 
-			vi.spyOn(Post, "deleteOne");
-			vi.spyOn(Comment, "deleteMany");
+			vi.spyOn(Post, 'deleteOne');
+			vi.spyOn(Comment, 'deleteMany');
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -637,15 +627,15 @@ describe("Post paths", () => {
 				.post(`/login`)
 				.send({ username: user.username });
 
-			const [token, value] = loginResponse.body.token.split(".");
+			const [token, value] = loginResponse.body.token.split('.');
 
 			const { status, body } = await agent
 				.delete(`/posts/${userPostId}`)
-				.set("x-csrf-token", `${token}.${value}`);
+				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(body.message).toBe("Delete post successfully.");
+			expect(body.message).toBe('Delete post successfully.');
 
 			expect(Comment.deleteMany).toBeCalledWith({ post: userPostId });
 			expect(Comment.deleteMany).toBeCalledTimes(1);
