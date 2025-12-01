@@ -33,6 +33,7 @@ declare global {
 			comment?: any;
 			reply?: any;
 			deletedByAdmin?: any;
+			code?: string;
 		}
 	}
 }
