@@ -1,5 +1,4 @@
 // Modules
-import { Request } from 'express';
 import asyncHandler from 'express-async-handler';
 import { body } from 'express-validator';
 import { isValidObjectId, Types } from 'mongoose';
