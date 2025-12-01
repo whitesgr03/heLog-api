@@ -17,6 +17,7 @@
 		"coverage": "vitest --coverage"
 	},
 	"dependencies": {
+		"argon2": "^0.44.0",
 		"connect-mongo": "^5.1.0",
 		"cors": "^2.8.5",
 		"csrf": "^3.1.0",
@@ -28,6 +29,8 @@
 		"express-validator": "^7.0.1",
 		"helmet": "^8.0.0",
 		"http-errors": "~1.6.3",
+		"mailgun.js": "^12.2.0",
+		"mjml": "^4.17.1",
 		"mongoose": "^8.12.1",
 		"morgan": "~1.9.1",
 		"passport": "^0.7.0",
@@ -48,6 +51,7 @@
 		"@types/debug": "^4.1.12",
 		"@types/express": "^5.0.2",
 		"@types/express-session": "^1.18.1",
+		"@types/mjml": "^4.7.4",
 		"@types/morgan": "^1.9.9",
 		"@types/node": "^22.15.21",
 		"@types/passport": "^1.0.17",
