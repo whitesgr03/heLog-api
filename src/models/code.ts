@@ -11,6 +11,7 @@ const codeSchema = {
 	},
 	code: { type: String, required: true, immutable: true },
 	email: { type: String, required: true, immutable: true },
+	failCount: { type: Number, default: 0 },
 	expiresAfter: {
 		type: Date,
 		required: true,
