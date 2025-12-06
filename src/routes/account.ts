@@ -9,6 +9,7 @@ accountRouter.post('/logout', accountControllers.userLogout);
 
 accountRouter.use(isLogin);
 
+accountRouter.post('/login', accountControllers.login);
 accountRouter.post('/register', accountControllers.register);
 accountRouter.post('/verify/email', accountControllers.validationEmail);
 

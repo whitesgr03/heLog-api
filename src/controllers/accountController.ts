@@ -99,6 +99,57 @@ export const userLogout: RequestHandler[] = [
 	},
 ];
 
+export const login: RequestHandler[] = [
+	body('email')
+		.trim()
+		.toLowerCase()
+		.isEmail()
+		.withMessage('Please enter a valid email address.'),
+	body('password')
+		.isLength({ min: 8, max: 64 })
+		.withMessage(
+			'The password length must be greater then 8 and less then 64 characters.',
+		),
+	validationScheme,
+	(req, res, next) => {
+		const authenticateCb: AuthenticateCallback = (err, user) => {
+			err && next(err);
+			user
+				? req.login(user, () => {
+						res
+							.set('Cache-Control', 'no-cache=Set-Cookie') // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
+							.cookie(
+								process.env.NODE_ENV === 'production'
+									? '__Secure-token'
+									: 'token',
+								generateCSRFToken(req.sessionID),
+								{
+									sameSite: 'strict',
+									httpOnly: false, // Front-end need to access __Secure-token cookie
+									secure: process.env.NODE_ENV === 'production',
+									domain: process.env.DOMAIN ?? '',
+									maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
+								},
+							)
+							.json({
+								success: true,
+							});
+						// .redirect(process.env.HELOG_URL!);
+					})
+				: res.status(400).json({
+						success: false,
+						fields: {
+							email: 'The email address was incorrect.',
+							password: 'The password was incorrect.',
+						},
+					});
+		};
+
+		const authenticateFn = passport.authenticate('local', authenticateCb);
+		authenticateFn(req, res, next);
+	},
+];
+
 export const register: RequestHandler[] = [
 	body('email')
 		.trim()
