@@ -10,6 +10,7 @@ accountRouter.post('/logout', accountControllers.userLogout);
 accountRouter.use(isLogin);
 
 accountRouter.post('/register', accountControllers.register);
+accountRouter.post('/verify/email', accountControllers.validationEmail);
 
 accountRouter.get('/login/google', accountControllers.googleLogin);
 accountRouter.get('/oauth2/redirect/google', accountControllers.googleRedirect);
