@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import asyncHandler from 'express-async-handler';
 import passport, { AuthenticateCallback } from 'passport';
 import { body } from 'express-validator';
-import { hash, argon2id } from 'argon2';
+import { hash, verify, argon2id } from 'argon2';
 import { randomInt } from 'node:crypto';
 import Mailgun from 'mailgun.js';
 import mjml2html from 'mjml';
@@ -219,6 +219,77 @@ export const register: RequestHandler[] = [
 		res.json({
 			success: true,
 			message: 'The verification code is sending',
+		});
+	}),
+];
+
+export const validationEmail: RequestHandler[] = [
+	asyncHandler(async (req, res, next) => {
+		const code = await Code.findOne({ email: req.body.email })
+			.populate('user', { id: 1 })
+			.exec();
+
+		const handleSetLocalVariable = () => {
+			req.code = code;
+			next();
+		};
+
+		code
+			? handleSetLocalVariable()
+			: res
+					.status(400)
+					.json({ success: false, message: 'Code could not be found.' });
+	}),
+	asyncHandler(async (req, res, next) => {
+		const handleError = async () => {
+			if (req.code.failCount + 1 === 3) {
+				await Code.findOneAndDelete({ email: req.body.email }).exec();
+			} else {
+				req.code.failCount = req.code.failCount + 1;
+				await req.code.save();
+			}
+
+			res.status(400).json({ success: false, message: 'Code is invalid.' });
+		};
+
+		const handleSuccess = async () => {
+			await Code.findOneAndDelete({ email: req.body.email }).exec();
+			next();
+		};
+
+		(await verify(req.code.code as string, req.body.code))
+			? await handleSuccess()
+			: await handleError();
+	}),
+	asyncHandler(async (req, res, next) => {
+		const isUserExist = await User.findOne({ email: req.body.email }).exec();
+
+		isUserExist
+			? res.status(400).json({
+					success: false,
+					message: 'Account has already been registered.',
+				})
+			: next();
+	}),
+	asyncHandler(async (req, res) => {
+		const user = await User.findByIdAndUpdate(req.code.user?.id, {
+			email: req.code.email,
+			$unset: { expiresAfter: '' },
+		}).exec();
+
+		if (user) {
+			await Code.findOneAndDelete({ email: req.body.email }).exec();
+
+			res.json({
+				success: true,
+				message: 'Account valid is successfully.',
+			});
+			return;
+		}
+
+		res.status(401).json({
+			success: false,
+			message: 'Code is expired.',
 		});
 	}),
 ];
