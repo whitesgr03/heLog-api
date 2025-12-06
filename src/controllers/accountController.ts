@@ -148,6 +148,7 @@ export const register: RequestHandler[] = [
 			expiresAfter: new Date(fiveMins),
 		});
 
+		await Code.findOneAndDelete({ email }).exec();
 		await Promise.all([newUser.save(), newCode.save()]);
 		req.code = code;
 		next();
