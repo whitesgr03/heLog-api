@@ -1,7 +1,9 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { Strategy as LocalStrategy } from 'passport-local';
 import { Types } from 'mongoose';
+import { verify } from 'argon2';
 
 import { Federated } from '../models/federated.js';
 import { User } from '../models/user.js';
@@ -15,6 +17,26 @@ declare global {
 	}
 }
 
+passport.use(
+	new LocalStrategy(
+		{
+			usernameField: 'email',
+		},
+		async (email, password, done) => {
+			try {
+				const user = await User.findOne({ email });
+
+				if (user && (await verify(user.password as string, password))) {
+					return done(null, { id: user.id });
+				}
+
+				done(null, false);
+			} catch (error) {
+				done(error);
+			}
+		},
+	),
+);
 passport.use(
 	new GoogleStrategy(
 		{
