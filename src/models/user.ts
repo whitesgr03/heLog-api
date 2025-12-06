@@ -4,13 +4,10 @@ const Schema = mongoose.Schema;
 
 const userSchema = {
 	username: { type: String },
-	email: { type: String, immutable: true },
+	email: { type: String },
 	password: { type: String },
 	isAdmin: { type: Boolean, required: true, immutable: true },
-	expiresAfter: {
-		type: Date,
-		immutable: true,
-	},
+	expiresAfter: { type: Date },
 };
 
 export type UserDocument = mongoose.Document &
