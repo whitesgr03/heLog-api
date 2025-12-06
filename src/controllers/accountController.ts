@@ -159,51 +159,51 @@ export const register: RequestHandler[] = [
 
 		const emailTemplate = mjml2html(
 			`
-        <mjml>
-          <mj-body>
-            <mj-section background-color="#26ACA3">
-              <mj-column>
-                <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
-                  Helog Verification Code
-                </mj-text>
-              </mj-column>
-            </mj-section>
+		    <mjml>
+		      <mj-body>
+		        <mj-section background-color="#26ACA3">
+		          <mj-column>
+		            <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+		              Helog Verification Code
+		            </mj-text>
+		          </mj-column>
+		        </mj-section>
 
-            <mj-section background-color="#F5F8FE">
-              <mj-column>
-                <mj-text>
-                  Dear Helog User,
-                </mj-text>
-                <mj-text>
-                  We received a request to verify your email address.
-                </mj-text>
+		        <mj-section background-color="#F5F8FE">
+		          <mj-column>
+		            <mj-text>
+		              Dear Helog User,
+		            </mj-text>
+		            <mj-text>
+		              We received a request to verify your email address.
+		            </mj-text>
 
-                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
-                <mj-text>
-                  Your Helog verification code is:
+		            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+		            <mj-text>
+		              Your Helog verification code is:
 
-                </mj-text>
-                <mj-text align="center" font-size="20px">
-                  ${code.split('').join(' ')}
-                </mj-text>
-                <mj-text align="center" font-weight="bold">
-                  This code will expire in 5 minutes.
-                </mj-text>
+		            </mj-text>
+		            <mj-text align="center" font-size="20px">
+		              ${code.split('').join(' ')}
+		            </mj-text>
+		            <mj-text align="center" font-weight="bold">
+		              This code will expire in 5 minutes.
+		            </mj-text>
 
-                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+		            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
 
-                <mj-text>
-                  This is an automated email. If you received it by mistake, you don’t need to do anything.
-                </mj-text>
+		            <mj-text>
+		              This is an automated email. If you received it by mistake, you don’t need to do anything.
+		            </mj-text>
 
-                <mj-text>
-                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-                <mj-text>@ 2025 Helog</mj-text>
-              </mj-column>
-            </mj-section>
-          </mj-body>
-        </mjml>
-      `,
+		            <mj-text>
+		              If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+		            <mj-text>@ 2025 Helog</mj-text>
+		          </mj-column>
+		        </mj-section>
+		      </mj-body>
+		    </mjml>
+		  `,
 		);
 
 		const msg = {
