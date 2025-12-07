@@ -277,7 +277,7 @@ export const register: RequestHandler[] = [
 export const validation: RequestHandler[] = [
 	asyncHandler(async (req, res, next) => {
 		const code = await Code.findOne({ email: req.body.email })
-			.populate('user', { id: 1 })
+			.populate('user')
 			.exec();
 
 		const handleSetLocalVariable = () => {
@@ -293,23 +293,23 @@ export const validation: RequestHandler[] = [
 	}),
 	asyncHandler(async (req, res, next) => {
 		const handleError = async () => {
-			if (req.code.failCount + 1 === 3) {
-				await Code.findOneAndDelete({ email: req.body.email }).exec();
+			req.code.failCount = req.code.failCount + 1;
+
+			if (req.code.failCount === 3) {
+				await req.code.deleteOne().exec();
 			} else {
-				req.code.failCount = req.code.failCount + 1;
 				await req.code.save();
 			}
 
-			res.status(400).json({ success: false, message: 'Code is invalid.' });
-		};
-
-		const handleSuccess = async () => {
-			await Code.findOneAndDelete({ email: req.body.email }).exec();
-			next();
+			res.status(400).json({
+				success: false,
+				message: 'Code is invalid.',
+				data: { failCount: req.code.failCount },
+			});
 		};
 
 		(await verify(req.code.code as string, req.body.code))
-			? await handleSuccess()
+			? next()
 			: await handleError();
 	}),
 	asyncHandler(async (req, res, next) => {
@@ -323,24 +323,24 @@ export const validation: RequestHandler[] = [
 			: next();
 	}),
 	asyncHandler(async (req, res) => {
-		const user = await User.findByIdAndUpdate(req.code.user?.id, {
-			email: req.code.email,
-			$unset: { expiresAfter: '' },
-		}).exec();
-
-		if (user) {
-			await Code.findOneAndDelete({ email: req.body.email }).exec();
-
+		if (req.code.user) {
+			// if new user is not expired
+			await req.code.user
+				.updateOne({
+					email: req.code.email,
+					$unset: { expiresAfter: '' },
+				})
+				.exec();
+			await req.code.deleteOne().exec();
 			res.json({
 				success: true,
 				message: 'Account valid is successfully.',
 			});
-			return;
+		} else {
+			res.status(401).json({
+				success: false,
+				message: 'Code is expired.',
+			});
 		}
-
-		res.status(401).json({
-			success: false,
-			message: 'Code is expired.',
-		});
 	}),
 ];
