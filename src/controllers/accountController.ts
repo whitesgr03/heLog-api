@@ -274,7 +274,7 @@ export const register: RequestHandler[] = [
 	}),
 ];
 
-export const validationEmail: RequestHandler[] = [
+export const validation: RequestHandler[] = [
 	asyncHandler(async (req, res, next) => {
 		const code = await Code.findOne({ email: req.body.email })
 			.populate('user', { id: 1 })
