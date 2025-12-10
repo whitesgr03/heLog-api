@@ -3,20 +3,16 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const codeSchema = {
-	user: {
+	newUser: {
 		type: Schema.Types.ObjectId,
 		ref: 'User',
-		required: true,
 		immutable: true,
 	},
-	code: { type: String, required: true, immutable: true },
+	code: { type: String, required: true },
 	email: { type: String, required: true, immutable: true },
+	verify: { type: Boolean, default: false },
 	failCount: { type: Number, default: 0 },
-	expiresAfter: {
-		type: Date,
-		required: true,
-		immutable: true,
-	},
+	expiresAfter: { type: Date },
 };
 
 export type CodeDocument = mongoose.Document &
