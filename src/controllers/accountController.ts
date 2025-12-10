@@ -149,8 +149,7 @@ export const login: RequestHandler[] = [
 		authenticateFn(req, res, next);
 	},
 ];
-
-export const register: RequestHandler[] = [
+export const requestRegister: RequestHandler[] = [
 	body('email')
 		.trim()
 		.toLowerCase()
@@ -274,7 +273,7 @@ export const register: RequestHandler[] = [
 	}),
 ];
 
-export const validation: RequestHandler[] = [
+export const register: RequestHandler[] = [
 	asyncHandler(async (req, res, next) => {
 		const code = await Code.findOne({ email: req.body.email })
 			.populate('user')
