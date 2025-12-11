@@ -10,7 +10,7 @@ import { authenticate } from '../middlewares/authenticate.js';
 import { validationCSRF } from '../middlewares/validationCSRF.js';
 import { validationScheme } from '../middlewares/validationScheme.js';
 import { generateCSRFToken } from '../utils/generateCSRFToken.js';
-import { User } from '../models/user.js';
+import { User, UserDocument } from '../models/user.js';
 import { Code } from '../models/code.js';
 
 import { sendEmail } from '../utils/sendEmail.js';
