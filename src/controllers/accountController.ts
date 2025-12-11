@@ -302,3 +302,145 @@ export const register: RequestHandler[] = [
 		}
 	}),
 ];
+
+export const requestVerifyCode: RequestHandler[] = [
+	asyncHandler(async (req, res) => {
+		const codeDoc = await Code.findOne({ email: req.body.email })
+			.populate<{ newUser: UserDocument }>('newUser')
+			.exec();
+
+		if (codeDoc) {
+			const newCode = randomInt(100000, 999999).toString();
+
+			const hashedCode = await hash(newCode, {
+				type: argon2id,
+				memoryCost: 47104,
+				timeCost: 1,
+				parallelism: 1,
+			});
+
+			const fiveMins = Date.now() + 5 * 60 * 1000;
+
+			codeDoc.code = hashedCode;
+			codeDoc.expiresAfter = new Date(fiveMins);
+
+			await codeDoc.save();
+
+			if (codeDoc.newUser) {
+				codeDoc.newUser.expiresAfter = new Date(fiveMins);
+				await codeDoc.newUser.save();
+			}
+
+			const emailTemplate = mjml2html(
+				`
+			    <mjml>
+			      <mj-body>
+			        <mj-section background-color="#26ACA3">
+			          <mj-column>
+			            <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+			              Helog Verification Code
+			            </mj-text>
+			          </mj-column>
+			        </mj-section>
+
+			        <mj-section background-color="#F5F8FE">
+			          <mj-column>
+			            <mj-text>
+			              Dear Helog User,
+			            </mj-text>
+			            <mj-text>
+			            We received a request to
+			            ${
+										codeDoc.newUser
+											? 'verify your email address.'
+											: 'reset your password.'
+									}
+			            </mj-text>
+
+			            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+			            <mj-text>
+			              Your Helog verification code is:
+
+			            </mj-text>
+			            <mj-text align="center" font-size="20px">
+			              ${newCode.split('').join(' ')}
+			            </mj-text>
+			            <mj-text align="center" font-weight="bold">
+			              This code will expire in 5 minutes.
+			            </mj-text>
+
+			            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+
+			            <mj-text>
+			              This is an automated email. If you received it by mistake, you don't need to do anything.
+			            </mj-text>
+
+			            <mj-text>
+			              If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+			            <mj-text>@ 2025 Helog</mj-text>
+			          </mj-column>
+			        </mj-section>
+			      </mj-body>
+			    </mjml>
+			  `,
+			);
+
+			await sendEmail({
+				receiver: req.body.email,
+				subject: codeDoc.newUser ? 'Account Verification' : 'Password Reset',
+				html: emailTemplate.html,
+			});
+
+			res.json({
+				success: true,
+				message: 'The verification code is sending',
+			});
+		} else {
+			res
+				.status(400)
+				.json({ success: false, message: 'Code could not be found.' });
+		}
+	}),
+];
+
+export const verifyCode: RequestHandler[] = [
+	asyncHandler(async (req, res) => {
+		const codeDoc = await Code.findOne({ email: req.body.email }).exec();
+
+		if (codeDoc) {
+			if (await verify(codeDoc.code as string, req.body.code)) {
+				codeDoc.verify = true;
+
+				if (!codeDoc.newUser) {
+					const tenMins = Date.now() + 10 * 60 * 1000;
+					codeDoc.expiresAfter = new Date(tenMins);
+				}
+
+				await codeDoc.save();
+
+				res.json({ success: true, message: 'Verify Code is successfully' });
+			} else {
+				codeDoc.failCount = codeDoc.failCount + 1;
+
+				if (codeDoc.failCount === 3) {
+					await codeDoc.deleteOne().exec();
+					if (codeDoc.newUser) {
+						await User.findByIdAndDelete(codeDoc.newUser).exec();
+					}
+				} else {
+					await codeDoc.save();
+				}
+
+				res.status(400).json({
+					success: false,
+					message: 'Code is invalid.',
+					data: { failCount: codeDoc.failCount },
+				});
+			}
+		} else {
+			res
+				.status(400)
+				.json({ success: false, message: 'Code could not be found.' });
+		}
+	}),
+];
