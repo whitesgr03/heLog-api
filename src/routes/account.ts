@@ -12,7 +12,6 @@ accountRouter.use(isLogin);
 accountRouter.post('/login', accountControllers.login);
 accountRouter.post('/requestRegister', accountControllers.requestRegister);
 accountRouter.post('/register', accountControllers.register);
-accountRouter.post('/verify', accountControllers.validation);
 
 accountRouter.get('/login/google', accountControllers.googleLogin);
 accountRouter.get('/oauth2/redirect/google', accountControllers.googleRedirect);
