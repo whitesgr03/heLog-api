@@ -274,72 +274,31 @@ export const requestRegister: RequestHandler[] = [
 ];
 
 export const register: RequestHandler[] = [
-	asyncHandler(async (req, res, next) => {
-		const code = await Code.findOne({ email: req.body.email })
-			.populate('user')
+	asyncHandler(async (req, res) => {
+		const codeDoc = await Code.findOne({ email: req.body.email })
+			.populate<{ newUser: UserDocument }>('newUser')
 			.exec();
 
-		const handleSetLocalVariable = () => {
-			req.code = code;
-			next();
-		};
-
-		code
-			? handleSetLocalVariable()
-			: res
-					.status(400)
-					.json({ success: false, message: 'Code could not be found.' });
-	}),
-	asyncHandler(async (req, res, next) => {
-		const handleError = async () => {
-			req.code.failCount = req.code.failCount + 1;
-
-			if (req.code.failCount === 3) {
-				await req.code.deleteOne().exec();
+		if (codeDoc?.verify) {
+			if (!(await User.findOne({ email: req.body.email }).exec())) {
+				await codeDoc.newUser.updateOne({
+					email: codeDoc.email,
+					$unset: { expiresAfter: '' },
+				});
+				await codeDoc.deleteOne().exec();
+				res.json({
+					success: true,
+					message: 'Account valid is successfully.',
+				});
 			} else {
-				await req.code.save();
-			}
-
-			res.status(400).json({
-				success: false,
-				message: 'Code is invalid.',
-				data: { failCount: req.code.failCount },
-			});
-		};
-
-		(await verify(req.code.code as string, req.body.code))
-			? next()
-			: await handleError();
-	}),
-	asyncHandler(async (req, res, next) => {
-		const isUserExist = await User.findOne({ email: req.body.email }).exec();
-
-		isUserExist
-			? res.status(400).json({
+				await Promise.all([codeDoc.deleteOne(), codeDoc.newUser.deleteOne()]);
+				res.status(400).json({
 					success: false,
 					message: 'Account has already been registered.',
-				})
-			: next();
-	}),
-	asyncHandler(async (req, res) => {
-		if (req.code.user) {
-			// if new user is not expired
-			await req.code.user
-				.updateOne({
-					email: req.code.email,
-					$unset: { expiresAfter: '' },
-				})
-				.exec();
-			await req.code.deleteOne().exec();
-			res.json({
-				success: true,
-				message: 'Account valid is successfully.',
-			});
+				});
+			}
 		} else {
-			res.status(401).json({
-				success: false,
-				message: 'Code is expired.',
-			});
+			res.status(400).json({ success: false, message: 'Code is invalid.' });
 		}
 	}),
 ];
