@@ -4,7 +4,6 @@ import passport, { AuthenticateCallback } from 'passport';
 import { body } from 'express-validator';
 import { hash, verify, argon2id } from 'argon2';
 import { randomInt } from 'node:crypto';
-import Mailgun from 'mailgun.js';
 import mjml2html from 'mjml';
 
 import { authenticate } from '../middlewares/authenticate.js';
@@ -14,11 +13,7 @@ import { generateCSRFToken } from '../utils/generateCSRFToken.js';
 import { User } from '../models/user.js';
 import { Code } from '../models/code.js';
 
-const mailgun = new Mailgun(FormData);
-const mg = mailgun.client({
-	username: 'api',
-	key: process.env.MAINGUN_API_KEY as string,
-});
+import { sendEmail } from '../utils/sendEmail.js';
 
 export const googleLogin: RequestHandler = passport.authenticate('google');
 export const googleRedirect: RequestHandler[] = [
