@@ -159,7 +159,7 @@ export const requestRegister: RequestHandler[] = [
 		.custom((value, { req }) => value === req.body.password)
 		.withMessage('The confirmation password is not the same as the password.'),
 	validationScheme,
-	asyncHandler(async (req, res, next) => {
+	asyncHandler(async (req, res) => {
 		const { password, email } = req.data;
 
 		const code = randomInt(100000, 999999).toString();
@@ -187,23 +187,23 @@ export const requestRegister: RequestHandler[] = [
 		});
 
 		const newCode = new Code({
-			user: newUser.id,
+			newUser: newUser.id,
 			code: hashedCode,
 			email,
 			expiresAfter: new Date(fiveMins),
 		});
 
-		await Code.findOneAndDelete({ email }).exec();
+		const codeDoc = await Code.findOne({ email }).exec();
+
+		if (codeDoc) {
+			await codeDoc.deleteOne().exec();
+			if (codeDoc.newUser) {
+				await User.findByIdAndDelete(codeDoc.newUser).exec();
+			}
+		}
 		await Promise.all([newUser.save(), newCode.save()]);
-		req.code = code;
-		next();
-	}),
-	asyncHandler(async (req, res) => {
-		const { email } = req.data;
 
-		const code = req.code as string;
-
-		const emailTemplate = mjml2html(
+		const { html } = mjml2html(
 			`
 		    <mjml>
 		      <mj-body>
@@ -239,7 +239,7 @@ export const requestRegister: RequestHandler[] = [
 		            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
 
 		            <mj-text>
-		              This is an automated email. If you received it by mistake, you don’t need to do anything.
+		              This is an automated email. If you received it by mistake, you don't need to do anything.
 		            </mj-text>
 
 		            <mj-text>
@@ -252,14 +252,11 @@ export const requestRegister: RequestHandler[] = [
 		  `,
 		);
 
-		const msg = {
-			from: `Helog <no-reply@${process.env.MAINGUN_DOMAIN}>`,
-			to: email,
+		await sendEmail({
+			receiver: email,
 			subject: 'Account Verification',
-			html: emailTemplate.html,
-		};
-
-		await mg.messages.create(process.env.MAINGUN_DOMAIN as string, msg);
+			html,
+		});
 
 		res.json({
 			success: true,
