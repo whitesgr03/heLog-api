@@ -13,6 +13,12 @@ accountRouter.post('/login', accountControllers.login);
 accountRouter.post('/requestRegister', accountControllers.requestRegister);
 accountRouter.post('/register', accountControllers.register);
 
+accountRouter.post(
+	'/requestResetPassword',
+	accountControllers.requestResetPassword,
+);
+accountRouter.post('/resetPassword', accountControllers.resetPassword);
+
 accountRouter.post('/verifyCode', accountControllers.verifyCode);
 accountRouter.post('/requestVerifyCode', accountControllers.requestVerifyCode);
 
