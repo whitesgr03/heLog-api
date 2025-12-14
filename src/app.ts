@@ -10,7 +10,6 @@ import debug from 'debug';
 import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
 import sessionStore from 'connect-mongo';
-import { randomBytes } from 'node:crypto';
 import { mongoose } from './config/database.js';
 import helmet, { HelmetOptions } from 'helmet';
 import { RateLimiterRes } from 'rate-limiter-flexible';
@@ -48,10 +47,6 @@ declare module 'express-session' {
 app.get('/favicon.ico', (req, res) => {
 	res.status(204);
 });
-app.use(((req, res, next) => {
-	res.locals.cspNonce = randomBytes(32).toString('base64');
-	next();
-}) as RequestHandler);
 
 app.use((req, res, next) => {
 	try {
@@ -97,7 +92,6 @@ const sessionOptions: SessionOptions = {
 		maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
 	},
 };
-
 const helmetOptions: HelmetOptions = {
 	xFrameOptions: { action: 'deny' }, // To avoid clickjacking attacks, by ensuring that their content is not embedded into other sites.
 	strictTransportSecurity: {
@@ -126,11 +120,6 @@ const helmetOptions: HelmetOptions = {
 		},
 	},
 };
-const staticOptions = {
-	index: false,
-	maxAge: '1d',
-	redirect: false,
-};
 
 app.set('trust proxy', 1);
 
@@ -141,10 +130,6 @@ app.use(passport.session());
 app.use(morgan(process.env.production ? 'common' : 'dev'));
 
 app.use(express.json());
-app.use(express.static('./src/public', staticOptions));
-
-app.set('views', './src/views');
-app.set('view engine', 'pug');
 
 // session touch
 app.use((req, res, next) => {
