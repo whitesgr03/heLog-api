@@ -38,12 +38,6 @@ declare global {
 	}
 }
 
-declare module 'express-session' {
-	interface SessionData {
-		referer?: string;
-	}
-}
-
 app.get('/favicon.ico', (req, res) => {
 	res.status(204);
 });
