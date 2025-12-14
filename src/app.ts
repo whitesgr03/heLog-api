@@ -14,6 +14,8 @@ import { randomBytes } from 'node:crypto';
 import { rateLimit } from 'express-rate-limit';
 import { mongoose } from './config/database.js';
 import helmet, { HelmetOptions } from 'helmet';
+import { RateLimiterRes } from 'rate-limiter-flexible';
+import { limiterBruteForceByIp } from './utils/rateLimiter.js';
 
 // config
 import { passport } from './config/passport.js';
@@ -51,6 +53,22 @@ app.use(((req, res, next) => {
 	res.locals.cspNonce = randomBytes(32).toString('base64');
 	next();
 }) as RequestHandler);
+
+app.use((req, res, next) => {
+	try {
+		limiterBruteForceByIp.consume(req.ip as string);
+		next();
+	} catch (rejected) {
+		if (rejected instanceof RateLimiterRes) {
+			res.status(429).json({
+				success: false,
+				message: 'Too many requests',
+			});
+		} else {
+			next(rejected);
+		}
+	}
+});
 
 const errorLog = debug('ServerError');
 const serverLog = debug('Server');

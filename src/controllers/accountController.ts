@@ -14,6 +14,13 @@ import { User, UserDocument } from '../models/user.js';
 import { Code } from '../models/code.js';
 
 import { sendEmail } from '../utils/sendEmail.js';
+import {
+	limiterLoginFailsByEmail,
+	limiterRequestRegisterByIp,
+	limiterRequestResetPasswordByEmail,
+	limiterRequestVerifyCodeByEmail,
+} from '../utils/rateLimiter.js';
+import { RateLimiterRes } from 'rate-limiter-flexible';
 
 export const federatedLogin: RequestHandler = (req, res, next) =>
 	passport.authenticate(req.params.federation)(req, res, next);
@@ -66,7 +73,6 @@ export const userLogout: RequestHandler[] = [
 		);
 	},
 ];
-
 export const login: RequestHandler[] = [
 	body('email')
 		.trim()
@@ -79,43 +85,63 @@ export const login: RequestHandler[] = [
 			'The password length must be greater then 8 and less then 64 characters.',
 		),
 	validationScheme,
-	(req, res, next) => {
-		const authenticateCb: AuthenticateCallback = (err, user) => {
-			err && next(err);
-			user
-				? req.login(user, () => {
-						res
-							.set('Cache-Control', 'no-cache=Set-Cookie') // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
-							.cookie(
-								process.env.NODE_ENV === 'production'
-									? '__Secure-token'
-									: 'token',
-								generateCSRFToken(req.sessionID),
-								{
-									sameSite: 'strict',
-									httpOnly: false, // Front-end need to access __Secure-token cookie
-									secure: process.env.NODE_ENV === 'production',
-									domain: process.env.DOMAIN ?? '',
-									maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
-								},
-							)
-							.json({
-								success: true,
-							});
-						// .redirect(process.env.HELOG_URL!);
-					})
-				: res.status(400).json({
+	asyncHandler(async (req, res, next) => {
+		const { email } = req.data;
+
+		try {
+			await limiterLoginFailsByEmail.consume(email);
+		} catch (rejected) {
+			if (rejected instanceof RateLimiterRes) {
+				res
+					.status(429)
+					.set('Retry-After', rejected.msBeforeNext.toString())
+					.json({
 						success: false,
-						fields: {
-							email: 'The email address was incorrect.',
-							password: 'The password was incorrect.',
-						},
+						message: 'You have login fails too many times',
 					});
+				return;
+			} else {
+				throw rejected;
+			}
+		}
+
+		const authenticateCb: AuthenticateCallback = async (err, user) => {
+			err && next(err);
+
+			if (user) {
+				req.login(user, async () => {
+					await limiterLoginFailsByEmail.delete(email);
+					res
+						.set('Cache-Control', 'no-cache=Set-Cookie') // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
+						.cookie(
+							process.env.NODE_ENV === 'production'
+								? '__Secure-token'
+								: 'token',
+							generateCSRFToken(req.sessionID),
+							{
+								sameSite: 'strict',
+								httpOnly: false, // Front-end need to access __Secure-token cookie
+								secure: process.env.NODE_ENV === 'production',
+								domain: process.env.DOMAIN ?? '',
+								maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
+							},
+						)
+						.redirect(process.env.HELOG_URL!);
+				});
+			} else {
+				res.status(400).json({
+					success: false,
+					fields: {
+						email: 'The email address was incorrect.',
+						password: 'The password was incorrect.',
+					},
+				});
+			}
 		};
 
 		const authenticateFn = passport.authenticate('local', authenticateCb);
 		authenticateFn(req, res, next);
-	},
+	}),
 ];
 export const requestRegister: RequestHandler[] = [
 	body('email')
@@ -133,6 +159,22 @@ export const requestRegister: RequestHandler[] = [
 		.withMessage('The confirmation password is not the same as the password.'),
 	validationScheme,
 	asyncHandler(async (req, res) => {
+		try {
+			await limiterRequestRegisterByIp.consume(req.ip as string);
+		} catch (rejected) {
+			if (rejected instanceof RateLimiterRes) {
+				res
+					.status(429)
+					.set('Retry-After', rejected.msBeforeNext.toString())
+					.json({
+						success: false,
+						message: 'You have registered too many times',
+					});
+				return;
+			} else {
+				throw rejected;
+			}
+		}
 		const { password, email } = req.data;
 
 		const code = randomInt(100000, 999999).toString();
@@ -237,44 +279,58 @@ export const requestRegister: RequestHandler[] = [
 		});
 	}),
 ];
+export const register: RequestHandler = asyncHandler(async (req, res) => {
+	const codeDoc = await Code.findOne({ email: req.body.email })
+		.populate<{ newUser: UserDocument }>('newUser')
+		.exec();
 
-export const register: RequestHandler[] = [
-	asyncHandler(async (req, res) => {
-		const codeDoc = await Code.findOne({ email: req.body.email })
-			.populate<{ newUser: UserDocument }>('newUser')
-			.exec();
-
-		if (codeDoc?.verify) {
-			if (!(await User.findOne({ email: req.body.email }).exec())) {
-				await codeDoc.newUser.updateOne({
-					email: codeDoc.email,
-					$unset: { expiresAfter: '' },
-				});
-				await codeDoc.deleteOne().exec();
-				res.json({
-					success: true,
-					message: 'Account valid is successfully.',
-				});
-			} else {
-				await Promise.all([codeDoc.deleteOne(), codeDoc.newUser.deleteOne()]);
-				res.status(400).json({
-					success: false,
-					message: 'Account has already been registered.',
-				});
-			}
+	if (codeDoc?.verify) {
+		if (!(await User.findOne({ email: req.body.email }).exec())) {
+			await codeDoc.newUser.updateOne({
+				email: codeDoc.email,
+				$unset: { expiresAfter: '' },
+			});
+			await codeDoc.deleteOne().exec();
+			res.json({
+				success: true,
+				message: 'Account valid is successfully.',
+			});
 		} else {
-			res.status(400).json({ success: false, message: 'Code is invalid.' });
+			await Promise.all([codeDoc.deleteOne(), codeDoc.newUser.deleteOne()]);
+			res.status(400).json({
+				success: false,
+				message: 'Account has already been registered.',
+			});
 		}
-	}),
-];
+	} else {
+		res.status(400).json({ success: false, message: 'Code is invalid.' });
+	}
+});
 
-export const requestVerifyCode: RequestHandler[] = [
-	asyncHandler(async (req, res) => {
+export const requestVerifyCode: RequestHandler = asyncHandler(
+	async (req, res) => {
 		const codeDoc = await Code.findOne({ email: req.body.email })
 			.populate<{ newUser: UserDocument }>('newUser')
 			.exec();
 
 		if (codeDoc) {
+			try {
+				await limiterRequestVerifyCodeByEmail.consume(req.body.email as string);
+			} catch (rejected) {
+				if (rejected instanceof RateLimiterRes) {
+					res
+						.status(429)
+						.set('Retry-After', rejected.msBeforeNext.toString())
+						.json({
+							success: false,
+							message: 'Too many requests',
+						});
+					return;
+				} else {
+					throw rejected;
+				}
+			}
+
 			const newCode = randomInt(100000, 999999).toString();
 
 			const hashedCode = await hash(newCode, {
@@ -365,50 +421,49 @@ export const requestVerifyCode: RequestHandler[] = [
 				.status(400)
 				.json({ success: false, message: 'Code could not be found.' });
 		}
-	}),
-];
+	},
+);
+export const verifyCode: RequestHandler = asyncHandler(async (req, res) => {
+	const codeDoc = await Code.findOne({ email: req.body.email }).exec();
 
-export const verifyCode: RequestHandler[] = [
-	asyncHandler(async (req, res) => {
-		const codeDoc = await Code.findOne({ email: req.body.email }).exec();
+	if (codeDoc?.verify === false) {
+		if (await verify(codeDoc.code as string, req.body.code)) {
+			await limiterRequestVerifyCodeByEmail.delete(req.body.email as string);
 
-		if (codeDoc) {
-			if (await verify(codeDoc.code as string, req.body.code)) {
-				codeDoc.verify = true;
+			codeDoc.verify = true;
 
-				if (!codeDoc.newUser) {
-					const tenMins = Date.now() + 10 * 60 * 1000;
-					codeDoc.expiresAfter = new Date(tenMins);
-				}
-
-				await codeDoc.save();
-
-				res.json({ success: true, message: 'Verify Code is successfully' });
-			} else {
-				codeDoc.failCount = codeDoc.failCount + 1;
-
-				if (codeDoc.failCount === 3) {
-					await codeDoc.deleteOne().exec();
-					if (codeDoc.newUser) {
-						await User.findByIdAndDelete(codeDoc.newUser).exec();
-					}
-				} else {
-					await codeDoc.save();
-				}
-
-				res.status(400).json({
-					success: false,
-					message: 'Code is invalid.',
-					data: { failCount: codeDoc.failCount },
-				});
+			if (!codeDoc.newUser) {
+				const tenMins = Date.now() + 10 * 60 * 1000;
+				codeDoc.expiresAfter = new Date(tenMins);
 			}
+
+			await codeDoc.save();
+
+			res.json({ success: true, message: 'Verify Code is successfully' });
 		} else {
-			res
-				.status(400)
-				.json({ success: false, message: 'Code could not be found.' });
+			codeDoc.failCount = codeDoc.failCount + 1;
+
+			if (codeDoc.failCount === 3) {
+				await codeDoc.deleteOne().exec();
+				if (codeDoc.newUser) {
+					await User.findByIdAndDelete(codeDoc.newUser).exec();
+				}
+			} else {
+				await codeDoc.save();
+			}
+
+			res.status(400).json({
+				success: false,
+				message: 'Code is invalid.',
+				data: { failCount: codeDoc.failCount },
+			});
 		}
-	}),
-];
+	} else {
+		res
+			.status(400)
+			.json({ success: false, message: 'Code could not be found.' });
+	}
+});
 
 export const requestResetPassword: RequestHandler[] = [
 	body('email')
@@ -419,6 +474,23 @@ export const requestResetPassword: RequestHandler[] = [
 	validationScheme,
 	asyncHandler(async (req, res) => {
 		const { email } = req.data;
+
+		try {
+			await limiterRequestResetPasswordByEmail.consume(email as string);
+		} catch (rejected) {
+			if (rejected instanceof RateLimiterRes) {
+				res
+					.status(429)
+					.set('Retry-After', rejected.msBeforeNext.toString())
+					.json({
+						success: false,
+						message: 'You have registered too many times',
+					});
+				return;
+			} else {
+				throw rejected;
+			}
+		}
 
 		const code = randomInt(100000, 999999).toString();
 
@@ -525,6 +597,8 @@ export const resetPassword: RequestHandler[] = [
 				user.password = hashedPassword;
 
 				await Promise.all([user.save(), codeDoc.deleteOne()]);
+
+				await limiterRequestResetPasswordByEmail.delete(req.body.email);
 
 				const emailTemplate = mjml2html(
 					`
