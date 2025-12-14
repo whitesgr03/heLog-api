@@ -43,7 +43,8 @@ app.get('/favicon.ico', (req, res) => {
 
 app.use((req, res, next) => {
 	try {
-		limiterBruteForceByIp.consume(req.ip as string);
+		process.env.NODE_ENV === 'production' &&
+			limiterBruteForceByIp.consume(req.ip as string);
 		next();
 	} catch (rejected) {
 		if (rejected instanceof RateLimiterRes) {
