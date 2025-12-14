@@ -22,11 +22,8 @@ accountRouter.post('/resetPassword', accountControllers.resetPassword);
 accountRouter.post('/verifyCode', accountControllers.verifyCode);
 accountRouter.post('/requestVerifyCode', accountControllers.requestVerifyCode);
 
-accountRouter.get('/login/google', accountControllers.googleLogin);
-accountRouter.get('/oauth2/redirect/google', accountControllers.googleRedirect);
-
-accountRouter.get('/login/facebook', accountControllers.facebookLogin);
+accountRouter.get('/login/:federation', accountControllers.federatedLogin);
 accountRouter.get(
-	'/oauth2/redirect/facebook',
-	accountControllers.facebookRedirect,
+	'/oauth2/redirect/:federation',
+	accountControllers.federatedRedirect,
 );
