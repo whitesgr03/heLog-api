@@ -38,7 +38,6 @@
 		"passport-google-oauth20": "^2.0.0",
 		"passport-local": "^1.0.0",
 		"pug": "^3.0.3",
-		"rate-limit-mongo": "^2.3.2",
 		"rate-limiter-flexible": "^9.0.0"
 	},
 	"devDependencies": {
