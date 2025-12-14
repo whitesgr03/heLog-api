@@ -9,14 +9,6 @@ import { Federated } from '../models/federated.js';
 import { User } from '../models/user.js';
 import { UserDocument } from '../models/user.js';
 
-declare global {
-	namespace Express {
-		interface User {
-			id: Types.ObjectId;
-		}
-	}
-}
-
 passport.use(
 	new LocalStrategy(
 		{
