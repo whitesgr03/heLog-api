@@ -11,6 +11,7 @@ import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
 import sessionStore from 'connect-mongo';
 import { mongoose } from './config/database.js';
+import { Types } from 'mongoose';
 import helmet, { HelmetOptions } from 'helmet';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 import { limiterBruteForceByIp } from './utils/rateLimiter.js';
@@ -33,6 +34,9 @@ declare global {
 			comment?: any;
 			reply?: any;
 			deletedByAdmin?: any;
+		}
+		interface User {
+			id: Types.ObjectId; // passport req.user
 		}
 	}
 }
