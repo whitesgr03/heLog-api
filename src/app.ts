@@ -11,7 +11,6 @@ import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
 import sessionStore from 'connect-mongo';
 import { randomBytes } from 'node:crypto';
-import { rateLimit } from 'express-rate-limit';
 import { mongoose } from './config/database.js';
 import helmet, { HelmetOptions } from 'helmet';
 import { RateLimiterRes } from 'rate-limiter-flexible';
@@ -127,13 +126,6 @@ const helmetOptions: HelmetOptions = {
 		},
 	},
 };
-const rateLimitOption = {
-	windowMs: 10 * 30 * 1000, // 10 minutes
-	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-};
-
 const staticOptions = {
 	index: false,
 	maxAge: '1d',
@@ -142,7 +134,6 @@ const staticOptions = {
 
 app.set('trust proxy', 1);
 
-process.env.NODE_ENV === 'production' && app.use(rateLimit(rateLimitOption));
 app.use(cors(corsOptions));
 app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
