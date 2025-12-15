@@ -269,8 +269,8 @@ export const requestRegister: RequestHandler[] = [
 		              Your Helog verification code is:
 
 		            </mj-text>
-		            <mj-text align="center" font-size="20px">
-		              ${code.split('').join(' ')}
+		            <mj-text align="center" font-size="20px" letter-spacing="8px">
+		              ${code}
 		            </mj-text>
 		            <mj-text align="center" font-weight="bold">
 		              This code will expire in 5 minutes.
@@ -408,9 +408,9 @@ export const requestVerifyCode: RequestHandler = asyncHandler(
 			              Your Helog verification code is:
 
 			            </mj-text>
-			            <mj-text align="center" font-size="20px">
-			              ${newCode.split('').join(' ')}
-			            </mj-text>
+                  <mj-text align="center" font-size="20px" letter-spacing="8px">
+                    ${newCode}
+                  </mj-text>
 			            <mj-text align="center" font-weight="bold">
 			              This code will expire in 5 minutes.
 			            </mj-text>
@@ -563,9 +563,9 @@ export const requestResetPassword: RequestHandler[] = [
 		                  Your Helog verification code is:
 
 		                </mj-text>
-		                <mj-text align="center" font-size="20px">
-		                  ${code.split('').join(' ')}
-		                </mj-text>
+		                <mj-text align="center" font-size="20px" letter-spacing="8px">
+                      ${code}
+                    </mj-text>
 		                <mj-text align="center" font-weight="bold">
 		                  This code will expire in 5 minutes.
 		                </mj-text>
