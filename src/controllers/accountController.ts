@@ -143,7 +143,31 @@ export const login: RequestHandler[] = [
 		authenticateFn(req, res, next);
 	}),
 ];
+
 export const requestRegister: RequestHandler[] = [
+	body('username')
+		.trim()
+		.notEmpty()
+		.withMessage('The username is required.')
+		.bail()
+		.isLength({ max: 30 })
+		.withMessage('The username length must be less then 30.')
+		.bail()
+		.custom(value => value.match(/^[a-zA-Z]\w*$/))
+		.withMessage(
+			'The username must begin with alphabet and include alphanumeric or underscore.',
+		)
+		.bail()
+		.custom(
+			async value =>
+				await new Promise(async (resolve, reject) => {
+					const existingUsername = await User.findOne({
+						username: value,
+					}).exec();
+					existingUsername ? reject() : resolve(true);
+				}),
+		)
+		.withMessage('The username is been used.'),
 	body('email')
 		.trim()
 		.toLowerCase()
@@ -175,7 +199,7 @@ export const requestRegister: RequestHandler[] = [
 				throw rejected;
 			}
 		}
-		const { password, email } = req.data;
+		const { username, password, email } = req.data;
 
 		const code = randomInt(100000, 999999).toString();
 
@@ -196,6 +220,7 @@ export const requestRegister: RequestHandler[] = [
 		const fiveMins = Date.now() + 5 * 60 * 1000;
 
 		const newUser = new User({
+			username,
 			password: hashedPassword,
 			isAdmin: process.env.NODE_ENV === 'development',
 			expiresAfter: new Date(fiveMins),
