@@ -2,8 +2,8 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { Types } from 'mongoose';
 import { verify } from 'argon2';
+import { randomUUID } from 'node:crypto';
 
 import { Federated } from '../models/federated.js';
 import { User } from '../models/user.js';
@@ -50,20 +50,21 @@ passport.use(
 
 				const handleRegistration = async () => {
 					const newUser = new User({
-						username: profile.displayName,
+						username: `user-${randomUUID()}`,
 						isAdmin: process.env.NODE_ENV === 'development',
 					});
-					await newUser.save();
+
 					const newFederated = new Federated({
 						user: newUser.id,
 						provider: profile.provider,
 						subject: profile.id,
 					});
-					await newFederated.save();
+
+					await Promise.all([newUser.save(), newFederated.save()]);
 					done(null, { id: newUser.id });
 				};
 
-				federated?.user
+				federated
 					? done(null, {
 							id: federated.user.id,
 						})
@@ -96,20 +97,21 @@ passport.use(
 
 				const handleRegistration = async () => {
 					const newUser = new User({
-						username: profile.displayName,
+						username: `user-${randomUUID()}`,
 						isAdmin: process.env.NODE_ENV === 'development',
 					});
-					await newUser.save();
+
 					const newFederated = new Federated({
 						user: newUser.id,
 						provider: profile.provider,
 						subject: profile.id,
 					});
-					await newFederated.save();
+
+					await Promise.all([newUser.save(), newFederated.save()]);
 					done(null, { id: newUser.id });
 				};
 
-				federated?.user
+				federated
 					? done(null, {
 							id: federated.user.id,
 						})
