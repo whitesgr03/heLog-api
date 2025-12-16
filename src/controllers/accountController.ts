@@ -332,7 +332,7 @@ export const register: RequestHandler = asyncHandler(async (req, res) => {
 	}
 });
 
-export const requestVerifyCode: RequestHandler = asyncHandler(
+export const requestVerificationCode: RequestHandler = asyncHandler(
 	async (req, res) => {
 		const codeDoc = await Code.findOne({ email: req.body.email })
 			.populate<{ newUser: UserDocument }>('newUser')

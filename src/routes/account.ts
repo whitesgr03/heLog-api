@@ -20,7 +20,10 @@ accountRouter.post(
 accountRouter.post('/resetPassword', accountControllers.resetPassword);
 
 accountRouter.post('/verifyCode', accountControllers.verifyCode);
-accountRouter.post('/requestVerifyCode', accountControllers.requestVerifyCode);
+accountRouter.post(
+	'/requestVerificationCode',
+	accountControllers.requestVerificationCode,
+);
 
 accountRouter.get('/login/:federation', accountControllers.federatedLogin);
 accountRouter.get(
