@@ -64,23 +64,27 @@ export const federatedRedirect: RequestHandler = asyncHandler(
 export const userLogout: RequestHandler[] = [
 	authenticate,
 	validationCSRF,
-	(req, res) => {
-		req.session.destroy(() => {
-			res
-				.clearCookie(
-					process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
-					{ domain: process.env.DOMAIN ?? '' },
-				)
-				.clearCookie(
-					process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
-					{
-						domain: process.env.DOMAIN ?? '',
-					},
-				)
-				.json({
-					success: true,
-					message: 'User logout successfully.',
-				});
+	(req, res, next) => {
+		req.session.destroy(error => {
+			if (error) {
+				next(error);
+			} else {
+				res
+					.clearCookie(
+						process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
+						{ domain: process.env.DOMAIN ?? '' },
+					)
+					.clearCookie(
+						process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
+						{
+							domain: process.env.DOMAIN ?? '',
+						},
+					)
+					.json({
+						success: true,
+						message: 'User logout successfully.',
+					});
+			}
 		});
 	},
 ];
