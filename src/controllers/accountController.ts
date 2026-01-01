@@ -133,13 +133,16 @@ export const login: RequestHandler[] = [
 								maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
 							},
 						)
-						.redirect(process.env.HELOG_URL!);
+						.json({
+							success: true,
+							message: 'User login successfully',
+						});
 				});
 			} else {
-				res.status(400).json({
+				res.status(401).json({
 					success: false,
 					fields: {
-						email: 'The email address was incorrect.',
+						email: 'The email was incorrect.',
 						password: 'The password was incorrect.',
 					},
 				});
