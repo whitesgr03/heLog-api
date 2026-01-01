@@ -7,7 +7,6 @@ import { randomUUID } from 'node:crypto';
 
 import { Federated } from '../models/federated.js';
 import { User } from '../models/user.js';
-import { UserDocument } from '../models/user.js';
 
 passport.use(
 	new LocalStrategy(
@@ -42,11 +41,7 @@ passport.use(
 				const federated = await Federated.findOne({
 					provider: profile.provider,
 					subject: profile.id,
-				})
-					.populate<{ user: UserDocument }>('user', {
-						username: 1,
-					})
-					.exec();
+				}).exec();
 
 				const handleRegistration = async () => {
 					const newUser = new User({
@@ -66,7 +61,7 @@ passport.use(
 
 				federated
 					? done(null, {
-							id: federated.user.id,
+							id: federated.user,
 						})
 					: await handleRegistration();
 			} catch (error) {
@@ -89,11 +84,7 @@ passport.use(
 				const federated = await Federated.findOne({
 					provider: profile.provider,
 					subject: profile.id,
-				})
-					.populate<{ user: UserDocument }>('user', {
-						username: 1,
-					})
-					.exec();
+				}).exec();
 
 				const handleRegistration = async () => {
 					const newUser = new User({
@@ -113,7 +104,7 @@ passport.use(
 
 				federated
 					? done(null, {
-							id: federated.user.id,
+							id: federated.user,
 						})
 					: await handleRegistration();
 			} catch (error) {
