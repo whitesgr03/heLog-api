@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const userSchema = {
-	username: { type: String },
+	displayName: { type: String },
 	email: { type: String },
 	password: { type: String },
 	isAdmin: { type: Boolean, required: true, immutable: true },
