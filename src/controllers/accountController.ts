@@ -155,29 +155,29 @@ export const login: RequestHandler[] = [
 ];
 
 export const requestRegister: RequestHandler[] = [
-	body('username')
+	body('displayName')
 		.trim()
 		.notEmpty()
-		.withMessage('The username is required.')
+		.withMessage('The display name is required.')
 		.bail()
 		.isLength({ max: 30 })
-		.withMessage('The username length must be less then 30.')
+		.withMessage('The display name length must be less then 30.')
 		.bail()
 		.custom(value => value.match(/^[a-zA-Z]\w*$/))
 		.withMessage(
-			'The username must begin with alphabet and include alphanumeric or underscore.',
+			'The display name must begin with alphabet and include alphanumeric or underscore.',
 		)
 		.bail()
 		.custom(
 			async value =>
 				await new Promise(async (resolve, reject) => {
 					const existingUsername = await User.findOne({
-						username: value,
+						displayName: value,
 					}).exec();
 					existingUsername ? reject() : resolve(true);
 				}),
 		)
-		.withMessage('The username is been used.'),
+		.withMessage('The display name is been used.'),
 	body('email')
 		.trim()
 		.toLowerCase()
@@ -209,7 +209,7 @@ export const requestRegister: RequestHandler[] = [
 				throw rejected;
 			}
 		}
-		const { username, password, email } = req.data;
+		const { displayName, password, email } = req.data;
 
 		const code = randomInt(100000, 999999).toString();
 
