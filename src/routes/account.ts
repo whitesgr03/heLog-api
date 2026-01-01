@@ -15,7 +15,7 @@ accountRouter.post('/register', accountControllers.register);
 
 accountRouter.post(
 	'/requestResetPassword',
-	accountControllers.requestResetPassword,
+	accountControllers.requestResettingPassword,
 );
 accountRouter.post('/resetPassword', accountControllers.resetPassword);
 

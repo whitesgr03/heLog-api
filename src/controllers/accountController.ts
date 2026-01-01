@@ -154,7 +154,7 @@ export const login: RequestHandler[] = [
 	}),
 ];
 
-export const requestRegister: RequestHandler[] = [
+export const requestRegistration: RequestHandler[] = [
 	body('displayName')
 		.trim()
 		.notEmpty()
@@ -194,7 +194,7 @@ export const requestRegister: RequestHandler[] = [
 	validationScheme,
 	asyncHandler(async (req, res) => {
 		try {
-			await limiterRequestRegisterByIp.consume(req.ip as string);
+			await limiterRequestRegistrationByIp.consume(req.ip as string);
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res

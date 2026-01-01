@@ -17,7 +17,7 @@ export const limiterLoginFailsByEmail = new RateLimiterMongo({
 	blockDuration: 3 * 60 * 60,
 });
 
-export const limiterRequestRegisterByIp = new RateLimiterMongo({
+export const limiterRequestRegistrationByIp = new RateLimiterMongo({
 	keyPrefix: 'request_register_rate_limit_by_ip',
 	storeClient: mongoose.connection,
 	points: 3,
