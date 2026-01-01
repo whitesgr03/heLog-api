@@ -50,7 +50,7 @@ passport.use(
 
 				const handleRegistration = async () => {
 					const newUser = new User({
-						username: `user-${randomUUID()}`,
+						displayName: `user-${randomUUID()}`,
 						isAdmin: process.env.NODE_ENV === 'development',
 					});
 
@@ -97,7 +97,7 @@ passport.use(
 
 				const handleRegistration = async () => {
 					const newUser = new User({
-						username: `user-${randomUUID()}`,
+						displayName: `user-${randomUUID()}`,
 						isAdmin: process.env.NODE_ENV === 'development',
 					});
 

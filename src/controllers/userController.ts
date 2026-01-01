@@ -71,7 +71,7 @@ export const userPostDetail = [
 export const userDetail = [
 	asyncHandler(async (req, res) => {
 		const user = await User.findById(req.user!.id, {
-			username: 1,
+			displayName: 1,
 			isAdmin: 1,
 		}).exec();
 
