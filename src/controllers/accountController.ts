@@ -89,16 +89,8 @@ export const userLogout: RequestHandler[] = [
 	},
 ];
 export const login: RequestHandler[] = [
-	body('email')
-		.trim()
-		.toLowerCase()
-		.isEmail()
-		.withMessage('Please enter a valid email address.'),
-	body('password')
-		.isLength({ min: 8, max: 64 })
-		.withMessage(
-			'The password length must be greater then 8 and less then 64 characters.',
-		),
+	body('email').trim().notEmpty().withMessage('The email is required.'),
+	body('password').notEmpty().withMessage('The password is required.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { email } = req.data;
