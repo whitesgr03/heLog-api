@@ -65,12 +65,23 @@ export const userLogout: RequestHandler[] = [
 	authenticate,
 	validationCSRF,
 	(req, res) => {
-		req.session.destroy(() =>
-			res.set('Clear-Site-Data', ['cache', 'cookies', 'storage']).json({
-				success: true,
-				message: 'User logout successfully.',
-			}),
-		);
+		req.session.destroy(() => {
+			res
+				.clearCookie(
+					process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
+					{ domain: process.env.DOMAIN ?? '' },
+				)
+				.clearCookie(
+					process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
+					{
+						domain: process.env.DOMAIN ?? '',
+					},
+				)
+				.json({
+					success: true,
+					message: 'User logout successfully.',
+				});
+		});
 	},
 ];
 export const login: RequestHandler[] = [
