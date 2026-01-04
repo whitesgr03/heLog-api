@@ -211,106 +211,173 @@ export const requestRegistration: RequestHandler[] = [
 		}
 		const { displayName, password, email } = req.data;
 
-		const code = randomInt(100000, 999999).toString();
+		const user = await User.findOne({ email }).exec();
 
-		const hashedPassword = await hash(password, {
-			type: argon2id,
-			memoryCost: 47104,
-			timeCost: 1,
-			parallelism: 1,
-		});
+		let emailTemplate = null;
 
-		const hashedCode = await hash(code, {
-			type: argon2id,
-			memoryCost: 47104,
-			timeCost: 1,
-			parallelism: 1,
-		});
-
-		const fiveMins = Date.now() + 5 * 60 * 1000;
-
-		const newUser = new User({
-			username,
-			password: hashedPassword,
-			isAdmin: process.env.NODE_ENV === 'development',
-			expiresAfter: new Date(fiveMins),
-		});
-
-		const newCode = new Code({
-			newUser: newUser.id,
-			code: hashedCode,
-			email,
-			expiresAfter: new Date(fiveMins),
-		});
-
-		const codeDoc = await Code.findOne({ email }).exec();
-
-		if (codeDoc) {
-			await codeDoc.deleteOne().exec();
-			if (codeDoc.newUser) {
-				await User.findByIdAndDelete(codeDoc.newUser).exec();
-			}
-		}
-		await Promise.all([newUser.save(), newCode.save()]);
-
-		const { html } = mjml2html(
-			`
+		if (user) {
+			emailTemplate = mjml2html(
+				`
 		    <mjml>
-		      <mj-body>
-		        <mj-section background-color="#26ACA3">
-		          <mj-column>
-		            <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
-		              Helog Verification Code
-		            </mj-text>
-		          </mj-column>
-		        </mj-section>
+          <mj-body>
+            <mj-section background-color="#26ACA3">
+              <mj-column>
 
-		        <mj-section background-color="#F5F8FE">
-		          <mj-column>
-		            <mj-text>
-		              Dear Helog User,
-		            </mj-text>
-		            <mj-text>
-		              We received a request to verify your email address.
-		            </mj-text>
+                <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+                  Helog New Account registration
+                </mj-text>
 
-		            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
-		            <mj-text>
-		              Your Helog verification code is:
+              </mj-column>
+            </mj-section>
 
-		            </mj-text>
-		            <mj-text align="center" font-size="20px" letter-spacing="8px">
-		              ${code}
-		            </mj-text>
-		            <mj-text align="center" font-weight="bold">
-		              This code will expire in 5 minutes.
-		            </mj-text>
+            <mj-section background-color="#F5F8FE">
+              <mj-column>
 
-		            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+                <mj-text>
+                  Dear Helog User,
+                </mj-text>
 
-		            <mj-text>
-		              This is an automated email. If you received it by mistake, you don't need to do anything.
-		            </mj-text>
+                <mj-text>
+                  We received a request recently made to register for a new account with this email address, but there is already an active account associated with the email address.
+                </mj-text>
 
-		            <mj-text>
-		              If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-		            <mj-text>@ 2025 Helog</mj-text>
-		          </mj-column>
-		        </mj-section>
-		      </mj-body>
-		    </mjml>
+                <mj-text>
+                  You can log in with your password or if you forgot your password, you can reset your password.
+                </mj-text>
+
+                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+
+                <mj-text>
+                  This is an automated email. If you did not make this registration attempt, you can ignore or delete this email.
+                </mj-text>
+
+                <mj-text>
+                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+
+                <mj-text>@ 2025 Helog</mj-text>
+
+              </mj-column>
+            </mj-section>
+          </mj-body>
+        </mjml>
 		  `,
-		);
+			);
+		} else {
+			const token = randomBytes(32).toString('hex');
+
+			const hashedPassword = await hash(password, {
+				type: argon2id,
+				memoryCost: 47104,
+				timeCost: 1,
+				parallelism: 1,
+			});
+
+			const hashedToken = await hash(token, {
+				type: argon2id,
+				memoryCost: 47104,
+				timeCost: 1,
+				parallelism: 1,
+			});
+
+			const fiveMins = 5 * 60 * 1000;
+
+			const currentTime = Date.now();
+
+			const newUser = new User({
+				displayName,
+				password: hashedPassword,
+				isAdmin: process.env.NODE_ENV === 'development',
+				expiresAfter: new Date(currentTime + fiveMins),
+			});
+
+			const newToken = new Token({
+				user: newUser.id,
+				token: hashedToken,
+				email,
+				expiresAfter: new Date(currentTime + fiveMins),
+			});
+
+			const unusedToken = await Token.findOneAndDelete({ email }).exec();
+
+			if (unusedToken) {
+				await User.findByIdAndDelete(unusedToken.user).exec();
+			}
+
+			await Promise.all([newUser.save(), newToken.save()]);
+
+			const verificationUrl =
+				process.env.NODE_ENV === 'production'
+					? `https://account.helog.whitesgr03.me/account?identity=${newToken.id}&token=${token}`
+					: `http://localhost:8001/account?identity=${newToken.id}&token=${token}`;
+
+			emailTemplate = mjml2html(
+				`
+			  <mjml>
+			    <mj-body>
+			      <mj-section background-color="#26ACA3">
+			        <mj-column>
+
+			          <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+			            Helog New Account registration
+			          </mj-text>
+
+			        </mj-column>
+			      </mj-section>
+
+			      <mj-section background-color="#F5F8FE">
+			        <mj-column>
+
+			          <mj-text>
+			            Dear Helog User,
+			          </mj-text>
+
+			          <mj-text>
+			            We received a request to register for a new account with this email address.
+			          </mj-text>
+
+			          <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+
+			          <mj-text>
+			            Click link to verify your email address:
+
+			          </mj-text>
+
+			          <mj-button href="${verificationUrl}" target="_blank" font-family="Helvetica" background-color="#F45E43" color="white" title="${verificationUrl}">
+			            Verification Link
+			          </mj-button>
+
+			          <mj-text align="center" font-weight="bold">
+			            This link will expire in 5 minutes.
+			          </mj-text>
+
+			          <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+
+			          <mj-text>
+			            This is an automated email. If you did not make this registration, please do not click it and you can ignore or delete this email.
+			          </mj-text>
+
+			          <mj-text>
+			            If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+
+			          <mj-text>@ 2025 Helog</mj-text>
+
+			        </mj-column>
+			      </mj-section>
+			    </mj-body>
+			  </mjml>
+			`,
+			);
+		}
 
 		await sendEmail({
 			receiver: email,
-			subject: 'Account Verification',
-			html,
+			subject: 'Account registration',
+			html: emailTemplate.html,
 		});
 
 		res.json({
 			success: true,
-			message: 'The verification code is sending',
+			message: 'The verification token is sending',
 		});
 	}),
 ];
