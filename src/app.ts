@@ -80,6 +80,7 @@ const sessionOptions: SessionOptions = {
 	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the session.req is unmodified then will not be stored in the session store.
 	store: sessionStore.create({
 		client: mongoose.connection.getClient(),
+		stringify: false,
 	}),
 	name: process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
 	cookie: {
