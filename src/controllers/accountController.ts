@@ -24,6 +24,12 @@ import {
 } from '../utils/rateLimiter.js';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 
+declare module 'express-session' {
+	interface SessionData {
+		email: string;
+	}
+}
+
 export const federatedLogin: RequestHandler = (req, res, next) =>
 	passport.authenticate(req.params.federation)(req, res, next);
 
