@@ -381,25 +381,57 @@ export const requestRegistration: RequestHandler[] = [
 		});
 	}),
 ];
-export const register: RequestHandler = asyncHandler(async (req, res) => {
-	const codeDoc = await Code.findOne({ email: req.body.email })
-		.populate<{ newUser: UserDocument }>('newUser')
-		.exec();
+export const register: RequestHandler[] = [
+	asyncHandler(async (req, res) => {
+		const rateLimiterRes = await limiterRequestRegistrationByIp.get(
+			req.ip as string,
+		);
 
-	if (codeDoc?.verify) {
-		if (!(await User.findOne({ email: req.body.email }).exec())) {
-			await codeDoc.newUser.updateOne({
-				email: codeDoc.email,
-				$unset: { expiresAfter: '' },
+		if (!rateLimiterRes) {
+			res.status(428).json({
+				success: false,
+				message: 'You have not applied to register an account.',
 			});
-			await codeDoc.deleteOne().exec();
-			res.json({
-				success: true,
-				message: 'Account valid is successfully.',
+			return;
+		}
+
+		if (rateLimiterRes.remainingPoints <= 0) {
+			res
+				.status(429)
+				.set('Retry-After', rateLimiterRes.msBeforeNext.toString())
+				.json({
+					success: false,
+					message: 'You have registered too many times',
+				});
+			return;
+		}
+
+		const tokenDoc =
+			mongoose.isValidObjectId(req.body.tokenId) &&
+			(await Token.findById(req.body.tokenId).exec());
+
+		if (
+			!tokenDoc ||
+			!(await verify(tokenDoc.token as string, req.body.token))
+		) {
+			res.status(401).json({
+				success: false,
+				message: 'Token is invalid.',
 			});
-		} else {
-			await Promise.all([codeDoc.deleteOne(), codeDoc.newUser.deleteOne()]);
-			res.status(400).json({
+			return;
+		}
+
+		await User.findByIdAndUpdate(tokenDoc.user, {
+			email: tokenDoc.email,
+			$unset: { expiresAfter: '' },
+		});
+
+		res.json({
+			success: true,
+			message: 'Account registration is successfully.',
+		});
+	}),
+];
 				success: false,
 				message: 'Account has already been registered.',
 			});
