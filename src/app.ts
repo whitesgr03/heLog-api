@@ -71,6 +71,7 @@ const corsOptions = {
 	methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 	credentials: true,
 	allowedHeaders: ['Content-Type', 'X-CSRF-TOKEN'],
+	exposedHeaders: ['Retry-After', 'Expire-After'],
 	maxAge: 10,
 };
 const sessionOptions: SessionOptions = {
