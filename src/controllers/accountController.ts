@@ -557,17 +557,108 @@ export const requestVerificationCode: RequestHandler[] = [
 		});
 	}),
 ];
+export const verifyCode: RequestHandler[] = [
+	body('email')
+		.trim()
+		.toLowerCase()
+		.isEmail()
+		.withMessage('The email address must be in the correct format.'),
+	body('code')
+		.trim()
+		.isNumeric()
+		.withMessage('The code must be numeric.')
+		.bail()
+		.isLength({
+			min: 6,
+			max: 6,
+		})
+		.withMessage('The code must be 6 length long.'),
+	validationScheme,
+	asyncHandler(async (req, res) => {
+		const { email } = req.data;
+
+		const rateLimiterRes =
+			await limiterRequestResettingPasswordByEmail.get(email);
+
+		if (!rateLimiterRes) {
+			res.status(428).json({
+				success: false,
+				message: 'You have not applied to reset password.',
+			});
+			return;
+		}
+
+		if (rateLimiterRes.remainingPoints <= 0) {
+			res
+				.status(429)
+				.set('Retry-After', rateLimiterRes.msBeforeNext.toString())
+				.json({
+					success: false,
+					message: 'You have reset password too many times',
+				});
+			return;
+		}
+
+		try {
+			await limiterVerifyCodeByEmail.consume(email);
+		} catch (rejected) {
+			if (rejected instanceof RateLimiterRes) {
+				res.status(401).json({
+					success: false,
+					message: 'Code is invalid.',
+				});
+				return;
+			} else {
+				throw rejected;
+			}
+		}
+
+		const codeDoc = await Code.findOne({ email }).exec();
+
+		if (!codeDoc) {
+			await limiterVerifyCodeByEmail.block(email, 0);
+			res.status(401).json({
 				success: false,
 				message: 'Code is invalid.',
-				data: { failCount: codeDoc.failCount },
 			});
+			return;
 		}
-	} else {
+
+		if (!(await verify(codeDoc.code as string, req.body.code))) {
+			res.status(401).json({
+				success: false,
+				message: 'Code is invalid.',
+			});
+			return;
+		}
+
+		const fifteenMins = 15 * 60 * 1000;
+
+		req.session.cookie.maxAge = fifteenMins;
+		req.session.email = email;
+
+		await codeDoc.deleteOne();
+
 		res
-			.status(400)
-			.json({ success: false, message: 'Code could not be found.' });
-	}
-});
+			.set('Expire-After', fifteenMins.toString())
+			.set('Cache-Control', 'no-cache=Set-Cookie') // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
+			.cookie(
+				process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
+				generateCSRFToken(req.sessionID),
+				{
+					sameSite: 'strict',
+					httpOnly: false, // Front-end need to access __Secure-token cookie
+					secure: process.env.NODE_ENV === 'production',
+					domain: process.env.DOMAIN ?? '',
+					maxAge: fifteenMins,
+				},
+			)
+			.json({
+				success: true,
+				message: 'Verify code is successfully',
+			});
+	}),
+];
 
 export const requestResetPassword: RequestHandler[] = [
 	body('email')
