@@ -457,7 +457,6 @@ export const requestVerificationCode: RequestHandler[] = [
 		if (!rateLimiterRes) {
 			res.status(428).json({
 				success: false,
-        
 				message: 'You have not applied to reset password.',
 			});
 			return;
@@ -825,32 +824,69 @@ export const requestResettingPassword: RequestHandler[] = [
 	}),
 ];
 export const resetPassword: RequestHandler[] = [
+	(req, res, next) => {
+		if (req.session.email) {
+			next();
+		} else {
+			res.status(401).json({
+				success: false,
+				message: 'The credential is invalid.',
+			});
+		}
+	},
+	validationCSRF,
 	body('password')
 		.isLength({ min: 8, max: 64 })
 		.withMessage(
 			'The password length must be greater than 8 characters or you can use passphrases less than 64 characters.',
 		),
-	body('confirmPassword')
-		.custom((value, { req }) => value === req.body.password)
-		.withMessage('The confirmation password is not the same as the password.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
-		const codeDoc = await Code.findOne({ email: req.body.email }).exec();
-		if (codeDoc?.verify) {
-			const user = await User.findOne({ email: req.body.email }).exec();
-			if (user) {
-				const hashedPassword = await hash(req.data.password, {
-					type: argon2id,
-					memoryCost: 47104,
-					timeCost: 1,
-					parallelism: 1,
+	asyncHandler(async (req, res, next) => {
+		const { email } = req.session;
+		const rateLimiterRes = await limiterRequestResettingPasswordByEmail.get(
+			email as string,
+		);
+
+		if (!rateLimiterRes) {
+			res.status(428).json({
+				success: false,
+				message: 'You have not applied to reset password.',
+			});
+			return;
+		}
+
+		if (rateLimiterRes.remainingPoints <= 0) {
+			res
+				.status(429)
+				.set('Retry-After', rateLimiterRes.msBeforeNext.toString())
+				.json({
+					success: false,
+					message: 'You have reset password too many times',
 				});
-				user.password = hashedPassword;
+			return;
+		}
 
-				await Promise.all([user.save(), codeDoc.deleteOne()]);
+		const hashedPassword = await hash(req.data.password, {
+			type: argon2id,
+			memoryCost: 47104,
+			timeCost: 1,
+			parallelism: 1,
+		});
+		const user = await User.findOneAndUpdate(
+			{ email },
+			{
+				password: hashedPassword,
+			},
+		);
 
-				await limiterRequestResetPasswordByEmail.delete(req.body.email);
+		if (!user) {
+			throw new Error('User is not found.');
+		}
 
+		req.session.destroy(async error => {
+			if (error) {
+				next(error);
+			} else {
 				const emailTemplate = mjml2html(
 					`
 				  <mjml>
@@ -893,25 +929,35 @@ export const resetPassword: RequestHandler[] = [
 				`,
 				);
 
-				await sendEmail({
-					receiver: req.body.email,
-					subject: 'Your Password has been reset',
-					html: emailTemplate.html,
-				});
+				const Sessions = await mongoose.connection.collection('sessions');
 
-				res.json({
-					success: true,
-					message: 'Resetting user password is successfully',
-				});
-			} else {
-				await codeDoc.deleteOne();
-				res.status(400).json({
-					success: false,
-					message: 'This account has not been registered.',
-				});
+				await Promise.all([
+					Sessions.deleteMany({
+						'session.passport.user.id': user.id,
+					}),
+					sendEmail({
+						receiver: user.email as string,
+						subject: 'Your password has been reset',
+						html: emailTemplate.html,
+					}),
+				]);
+
+				res
+					.clearCookie(
+						process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
+						{ domain: process.env.DOMAIN ?? '' },
+					)
+					.clearCookie(
+						process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
+						{
+							domain: process.env.DOMAIN ?? '',
+						},
+					)
+					.json({
+						success: true,
+						message: 'Resetting user password is successfully',
+					});
 			}
-		} else {
-			res.status(400).json({ success: false, message: 'Code is invalid.' });
-		}
+		});
 	}),
 ];
