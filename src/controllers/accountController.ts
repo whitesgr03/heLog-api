@@ -3,8 +3,9 @@ import asyncHandler from 'express-async-handler';
 import passport, { AuthenticateCallback } from 'passport';
 import { body } from 'express-validator';
 import { hash, verify, argon2id } from 'argon2';
-import { randomInt } from 'node:crypto';
+import { randomInt, randomBytes } from 'node:crypto';
 import mjml2html from 'mjml';
+import mongoose from 'mongoose';
 
 import { authenticate } from '../middlewares/authenticate.js';
 import { validationCSRF } from '../middlewares/validationCSRF.js';
@@ -12,6 +13,7 @@ import { validationScheme } from '../middlewares/validationScheme.js';
 import { generateCSRFToken } from '../utils/generateCSRFToken.js';
 import { User, UserDocument } from '../models/user.js';
 import { Code } from '../models/code.js';
+import { Token } from '../models/token.js';
 
 import { sendEmail } from '../utils/sendEmail.js';
 import {
