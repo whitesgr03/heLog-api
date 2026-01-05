@@ -25,15 +25,15 @@ export const limiterRequestRegistrationByIp = new RateLimiterMongo({
 	blockDuration: 24 * 60 * 60,
 });
 
-export const limiterRequestVerifyCodeByEmail = new RateLimiterMongo({
-	keyPrefix: 'request_verify_code_rate_limit_by_email',
+export const limiterVerifyCodeByEmail = new RateLimiterMongo({
+	keyPrefix: 'verify_code_rate_limit_by_email',
 	storeClient: mongoose.connection,
 	points: 5,
 	duration: 5 * 60,
 	blockDuration: 10 * 60,
 });
 
-export const limiterRequestResetPasswordByEmail = new RateLimiterMongo({
+export const limiterRequestResettingPasswordByEmail = new RateLimiterMongo({
 	keyPrefix: 'request_reset_password_rate_limit_by_email',
 	storeClient: mongoose.connection,
 	points: 10,

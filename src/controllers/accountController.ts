@@ -18,9 +18,9 @@ import { Token } from '../models/token.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import {
 	limiterLoginFailsByEmail,
-	limiterRequestRegisterByIp,
-	limiterRequestResetPasswordByEmail,
-	limiterRequestVerifyCodeByEmail,
+	limiterRequestRegistrationByIp,
+	limiterRequestResettingPasswordByEmail,
+	limiterVerifyCodeByEmail,
 } from '../utils/rateLimiter.js';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 
