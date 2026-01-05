@@ -10,7 +10,7 @@ accountRouter.post('/logout', accountControllers.userLogout);
 accountRouter.use(isLogin);
 
 accountRouter.post('/login', accountControllers.login);
-accountRouter.post('/requestRegister', accountControllers.requestRegister);
+accountRouter.post('/requestRegister', accountControllers.requestRegistration);
 accountRouter.post('/register', accountControllers.register);
 
 accountRouter.post(
