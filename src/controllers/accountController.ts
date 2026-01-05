@@ -668,7 +668,7 @@ export const verifyCode: RequestHandler[] = [
 	}),
 ];
 
-export const requestResetPassword: RequestHandler[] = [
+export const requestResettingPassword: RequestHandler[] = [
 	body('email')
 		.trim()
 		.toLowerCase()
@@ -679,7 +679,7 @@ export const requestResetPassword: RequestHandler[] = [
 		const { email } = req.data;
 
 		try {
-			await limiterRequestResetPasswordByEmail.consume(email as string);
+			await limiterRequestResettingPasswordByEmail.consume(email);
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -687,86 +687,134 @@ export const requestResetPassword: RequestHandler[] = [
 					.set('Retry-After', rejected.msBeforeNext.toString())
 					.json({
 						success: false,
-						message: 'You have registered too many times',
+						message: 'You have reset password too many times',
 					});
-				return;
 			} else {
 				throw rejected;
 			}
 		}
 
-		const code = randomInt(100000, 999999).toString();
+		const user = await User.findOne({ email }).exec();
 
-		const hashedCode = await hash(code, {
-			type: argon2id,
-			memoryCost: 47104,
-			timeCost: 1,
-			parallelism: 1,
-		});
+		let emailTemplate = null;
 
-		const fiveMins = Date.now() + 5 * 60 * 1000;
+		if (user) {
+			const code = randomInt(100000, 999999).toString();
 
-		const newCode = new Code({
-			code: hashedCode,
-			email,
-			expiresAfter: new Date(fiveMins),
-		});
+			const hashedCode = await hash(code, {
+				type: argon2id,
+				memoryCost: 47104,
+				timeCost: 1,
+				parallelism: 1,
+			});
 
-		await Code.findOneAndDelete({ email }).exec();
-		await newCode.save();
+			const fiveMins = 5 * 60 * 1000;
+			await Promise.all([
+				Code.replaceOne(
+					{ email },
+					{
+						user: user.id,
+						code: hashedCode,
+						email,
+						expiresAfter: new Date(Date.now() + fiveMins),
+					},
+					{ upsert: true },
+				),
+				limiterVerifyCodeByEmail.delete(email),
+			]);
 
-		const emailTemplate = mjml2html(
-			`
-		        <mjml>
-		          <mj-body>
-		            <mj-section background-color="#26ACA3">
-		              <mj-column>
-		                <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
-		                  Helog Verification Code
-		                </mj-text>
-		              </mj-column>
-		            </mj-section>
+			emailTemplate = mjml2html(
+				`
+			        <mjml>
+			          <mj-body>
+			            <mj-section background-color="#26ACA3">
+			              <mj-column>
+			                <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+			                  Helog Verification Code
+			                </mj-text>
+			              </mj-column>
+			            </mj-section>
 
-		            <mj-section background-color="#F5F8FE">
-		              <mj-column>
-		                <mj-text>
-		                  Dear Helog User,
-		                </mj-text>
-		                <mj-text>
-		                  We received a request to reset your password.
-		                </mj-text>
+			            <mj-section background-color="#F5F8FE">
+			              <mj-column>
+			                <mj-text>
+			                  Dear Helog User,
+			                </mj-text>
+			                <mj-text>
+			                  We received a request to reset your password.
+			                </mj-text>
 
-		                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
-		                <mj-text>
-		                  Your Helog verification code is:
+			                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+			                <mj-text>
+			                  Your Helog verification code is:
 
-		                </mj-text>
-		                <mj-text align="center" font-size="20px" letter-spacing="8px">
-                      ${code}
-                    </mj-text>
-		                <mj-text align="center" font-weight="bold">
-		                  This code will expire in 5 minutes.
-		                </mj-text>
+			                </mj-text>
+			                <mj-text align="center" font-size="20px" letter-spacing="8px">
+			                  ${code}
+			                </mj-text>
+			                <mj-text align="center" font-weight="bold">
+			                  This code will expire in 5 minutes.
+			                </mj-text>
 
-		                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+			                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
 
-		                <mj-text>
-		                  This is an automated email. If you received it by mistake, you don't need to do anything.
-		                </mj-text>
+			                <mj-text>
+			                  This is an automated email. If you received it by mistake, you don't need to do anything.
+			                </mj-text>
 
-		                <mj-text>
-		                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-		                <mj-text>@ 2025 Helog</mj-text>
-		              </mj-column>
-		            </mj-section>
-		          </mj-body>
-		        </mjml>
-		      `,
-		);
+			                <mj-text>
+			                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+			                <mj-text>@ 2025 Helog</mj-text>
+			              </mj-column>
+			            </mj-section>
+			          </mj-body>
+			        </mjml>
+			      `,
+			);
+
+			res.set('Expire-After', fiveMins.toString());
+		} else {
+			emailTemplate = mjml2html(
+				`
+			        <mjml>
+			          <mj-body>
+			            <mj-section background-color="#26ACA3">
+			              <mj-column>
+			                <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+			                  Helog Verification Code
+			                </mj-text>
+			              </mj-column>
+			            </mj-section>
+
+			            <mj-section background-color="#F5F8FE">
+			              <mj-column>
+			                <mj-text>
+			                  Dear Helog User,
+			                </mj-text>
+			                <mj-text>
+		                    We received a request recently made to reset your password with this email address, but there is no active account associated with the email address.
+			                </mj-text>
+
+			                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+
+			                <mj-text>
+			                  This is an automated email. If you received it by mistake, you don't need to do anything.
+			                </mj-text>
+
+			                <mj-text>
+			                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+			                <mj-text>@ 2025 Helog</mj-text>
+			              </mj-column>
+			            </mj-section>
+			          </mj-body>
+			        </mjml>
+			      `,
+			);
+		}
 
 		await sendEmail({
 			receiver: email,
-			subject: 'Password Reset',
+			subject: 'Password reset request',
 			html: emailTemplate.html,
 		});
 
