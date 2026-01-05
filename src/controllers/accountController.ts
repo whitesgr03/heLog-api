@@ -432,161 +432,131 @@ export const register: RequestHandler[] = [
 		});
 	}),
 ];
+
+export const requestVerificationCode: RequestHandler[] = [
+	body('email')
+		.trim()
+		.toLowerCase()
+		.isEmail()
+		.withMessage('The email address must be in the correct format.'),
+	validationScheme,
+	asyncHandler(async (req, res) => {
+		const { email } = req.data;
+		const rateLimiterRes = await limiterRequestResettingPasswordByEmail.get(
+			email as string,
+		);
+
+		if (!rateLimiterRes) {
+			res.status(428).json({
 				success: false,
-				message: 'Account has already been registered.',
+        
+				message: 'You have not applied to reset password.',
 			});
+			return;
 		}
-	} else {
-		res.status(400).json({ success: false, message: 'Code is invalid.' });
-	}
-});
 
-export const requestVerificationCode: RequestHandler = asyncHandler(
-	async (req, res) => {
-		const codeDoc = await Code.findOne({ email: req.body.email })
-			.populate<{ newUser: UserDocument }>('newUser')
-			.exec();
-
-		if (codeDoc) {
-			try {
-				await limiterRequestVerifyCodeByEmail.consume(req.body.email as string);
-			} catch (rejected) {
-				if (rejected instanceof RateLimiterRes) {
-					res
-						.status(429)
-						.set('Retry-After', rejected.msBeforeNext.toString())
-						.json({
-							success: false,
-							message: 'Too many requests',
-						});
-					return;
-				} else {
-					throw rejected;
-				}
-			}
-
-			const newCode = randomInt(100000, 999999).toString();
-
-			const hashedCode = await hash(newCode, {
-				type: argon2id,
-				memoryCost: 47104,
-				timeCost: 1,
-				parallelism: 1,
-			});
-
-			const fiveMins = Date.now() + 5 * 60 * 1000;
-
-			codeDoc.code = hashedCode;
-			codeDoc.expiresAfter = new Date(fiveMins);
-
-			await codeDoc.save();
-
-			if (codeDoc.newUser) {
-				codeDoc.newUser.expiresAfter = new Date(fiveMins);
-				await codeDoc.newUser.save();
-			}
-
-			const emailTemplate = mjml2html(
-				`
-			    <mjml>
-			      <mj-body>
-			        <mj-section background-color="#26ACA3">
-			          <mj-column>
-			            <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
-			              Helog Verification Code
-			            </mj-text>
-			          </mj-column>
-			        </mj-section>
-
-			        <mj-section background-color="#F5F8FE">
-			          <mj-column>
-			            <mj-text>
-			              Dear Helog User,
-			            </mj-text>
-			            <mj-text>
-			            We received a request to
-			            ${
-										codeDoc.newUser
-											? 'verify your email address.'
-											: 'reset your password.'
-									}
-			            </mj-text>
-
-			            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
-			            <mj-text>
-			              Your Helog verification code is:
-
-			            </mj-text>
-                  <mj-text align="center" font-size="20px" letter-spacing="8px">
-                    ${newCode}
-                  </mj-text>
-			            <mj-text align="center" font-weight="bold">
-			              This code will expire in 5 minutes.
-			            </mj-text>
-
-			            <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
-
-			            <mj-text>
-			              This is an automated email. If you received it by mistake, you don't need to do anything.
-			            </mj-text>
-
-			            <mj-text>
-			              If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-			            <mj-text>@ 2025 Helog</mj-text>
-			          </mj-column>
-			        </mj-section>
-			      </mj-body>
-			    </mjml>
-			  `,
-			);
-
-			await sendEmail({
-				receiver: req.body.email,
-				subject: codeDoc.newUser ? 'Account Verification' : 'Password Reset',
-				html: emailTemplate.html,
-			});
-
-			res.json({
-				success: true,
-				message: 'The verification code is sending',
-			});
-		} else {
-			res
-				.status(400)
-				.json({ success: false, message: 'Code could not be found.' });
-		}
-	},
-);
-export const verifyCode: RequestHandler = asyncHandler(async (req, res) => {
-	const codeDoc = await Code.findOne({ email: req.body.email }).exec();
-
-	if (codeDoc?.verify === false) {
-		if (await verify(codeDoc.code as string, req.body.code)) {
-			await limiterRequestVerifyCodeByEmail.delete(req.body.email as string);
-
-			codeDoc.verify = true;
-
-			if (!codeDoc.newUser) {
-				const tenMins = Date.now() + 10 * 60 * 1000;
-				codeDoc.expiresAfter = new Date(tenMins);
-			}
-
-			await codeDoc.save();
-
-			res.json({ success: true, message: 'Verify Code is successfully' });
-		} else {
-			codeDoc.failCount = codeDoc.failCount + 1;
-
-			if (codeDoc.failCount === 3) {
-				await codeDoc.deleteOne().exec();
-				if (codeDoc.newUser) {
-					await User.findByIdAndDelete(codeDoc.newUser).exec();
-				}
+		try {
+			await limiterRequestResettingPasswordByEmail.consume(email);
+		} catch (rejected) {
+			if (rejected instanceof RateLimiterRes) {
+				res
+					.status(429)
+					.set('Retry-After', rejected.msBeforeNext.toString())
+					.json({
+						success: false,
+						message: 'You have resend code too many times',
+					});
 			} else {
-				await codeDoc.save();
+				throw rejected;
 			}
+		}
 
-			res.status(400).json({
+		const newCode = randomInt(100000, 999999).toString();
+		const fiveMins = Date.now() + 5 * 60 * 1000;
+
+		const hashedCode = await hash(newCode, {
+			type: argon2id,
+			memoryCost: 47104,
+			timeCost: 1,
+			parallelism: 1,
+		});
+
+		const codeDoc = await Code.findOneAndUpdate(
+			{ email: email },
+			{ code: hashedCode, expiresAfter: new Date(fiveMins) },
+		).exec();
+
+		if (!codeDoc) {
+			res.status(401).json({
+				success: false,
+				message: 'The verification code is expired',
+			});
+			return;
+		}
+
+		const emailTemplate = mjml2html(
+			`
+			        <mjml>
+			          <mj-body>
+			            <mj-section background-color="#26ACA3">
+			              <mj-column>
+			                <mj-text font-style="italic" font-size="20px" font-family="Helvetica Neue" color="#ffffff">
+			                  Helog Verification Code
+			                </mj-text>
+			              </mj-column>
+			            </mj-section>
+
+			            <mj-section background-color="#F5F8FE">
+			              <mj-column>
+			                <mj-text>
+			                  Dear Helog User,
+			                </mj-text>
+			                <mj-text>
+			                  We received a request to reset your password.
+			                </mj-text>
+
+			                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+			                <mj-text>
+			                  Your Helog verification code is:
+
+			                </mj-text>
+			                <mj-text align="center" font-size="20px" letter-spacing="8px">
+			                  ${newCode}
+			                </mj-text>
+			                <mj-text align="center" font-weight="bold">
+			                  This code will expire in 5 minutes.
+			                </mj-text>
+
+			                <mj-divider border-width="1px" border-style="solid" border-color="lightgrey" />
+
+			                <mj-text>
+			                  This is an automated email. If you received it by mistake, you don't need to do anything.
+			                </mj-text>
+
+			                <mj-text>
+			                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
+			                <mj-text>@ 2025 Helog</mj-text>
+			              </mj-column>
+			            </mj-section>
+			          </mj-body>
+			        </mjml>
+			      `,
+		);
+		await Promise.all([
+			sendEmail({
+				receiver: email,
+				subject: 'Information regarding your password reset request',
+				html: emailTemplate.html,
+			}),
+			limiterVerifyCodeByEmail.delete(email),
+		]);
+
+		res.json({
+			success: true,
+			message: 'The verification code is sending',
+		});
+	}),
+];
 				success: false,
 				message: 'Code is invalid.',
 				data: { failCount: codeDoc.failCount },
