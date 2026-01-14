@@ -37,15 +37,11 @@ app.post('/login', (req, res, next) => {
 		password: ' ',
 	};
 	passport.authenticate('local', (_err: any, user: Express.User) => {
-		user
-			? req.login(user, () => {
-					res.send({
-						token: generateCSRFToken(req.sessionID),
-					});
-				})
-			: res.status(404).send({
-					message: 'The user is not found.',
-				});
+		req.login(user, () =>
+			res.send({
+				token: generateCSRFToken(req.sessionID),
+			}),
+		);
 	})(req, res, next);
 });
 
