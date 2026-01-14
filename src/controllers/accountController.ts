@@ -463,6 +463,7 @@ export const requestVerificationCode: RequestHandler[] = [
 						success: false,
 						message: 'You have resend code too many times',
 					});
+				return;
 			} else {
 				throw rejected;
 			}
@@ -678,6 +679,7 @@ export const requestResettingPassword: RequestHandler[] = [
 						success: false,
 						message: 'You have reset password too many times',
 					});
+				return;
 			} else {
 				throw rejected;
 			}
