@@ -871,7 +871,11 @@ export const resetPassword: RequestHandler[] = [
 		);
 
 		if (!user) {
-			throw new Error('User is not found.');
+			res.status(401).json({
+				success: false,
+				message: 'Session is expired.',
+			});
+			return;
 		}
 
 		req.session.destroy(async error => {
