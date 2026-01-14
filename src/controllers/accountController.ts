@@ -704,7 +704,6 @@ export const requestResettingPassword: RequestHandler[] = [
 				Code.replaceOne(
 					{ email },
 					{
-						user: user.id,
 						code: hashedCode,
 						email,
 						expiresAfter: new Date(Date.now() + fiveMins),
