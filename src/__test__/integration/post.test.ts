@@ -130,7 +130,7 @@ describe('Post paths', () => {
 			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
-			await agent.post(`/login`).send({ username: user.username });
+			await agent.post(`/login`).send({ email: user.email });
 
 			const { status, body } = await agent.post(`/posts`);
 
@@ -145,7 +145,7 @@ describe('Post paths', () => {
 
 			const agent = request.agent(app);
 
-			await agent.post(`/login`).send({ username: user.username });
+			await agent.post(`/login`).send({ email: user.email });
 
 			const { status, body } = await agent
 				.post(`/posts`)
@@ -160,13 +160,12 @@ describe('Post paths', () => {
 	});
 	describe('POST /posts', () => {
 		it(`should respond with a 400 status code and an error field message, if the length of title value is greater then 100`, async () => {
-			// const user = (await User.findOne().exec()) as UserDocument;
 			const user = (await User.findOne().exec()) as UserDocument;
 			const agent = request.agent(app);
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -185,7 +184,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -210,7 +209,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -244,7 +243,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -276,7 +275,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -306,7 +305,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -330,7 +329,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -360,7 +359,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -396,7 +395,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: secondUser.username });
+				.send({ email: secondUser.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -439,7 +438,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -479,7 +478,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -508,7 +507,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -534,7 +533,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: secondUser.username });
+				.send({ email: secondUser.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -554,7 +553,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -586,7 +585,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
@@ -621,7 +620,7 @@ describe('Post paths', () => {
 
 			const loginResponse = await agent
 				.post(`/login`)
-				.send({ username: user.username });
+				.send({ email: user.email });
 
 			const [token, value] = loginResponse.body.token.split('.');
 
