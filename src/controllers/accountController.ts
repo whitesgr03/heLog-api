@@ -305,12 +305,6 @@ export const requestRegistration: RequestHandler[] = [
 				expiresAfter: new Date(currentTime + fiveMins),
 			});
 
-			const unusedToken = await Token.findOneAndDelete({ email }).exec();
-
-			if (unusedToken) {
-				await User.findByIdAndDelete(unusedToken.user).exec();
-			}
-
 			await Promise.all([newUser.save(), newToken.save()]);
 
 			const verificationUrl =
