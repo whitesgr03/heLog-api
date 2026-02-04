@@ -1,5 +1,5 @@
-import { RequestHandler } from "express";
-import { validationResult, matchedData } from "express-validator";
+import { RequestHandler } from 'express';
+import { validationResult, matchedData } from 'express-validator';
 
 export const validationScheme: RequestHandler = (req, res, next) => {
 	const schemaErrors = validationResult(req);
@@ -11,8 +11,8 @@ export const validationScheme: RequestHandler = (req, res, next) => {
 			success: false,
 			fields: Object.keys(errors).reduce(
 				(obj: any, error: any) =>
-					Object.assign(obj, { [error]: errors[error]["msg"] }),
-				{}
+					Object.assign(obj, { [error]: errors[error]['msg'] }),
+				{},
 			),
 		});
 	};
