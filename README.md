@@ -18,6 +18,8 @@ Frontend Repositories:
 
 2. [Mongoose](https://mongoosejs.com/) to build all data models and perform CRUD operations of account, user and post.
 
+3. [Typescript](https://www.typescriptlang.org/) used to save considerable amounts time in validating that project have not accidentally broken.
+
 ## Additional info:
 
 -   This project consists of a backend for API and two different front-ends for accessing and editing blog posts.
@@ -38,6 +40,8 @@ GET /account/login/facebook
 GET /account/oauth2/redirect/facebook
 
 POST /account/logout
+
+GET /account/login
 ```
 
 **Blog Resource**
@@ -79,6 +83,8 @@ DELETE /blog/replies/:replyId
 
 ```
 GET /user/posts
+
+GET /posts/:postId
 
 GET /user
 

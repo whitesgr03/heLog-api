@@ -1,0 +1,4 @@
+{
+	"extends": "./tsconfig.json",
+	"exclude": ["**/delete*", "**/__test__"]
+}

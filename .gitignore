@@ -17,7 +17,7 @@ dist-ssr
 *commitlint*
 *husky*
 *example*
-*env*
+*.env*
 
 # Editor directories and files
 .vscode/*
