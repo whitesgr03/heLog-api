@@ -1,61 +1,74 @@
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as FacebookStrategy } from "passport-facebook";
-import { Types } from "mongoose";
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { verify } from 'argon2';
+import { randomUUID } from 'node:crypto';
 
-import { User } from "../models/user.js";
+import { Federated } from '../models/federated.js';
+import { User } from '../models/user.js';
 
-declare global {
-	namespace Express {
-		interface User {
-			id: Types.ObjectId;
-		}
-	}
-}
+passport.use(
+	new LocalStrategy(
+		{
+			usernameField: 'email',
+		},
+		async (email, password, done) => {
+			try {
+				const user = await User.findOne({ email });
 
+				if (user && (await verify(user.password as string, password))) {
+					return done(null, { id: user.id });
+				}
+
+				done(null, false);
+			} catch (error) {
+				done(error);
+			}
+		},
+	),
+);
 passport.use(
 	new GoogleStrategy(
 		{
 			clientID: process.env.GOOGLE_CLIENT_ID!,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
-			scope: ["email"],
+			scope: ['profile'],
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
-			const userEmail =
-				Array.isArray(profile.emails) && profile.emails[0].value;
+			try {
+				const federated = await Federated.findOne({
+					provider: profile.provider,
+					subject: profile.id,
+				}).exec();
 
-			const user = await User.findOne({
-				email: userEmail,
-			}).exec();
+				const handleRegistration = async () => {
+					const newUser = new User({
+						username: `user-${randomUUID()}`,
+						isAdmin: process.env.NODE_ENV === 'development',
+					});
 
-			const handleRegistration = async () => {
-				const newUser = new User({
-					email: userEmail,
-					provider: ["google"],
-					isAdmin: process.env.NODE_ENV === "development",
-				});
+					const newFederated = new Federated({
+						user: newUser.id,
+						provider: profile.provider,
+						subject: profile.id,
+					});
 
-				newUser.username = `User-${String(newUser._id).slice(-5)}`;
+					await Promise.all([newUser.save(), newFederated.save()]);
+					done(null, { id: newUser.id });
+				};
 
-				await newUser.save();
-
-				done(null, { id: newUser.id });
-			};
-
-			const handleUpdate = async () => {
-				user?.provider.push("google");
-				await user?.save();
-				done(null, { id: user?.id });
-			};
-
-			user
-				? user.provider.includes("google")
-					? done(null, { id: user.id })
-					: await handleUpdate()
-				: await handleRegistration();
-		}
-	)
+				federated
+					? done(null, {
+							id: federated.user,
+						})
+					: await handleRegistration();
+			} catch (error) {
+				done(error);
+			}
+		},
+	),
 );
 passport.use(
 	new FacebookStrategy(
@@ -63,44 +76,42 @@ passport.use(
 			clientID: process.env.FACEBOOK_CLIENT_ID!,
 			clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/facebook`,
-			profileFields: ["email"],
+			profileFields: ['id', 'displayName'],
 			enableProof: true,
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
-			const userEmail =
-				Array.isArray(profile.emails) && profile.emails[0].value;
+			try {
+				const federated = await Federated.findOne({
+					provider: profile.provider,
+					subject: profile.id,
+				}).exec();
 
-			const user = await User.findOne({
-				email: userEmail,
-			}).exec();
+				const handleRegistration = async () => {
+					const newUser = new User({
+						username: `user-${randomUUID()}`,
+						isAdmin: process.env.NODE_ENV === 'development',
+					});
 
-			const handleRegistration = async () => {
-				const newUser = new User({
-					email: userEmail,
-					provider: ["facebook"],
-					isAdmin: process.env.NODE_ENV === "development",
-				});
+					const newFederated = new Federated({
+						user: newUser.id,
+						provider: profile.provider,
+						subject: profile.id,
+					});
 
-				newUser.username = `User-${String(newUser._id).slice(-5)}`;
+					await Promise.all([newUser.save(), newFederated.save()]);
+					done(null, { id: newUser.id });
+				};
 
-				await newUser.save();
-
-				done(null, { id: newUser.id });
-			};
-
-			const handleUpdate = async () => {
-				user?.provider.push("facebook");
-				await user?.save();
-				done(null, { id: user?.id });
-			};
-
-			user
-				? user.provider.includes("facebook")
-					? done(null, { id: user.id })
-					: await handleUpdate()
-				: await handleRegistration();
-		}
-	)
+				federated
+					? done(null, {
+							id: federated.user,
+						})
+					: await handleRegistration();
+			} catch (error) {
+				done(error);
+			}
+		},
+	),
 );
 
 passport.serializeUser((user, done) => {
