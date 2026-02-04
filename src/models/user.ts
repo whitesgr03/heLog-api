@@ -1,23 +1,19 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
 const userSchema = {
-	email: {
-		type: String,
-		required: true,
-		immutable: true,
-		lowercase: true,
-	},
-	username: { type: String, required: true },
+	username: { type: String },
+	email: { type: String },
+	password: { type: String },
 	isAdmin: { type: Boolean, required: true, immutable: true },
-	provider: [{ type: String, required: true }],
+	expiresAfter: { type: Date },
 };
 
 export type UserDocument = mongoose.Document &
 	mongoose.InferRawDocType<typeof userSchema>;
 
 export const User = mongoose.model(
-	"User",
-	new Schema<UserDocument>(userSchema, { timestamps: true })
+	'User',
+	new Schema<UserDocument>(userSchema, { timestamps: true }),
 );

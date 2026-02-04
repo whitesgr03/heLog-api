@@ -1,16 +1,32 @@
-import express from "express";
+import express from 'express';
 
-import * as accountControllers from "../controllers/accountController.js";
+import * as accountControllers from '../controllers/accountController.js';
+import { isLogin } from '../middlewares/authenticate.js';
 
 export const accountRouter = express.Router();
 
-accountRouter.get("/login/google", accountControllers.googleLogin);
-accountRouter.get("/oauth2/redirect/google", accountControllers.googleRedirect);
+accountRouter.post('/logout', accountControllers.userLogout);
 
-accountRouter.get("/login/facebook", accountControllers.facebookLogin);
-accountRouter.get(
-	"/oauth2/redirect/facebook",
-	accountControllers.facebookRedirect
+accountRouter.use(isLogin);
+
+accountRouter.post('/login', accountControllers.login);
+accountRouter.post('/requestRegister', accountControllers.requestRegistration);
+accountRouter.post('/register', accountControllers.register);
+
+accountRouter.post(
+	'/requestResetPassword',
+	accountControllers.requestResettingPassword,
+);
+accountRouter.post('/resetPassword', accountControllers.resetPassword);
+
+accountRouter.post('/verifyCode', accountControllers.verifyCode);
+accountRouter.post(
+	'/requestVerificationCode',
+	accountControllers.requestVerificationCode,
 );
 
-accountRouter.post("/logout", accountControllers.userLogout);
+accountRouter.get('/login/:federation', accountControllers.federatedLogin);
+accountRouter.get(
+	'/oauth2/redirect/:federation',
+	accountControllers.federatedRedirect,
+);

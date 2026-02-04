@@ -1,16 +1,17 @@
 // Modules
-import asyncHandler from "express-async-handler";
-import { Types } from "mongoose";
-import { body } from "express-validator";
-import { isValidObjectId } from "mongoose";
+import asyncHandler from 'express-async-handler';
+import { Types } from 'mongoose';
+import { body } from 'express-validator';
+import { isValidObjectId } from 'mongoose';
 
 // Middlewares
-import { validationScheme } from "../middlewares/validationScheme.js";
+import { validationScheme } from '../middlewares/validationScheme.js';
 
 // Models
-import { User } from "../models/user.js";
-import { Post } from "../models/post.js";
-import { Comment } from "../models/comment.js";
+import { User } from '../models/user.js';
+import { Federated } from '../models/federated.js';
+import { Post } from '../models/post.js';
+import { Comment } from '../models/comment.js';
 
 export const userPostList = [
 	asyncHandler(async (req, res) => {
@@ -27,7 +28,7 @@ export const userPostList = [
 						createdAt: -1,
 						_id: -1,
 					},
-				}
+				},
 			).exec(),
 			Post.countDocuments({ author: req.user!.id }),
 		]);
@@ -52,19 +53,19 @@ export const userPostDetail = [
 				},
 				{
 					author: 0,
-				}
+				},
 			).exec());
 
 		post
 			? res.json({
 					success: true,
-					message: "Get post successfully.",
+					message: 'Get post successfully.',
 					data: post,
-			  })
+				})
 			: res.status(404).json({
 					success: false,
 					message: `Post could not be found.`,
-			  });
+				});
 	}),
 ];
 export const userDetail = [
@@ -72,29 +73,26 @@ export const userDetail = [
 		const user = await User.findById(req.user!.id, {
 			username: 1,
 			isAdmin: 1,
-			email: 1,
 		}).exec();
 
-		res.set("Cache-Control", "no-store, max-age=0").json({
+		res.set('Cache-Control', 'no-store, max-age=0').json({
 			success: true,
-			message: "Get user info successfully.",
+			message: 'Get user info successfully.',
 			data: user,
 		});
 	}),
 ];
 export const userUpdate = [
-	body("username")
+	body('username')
 		.trim()
 		.notEmpty()
-		.withMessage("Username is required.")
+		.withMessage('Username is required.')
 		.bail()
 		.isLength({ max: 30 })
-		.withMessage("username must be less than 30 long.")
+		.withMessage('username must be less than 30 long.')
 		.bail()
-		.custom(username =>
-			username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/)
-		)
-		.withMessage("Username must be alphanumeric."),
+		.custom(username => username.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/))
+		.withMessage('Username must be alphanumeric.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { username } = req.data;
@@ -113,9 +111,9 @@ export const userUpdate = [
 			? res.status(409).json({
 					success: false,
 					fields: {
-						username: "Username is been used.",
+						username: 'Username is been used.',
 					},
-			  })
+				})
 			: next();
 	}),
 	asyncHandler(async (req, res) => {
@@ -127,24 +125,20 @@ export const userUpdate = [
 				select: {
 					username: 1,
 					isAdmin: 1,
-					email: 1,
 				},
-			}
+			},
 		).exec();
 
-		res.set("Cache-Control", "no-store, max-age=0").json({
+		res.set('Cache-Control', 'no-store, max-age=0').json({
 			success: true,
-			message: "Update user successfully.",
+			message: 'Update user successfully.',
 			data: user,
 		});
 	}),
 ];
 export const userDelete = [
 	asyncHandler(async (req, res) => {
-		const posts = await Post.find(
-			{ author: req.user!.id },
-			{ _id: 1 }
-		).exec();
+		const posts = await Post.find({ author: req.user!.id }, { _id: 1 }).exec();
 
 		await Promise.all([
 			...posts.map(async post => {
@@ -153,27 +147,28 @@ export const userDelete = [
 					post.deleteOne(),
 				]);
 			}),
-			User.findByIdAndDelete(req.user!.id).exec(),
 			Comment.updateMany(
 				{
 					author: req.user!.id,
 				},
 				{
-					content: "Comment deleted by user",
+					content: 'Comment deleted by user',
 					deleted: true,
-				}
+				},
 			).exec(),
+			Federated.deleteOne({ user: req.user!.id }).exec(),
+			User.findByIdAndDelete(req.user!.id).exec(),
 		]);
 
 		req.logout(() =>
 			res
-				.clearCookie("id")
-				.clearCookie("token")
-				.set("Clear-Site-Data", ["cache", "cookies", "storage"])
+				.clearCookie('id')
+				.clearCookie('token')
+				.set('Clear-Site-Data', ['cache', 'cookies', 'storage'])
 				.json({
 					success: true,
-					message: "Delete user successfully.",
-				})
+					message: 'Delete user successfully.',
+				}),
 		);
 	}),
 ];

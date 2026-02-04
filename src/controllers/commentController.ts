@@ -1,15 +1,15 @@
 // Modules
-import asyncHandler from "express-async-handler";
-import { isValidObjectId, Types } from "mongoose";
-import { body } from "express-validator";
+import asyncHandler from 'express-async-handler';
+import { isValidObjectId, Types } from 'mongoose';
+import { body } from 'express-validator';
 
 // Middlewares
-import { validationScheme } from "../middlewares/validationScheme.js";
+import { validationScheme } from '../middlewares/validationScheme.js';
 
 // Models
-import { User } from "../models/user.js";
-import { Post } from "../models/post.js";
-import { Comment } from "../models/comment.js";
+import { User } from '../models/user.js';
+import { Post } from '../models/post.js';
+import { Comment } from '../models/comment.js';
 
 export const commentList = [
 	asyncHandler(async (req, res) => {
@@ -30,13 +30,13 @@ export const commentList = [
 							_id: -1,
 						},
 						populate: {
-							path: "author",
+							path: 'author',
 							select: {
 								_id: 0,
 								username: 1,
 							},
 						},
-					}
+					},
 				).exec(),
 				Comment.countDocuments({
 					post: new Types.ObjectId(`${postId}`),
@@ -53,24 +53,24 @@ export const commentList = [
 					comments: result[0],
 					commentsCount: result[1],
 					commentAndReplyCounts: result[2],
-			  };
+				};
 
 		res.json({
 			success: true,
-			message: "Get all comments successfully.",
+			message: 'Get all comments successfully.',
 			data: comments,
 		});
 	}),
 ];
 
 export const commentCreate = [
-	body("content")
+	body('content')
 		.trim()
 		.notEmpty()
-		.withMessage("The content is required.")
+		.withMessage('The content is required.')
 		.bail()
 		.isLength({ max: 500 })
-		.withMessage("The content must be less than 500 long."),
+		.withMessage('The content must be less than 500 long.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { postId } = req.params;
@@ -83,7 +83,7 @@ export const commentCreate = [
 			: res.status(404).json({
 					success: false,
 					message: `Post could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
@@ -96,26 +96,25 @@ export const commentCreate = [
 
 		res.json({
 			success: true,
-			message: "Create comment successfully.",
+			message: 'Create comment successfully.',
 		});
 	}),
 ];
 
 export const commentUpdate = [
-	body("content")
+	body('content')
 		.trim()
 		.notEmpty()
-		.withMessage("The content is required.")
+		.withMessage('The content is required.')
 		.bail()
 		.isLength({ max: 500 })
-		.withMessage("The content must be less than 500 long."),
+		.withMessage('The content must be less than 500 long.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
 
 		const comment =
-			isValidObjectId(commentId) &&
-			(await Comment.findById(commentId).exec());
+			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.comment = comment;
@@ -127,34 +126,32 @@ export const commentUpdate = [
 			: res.status(404).json({
 					success: false,
 					message: `Comment could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user =
-			req.user &&
-			(await User.findById(req.user.id, { isAdmin: 1 }).exec());
+			req.user && (await User.findById(req.user.id, { isAdmin: 1 }).exec());
 
-		user?.isAdmin ||
-		user?.id.toString() === req.comment.author._id.toString()
+		user?.isAdmin || user?.id.toString() === req.comment.author._id.toString()
 			? next()
 			: res.status(403).json({
 					success: false,
-					message: "This request requires higher permissions.",
-			  });
+					message: 'This request requires higher permissions.',
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.data.content;
 
 		await req.comment.save();
 
-		const updatedComment = await req.comment.populate("author", {
+		const updatedComment = await req.comment.populate('author', {
 			_id: 0,
 			username: 1,
 		});
 
 		res.json({
 			success: true,
-			message: "Update comment successfully.",
+			message: 'Update comment successfully.',
 			data: updatedComment,
 		});
 	}),
@@ -165,8 +162,7 @@ export const commentDelete = [
 		const { commentId } = req.params;
 
 		const comment =
-			isValidObjectId(commentId) &&
-			(await Comment.findById(commentId).exec());
+			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.comment = comment;
@@ -178,12 +174,11 @@ export const commentDelete = [
 			: res.status(404).json({
 					success: false,
 					message: `Comment could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user =
-			req.user &&
-			(await User.findById(req.user.id, { isAdmin: 1 }).exec());
+			req.user && (await User.findById(req.user.id, { isAdmin: 1 }).exec());
 
 		const isCommentOwner =
 			user?.id.toString() === req.comment.author._id.toString();
@@ -197,25 +192,25 @@ export const commentDelete = [
 			? handleSetLocalVariable()
 			: res.status(403).json({
 					success: false,
-					message: "This request requires higher permissions.",
-			  });
+					message: 'This request requires higher permissions.',
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		req.comment.content = req.deletedByAdmin
-			? "Comment deleted by admin"
-			: "Comment deleted by user";
+			? 'Comment deleted by admin'
+			: 'Comment deleted by user';
 		req.comment.deleted = true;
 
 		await req.comment.save();
 
-		const deletedComment = await req.comment.populate("author", {
+		const deletedComment = await req.comment.populate('author', {
 			_id: 0,
 			username: 1,
 		});
 
 		res.json({
 			success: true,
-			message: "Delete comment successfully.",
+			message: 'Delete comment successfully.',
 			data: deletedComment,
 		});
 	}),

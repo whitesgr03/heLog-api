@@ -13,5 +13,5 @@
 		"strictNullChecks": true
 	},
 	"include": ["src"],
-	"exclude": ["src/lib", "src/__test__/**/*.{test,spec}.*"]
+	"exclude": ["src/lib/seed.ts", "src/__test__/**/*.{test,spec}.*"]
 }

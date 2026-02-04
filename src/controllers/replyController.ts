@@ -1,14 +1,14 @@
 // Modules
-import asyncHandler from "express-async-handler";
-import { isValidObjectId, Types } from "mongoose";
-import { body } from "express-validator";
+import asyncHandler from 'express-async-handler';
+import { isValidObjectId, Types } from 'mongoose';
+import { body } from 'express-validator';
 
 // Middlewares
-import { validationScheme } from "../middlewares/validationScheme.js";
+import { validationScheme } from '../middlewares/validationScheme.js';
 
 // Models
-import { Comment } from "../models/comment.js";
-import { User } from "../models/user.js";
+import { Comment } from '../models/comment.js';
+import { User } from '../models/user.js';
 
 export const replyList = [
 	asyncHandler(async (req, res) => {
@@ -28,27 +28,27 @@ export const replyList = [
 							_id: -1,
 						},
 						populate: {
-							path: "reply",
+							path: 'reply',
 							select: {
 								deleted: 1,
 								author: 1,
 							},
 						},
-					}
-			  )
-					.populate("author", {
+					},
+				)
+					.populate('author', {
 						_id: 0,
 						username: 1,
 					})
 					.populate({
-						path: "reply",
+						path: 'reply',
 						select: {
 							deleted: 1,
 							author: 1,
 						},
 						options: {
 							populate: {
-								path: "author",
+								path: 'author',
 								select: {
 									_id: 0,
 									username: 1,
@@ -60,27 +60,26 @@ export const replyList = [
 
 		res.json({
 			success: true,
-			message: "Get all replies successfully.",
+			message: 'Get all replies successfully.',
 			data: replies,
 		});
 	}),
 ];
 
 export const replyComment = [
-	body("content")
+	body('content')
 		.trim()
 		.notEmpty()
-		.withMessage("Content is required.")
+		.withMessage('Content is required.')
 		.bail()
 		.isLength({ max: 500 })
-		.withMessage("Content must be less than 500 long."),
+		.withMessage('Content must be less than 500 long.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
 
 		const comment =
-			isValidObjectId(commentId) &&
-			(await Comment.findById(commentId).exec());
+			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.comment = comment;
@@ -92,7 +91,7 @@ export const replyComment = [
 			: res.status(404).json({
 					success: false,
 					message: `Comment could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		const { commentId } = req.params;
@@ -110,7 +109,7 @@ export const replyComment = [
 
 		res.json({
 			success: true,
-			message: "Create comment successfully.",
+			message: 'Create comment successfully.',
 			data: {
 				_id: newReply._id,
 			},
@@ -119,13 +118,13 @@ export const replyComment = [
 ];
 
 export const replyCreate = [
-	body("content")
+	body('content')
 		.trim()
 		.notEmpty()
-		.withMessage("Content is required.")
+		.withMessage('Content is required.')
 		.bail()
 		.isLength({ max: 500 })
-		.withMessage("Content must be less than 500 long."),
+		.withMessage('Content must be less than 500 long.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
@@ -144,7 +143,7 @@ export const replyCreate = [
 			: res.status(404).json({
 					success: false,
 					message: `Reply could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
@@ -162,15 +161,15 @@ export const replyCreate = [
 		await Promise.all([newReply.save(), req.comment.save()]);
 
 		const createdReply = await Comment.findById(newReply._id)
-			.populate("author", { username: 1, _id: 0 })
+			.populate('author', { username: 1, _id: 0 })
 			.populate({
-				path: "reply",
+				path: 'reply',
 				select: {
 					author: 1,
 					deleted: 1,
 				},
 				populate: {
-					path: "author",
+					path: 'author',
 					select: {
 						username: 1,
 						_id: 0,
@@ -180,27 +179,26 @@ export const replyCreate = [
 
 		res.json({
 			success: true,
-			message: "Create reply successfully.",
+			message: 'Create reply successfully.',
 			data: createdReply,
 		});
 	}),
 ];
 
 export const replyUpdate = [
-	body("content")
+	body('content')
 		.trim()
 		.notEmpty()
-		.withMessage("Content is required.")
+		.withMessage('Content is required.')
 		.bail()
 		.isLength({ max: 500 })
-		.withMessage("Content must be less than 500 long."),
+		.withMessage('Content must be less than 500 long.'),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
 
 		const reply =
-			isValidObjectId(replyId) &&
-			(await Comment.findById(replyId).exec());
+			isValidObjectId(replyId) && (await Comment.findById(replyId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.reply = reply;
@@ -212,7 +210,7 @@ export const replyUpdate = [
 			: res.status(404).json({
 					success: false,
 					message: `Reply could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, {
@@ -223,8 +221,8 @@ export const replyUpdate = [
 			? next()
 			: res.status(403).json({
 					success: false,
-					message: "This request requires higher permissions.",
-			  });
+					message: 'This request requires higher permissions.',
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
@@ -233,18 +231,18 @@ export const replyUpdate = [
 		await req.reply.save();
 
 		const updatedReply = await Comment.findById(replyId)
-			.populate("author", {
+			.populate('author', {
 				_id: 0,
 				username: 1,
 			})
 			.populate({
-				path: "reply",
+				path: 'reply',
 				select: {
 					author: 1,
 					deleted: 1,
 				},
 				populate: {
-					path: "author",
+					path: 'author',
 					select: {
 						username: 1,
 						_id: 0,
@@ -254,7 +252,7 @@ export const replyUpdate = [
 
 		res.json({
 			success: true,
-			message: "Update reply successfully.",
+			message: 'Update reply successfully.',
 			data: updatedReply,
 		});
 	}),
@@ -265,8 +263,7 @@ export const replyDelete = [
 		const { replyId } = req.params;
 
 		const reply =
-			isValidObjectId(replyId) &&
-			(await Comment.findById(replyId).exec());
+			isValidObjectId(replyId) && (await Comment.findById(replyId).exec());
 
 		const handleSetLocalVariable = () => {
 			req.reply = reply;
@@ -278,7 +275,7 @@ export const replyDelete = [
 			: res.status(404).json({
 					success: false,
 					message: `Reply could not be found.`,
-			  });
+				});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
@@ -295,32 +292,32 @@ export const replyDelete = [
 			? handleSetLocalVariable()
 			: res.status(403).json({
 					success: false,
-					message: "This request requires higher permissions.",
-			  });
+					message: 'This request requires higher permissions.',
+				});
 	}),
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
 
 		req.reply.content = req.deletedByAdmin
-			? "Reply deleted by admin"
-			: "Reply deleted by user";
+			? 'Reply deleted by admin'
+			: 'Reply deleted by user';
 		req.reply.deleted = true;
 
 		await req.reply.save();
 
 		const deletedReply = await Comment.findById(replyId)
-			.populate("author", {
+			.populate('author', {
 				_id: 0,
 				username: 1,
 			})
 			.populate({
-				path: "reply",
+				path: 'reply',
 				select: {
 					author: 1,
 					deleted: 1,
 				},
 				populate: {
-					path: "author",
+					path: 'author',
 					select: {
 						username: 1,
 						_id: 0,
@@ -330,7 +327,7 @@ export const replyDelete = [
 
 		res.json({
 			success: true,
-			message: "Delete reply successfully.",
+			message: 'Delete reply successfully.',
 			data: deletedReply,
 		});
 	}),
