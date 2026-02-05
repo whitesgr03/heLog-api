@@ -169,9 +169,9 @@ export const requestRegistration: RequestHandler[] = [
 		.withMessage('The username is required.')
 		.bail()
 		.isLength({ max: 30 })
-		.withMessage('The username length must be less then 30.')
+		.withMessage('The username length must be less then 30 long.')
 		.bail()
-		.custom(value => value.match(/^[a-zA-Z]\w*$/))
+		.custom(value => value.match(/^([a-zA-Z0-9](-|_|\s)?)*[a-zA-Z0-9]$/))
 		.withMessage(
 			'The username must begin with alphabet and include alphanumeric or underscore.',
 		)
