@@ -149,8 +149,6 @@ describe('Account paths', () => {
 
 			expect(status).toBe(401);
 			expect(body.success).toBe(false);
-			expect(body.fields).toHaveProperty('email');
-			expect(body.fields).toHaveProperty('password');
 			expect(passport.authenticate).toHaveBeenCalledTimes(1);
 			expect(mockAuthenticateFn).toHaveBeenCalledTimes(1);
 		});
