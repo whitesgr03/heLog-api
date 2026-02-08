@@ -149,10 +149,6 @@ export const login: RequestHandler[] = [
 			} else {
 				res.status(401).json({
 					success: false,
-					fields: {
-						email: 'The email was incorrect.',
-						password: 'The password was incorrect.',
-					},
 				});
 			}
 		};
