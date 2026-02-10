@@ -1,6 +1,6 @@
 # HeLog API
 
-This project is a cookie-based authentication and REST API design server built with Express. Hosted on Fly.io.
+This project is a cookie-based authentication and REST API design server built with Express. Hosted on render.
 
 The server uses Mongoose to build data models and query data and uses the MongoDB atlas database to store data.
 
@@ -12,6 +12,8 @@ Frontend Repositories:
 
 2. [https://github.com/whitesgr03/helog-editor](https://github.com/whitesgr03/helog-editor)
 
+3. [https://github.com/whitesgr03/helog-account](https://github.com/whitesgr03/helog-account)
+
 ## Technologies:
 
 1. [Passport](https://www.passportjs.org/) uses Google and Facebook for social authentication.
@@ -22,26 +24,35 @@ Frontend Repositories:
 
 ## Additional info:
 
--   This project consists of a backend for API and two different front-ends for accessing and editing blog posts.
+- This project consists of a backend for API and three different front-ends for accessing and editing blog posts.
 
--   The backend using cookie-based authentication to prevent the need to log in again when switching between two different front-ends.
+- The backend using cookie-based authentication to prevent the need to log in again when switching between three different front-ends.
 
 ## API Endpoints
 
 **Authentication**
 
 ```
-GET /account/login/google
+GET /account/login/:federation
 
-GET /account/oauth2/redirect/google
+GET /account/oauth2/redirect/:federation
 
-GET /account/login/facebook
 
-GET /account/oauth2/redirect/facebook
+GET /account/login
 
 POST /account/logout
 
-GET /account/login
+POST /account/requestRegister
+
+POST /account/register
+
+POST /account/requestResetPassword
+
+POST /account/resetPassword
+
+POST /account/verifyCode
+
+POST /account/requestVerificationCode
 ```
 
 **Blog Resource**
