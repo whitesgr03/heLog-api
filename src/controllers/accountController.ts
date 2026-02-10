@@ -303,7 +303,7 @@ export const requestRegistration: RequestHandler[] = [
 
 			await Promise.all([newUser.save(), newToken.save()]);
 
-			const verificationUrl = `${process.env.HELOG_ACCOUNT}/account?identity=${newToken.id}&token=${token}`;
+			const verificationUrl = `${process.env.HELOG_ACCOUNT}/create?identity=${newToken.id}&token=${token}`;
 			emailTemplate = mjml2html(
 				`
 			  <mjml>
