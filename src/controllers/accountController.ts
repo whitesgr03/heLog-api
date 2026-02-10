@@ -539,7 +539,7 @@ export const requestVerificationCode: RequestHandler[] = [
 		await Promise.all([
 			sendEmail({
 				receiver: email,
-				subject: 'Information regarding your password reset request',
+				subject: 'Password reset request',
 				html: emailTemplate.html,
 			}),
 			limiterVerifyCodeByEmail.delete(email),
