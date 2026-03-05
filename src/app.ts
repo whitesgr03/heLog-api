@@ -73,7 +73,7 @@ const port = process.env.PORT;
 
 const corsOptions = {
 	origin:
-		process.env.NODE_ENV === 'production' ? /helog\.whitesgr03\.com/ : '*',
+		process.env.NODE_ENV === 'production' ? /helog\.whitesgr03\.com$/ : '*',
 	methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
 	credentials: true,
 	allowedHeaders: ['Content-Type', 'X-CSRF-TOKEN'],
