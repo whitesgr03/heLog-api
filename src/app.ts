@@ -48,6 +48,11 @@ app.get('/', (req, res) => {
 	res.redirect(process.env.HELOG_URL as string);
 });
 
+app.get('/robots.txt', function (req, res) {
+	res.type('text/plain');
+	res.send('User-agent: *\nDisallow: /');
+});
+
 app.use((req, res, next) => {
 	try {
 		process.env.NODE_ENV === 'production' &&
