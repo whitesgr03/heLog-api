@@ -72,12 +72,15 @@ const serverLog = debug('Server');
 const port = process.env.PORT;
 
 const corsOptions = {
-	origin: process.env.ALLOW_CLIENT_ORIGINS?.split(','),
-	methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+	origin:
+		process.env.NODE_ENV === 'production' ? /helog\.whitesgr03\.com/ : '*',
+	methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
 	credentials: true,
 	allowedHeaders: ['Content-Type', 'X-CSRF-TOKEN'],
 	exposedHeaders: ['Retry-After', 'Expire-After'],
 	maxAge: 10,
+	preflightContinue: false,
+	optionsSuccessStatus: 204,
 };
 const sessionOptions: SessionOptions = {
 	secret: process.env.SESSION_SECRETS?.split(',') ?? '',
