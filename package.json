@@ -9,7 +9,7 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"start": "NODE_ENV=production node --env-file=.env dist/src/app.js",
+		"start": "NODE_ENV=production node dist/src/app.js",
 		"build": "tsc -p tsconfig.build.json",
 		"dev": "NODE_ENV=development tsx watch --env-file=.env src/app.ts",
 		"seed": "tsx --env-file=.env src/lib/seed.ts",
