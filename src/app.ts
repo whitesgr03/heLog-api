@@ -44,11 +44,7 @@ app.get('/favicon.ico', (req, res) => {
 	res.status(204);
 });
 
-app.get('/', (req, res) => {
-	res.redirect(process.env.HELOG_URL as string);
-});
-
-app.get('/robots.txt', function (req, res) {
+app.get('/robots.txt', (req, res) => {
 	res.type('text/plain');
 	res.send('User-agent: *\nDisallow: /');
 });
@@ -152,6 +148,9 @@ app.use((req, res, next) => {
 	next();
 });
 
+app.get('/', (req, res) => {
+	res.redirect(process.env.HELOG_URL as string);
+});
 app.use('/account', accountRouter);
 app.use('/user', userRouter);
 app.use('/blog', blogRouter);
