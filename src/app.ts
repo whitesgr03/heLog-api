@@ -44,6 +44,10 @@ app.get('/favicon.ico', (req, res) => {
 	res.status(204);
 });
 
+app.get('/', (req, res) => {
+	res.redirect(process.env.HELOG_URL as string);
+});
+
 app.use((req, res, next) => {
 	try {
 		process.env.NODE_ENV === 'production' &&
