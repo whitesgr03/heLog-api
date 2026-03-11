@@ -31,10 +31,14 @@ export const sendEmail = async ({
 		html,
 	};
 
-	await mg.messages.create(
-		(process.env.NODE_ENV === 'production'
-			? process.env.MAINGUN_DOMAIN
-			: process.env.MAINGUN_TEST_DOMAIN) as string,
-		msg,
-	);
+	try {
+		await mg.messages.create(
+			(process.env.NODE_ENV === 'production'
+				? process.env.MAINGUN_DOMAIN
+				: process.env.MAINGUN_TEST_DOMAIN) as string,
+			msg,
+		);
+	} catch (error: any) {
+		throw Error(`${error.status} ${error.type} ${error.details}.`);
+	}
 };
