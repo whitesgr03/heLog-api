@@ -258,7 +258,7 @@ export const requestRegistration: RequestHandler[] = [
                 <mj-text>
                   If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
 
-                <mj-text>@ 2025 Helog</mj-text>
+                <mj-text>@ ${new Date().getFullYear()} Helog</mj-text>
 
               </mj-column>
             </mj-section>
@@ -353,7 +353,7 @@ export const requestRegistration: RequestHandler[] = [
 			          <mj-text>
 			            If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
 
-			          <mj-text>@ 2025 Helog</mj-text>
+			          <mj-text>@ ${new Date().getFullYear()} Helog</mj-text>
 
 			        </mj-column>
 			      </mj-section>
@@ -529,7 +529,7 @@ export const requestVerificationCode: RequestHandler[] = [
 
 			                <mj-text>
 			                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-			                <mj-text>@ 2025 Helog</mj-text>
+			                <mj-text>@ ${new Date().getFullYear()} Helog</mj-text>
 			              </mj-column>
 			            </mj-section>
 			          </mj-body>
@@ -750,7 +750,7 @@ export const requestResettingPassword: RequestHandler[] = [
 
 			                <mj-text>
 			                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-			                <mj-text>@ 2025 Helog</mj-text>
+			                <mj-text>@ ${new Date().getFullYear()} Helog</mj-text>
 			              </mj-column>
 			            </mj-section>
 			          </mj-body>
@@ -789,7 +789,7 @@ export const requestResettingPassword: RequestHandler[] = [
 
 			                <mj-text>
 			                  If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-			                <mj-text>@ 2025 Helog</mj-text>
+			                <mj-text>@ ${new Date().getFullYear()} Helog</mj-text>
 			              </mj-column>
 			            </mj-section>
 			          </mj-body>
@@ -912,7 +912,7 @@ export const resetPassword: RequestHandler[] = [
 
 				          <mj-text>
 				            If you have any questions, contact <a href="https://helog.whitesgr03.me/" target="_blank">Helog</a> to get support.</mj-text>
-				          <mj-text>@ 2025 Helog</mj-text>
+				          <mj-text>@ ${new Date().getFullYear()} Helog</mj-text>
 				        </mj-column>
 				      </mj-section>
 				    </mj-body>
