@@ -120,5 +120,3 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((user: Express.User, done) => {
 	done(null, user);
 });
-
-export { passport };
