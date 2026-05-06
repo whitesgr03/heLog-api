@@ -47,7 +47,7 @@
 		"@faker-js/faker": "^9.3.0",
 		"@flydotio/dockerfile": "^0.5.7",
 		"@prettier/plugin-pug": "^3.4.2",
-		"@tsconfig/node-lts": "^22.0.1",
+		"@tsconfig/node22": "^22.0.5",
 		"@types/cors": "^2.8.18",
 		"@types/debug": "^4.1.12",
 		"@types/express": "^5.0.2",

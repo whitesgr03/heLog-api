@@ -1,17 +1,23 @@
 {
-	"extends": "@tsconfig/node-lts/tsconfig.json",
+	"extends": "@tsconfig/node22/tsconfig.json",
 	"compilerOptions": {
-		"target": "ES2020",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"outDir": "./dist",
-		"rootDir": "./",
-		"esModuleInterop": true,
+		// Linting
 		"forceConsistentCasingInFileNames": true,
-		"strict": true,
-		"skipLibCheck": true,
-		"strictNullChecks": true
+		"strictNullChecks": true,
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedSideEffectImports": true,
+    "noImplicitReturns": true,
+
+		// Bundler
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"sourceMap": true,
+		"removeComments": true,
+		"noEmitOnError": true
 	},
-	"include": ["src"],
-	"exclude": ["src/lib/seed.ts", "src/__test__/**/*.{test,spec}.*"]
+	"include": ["src/"],
+	"exclude": ["src/**/delete_*", "src/__test__"]
 }
