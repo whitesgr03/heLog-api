@@ -1,5 +1,5 @@
 import { RateLimiterMongo } from 'rate-limiter-flexible';
-import { mongoose } from '../config/database.js';
+import mongoose from 'mongoose';
 
 export const limiterBruteForceByIp = new RateLimiterMongo({
 	keyPrefix: 'all_routes_rate_limit_by_ip',
