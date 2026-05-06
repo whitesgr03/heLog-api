@@ -3,7 +3,6 @@ import express, {
 	RequestHandler,
 	Response,
 } from 'express';
-import createError from 'http-errors';
 import morgan from 'morgan';
 import debug from 'debug';
 import session, { SessionOptions } from 'express-session';
@@ -160,8 +159,11 @@ app.use('/user', userRouter);
 app.use('/blog', blogRouter);
 
 // Unknown routes handler
-app.use(((req, res, next) => {
-	next(createError(404, 'The endpoint you are looking for cannot be found.'));
+app.use(((_req, res) => {
+	res.status(404).json({
+		success: false,
+		message: 'The endpoint you are looking for cannot be found.',
+	});
 }) as RequestHandler);
 
 // Errors handler
