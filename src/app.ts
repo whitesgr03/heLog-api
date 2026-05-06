@@ -8,13 +8,15 @@ import debug from 'debug';
 import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
 import sessionStore from 'connect-mongo';
-import { mongoose } from './config/database.js';
+import mongoose from 'mongoose';
+import passport from 'passport';
 import helmet, { HelmetOptions } from 'helmet';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 import { limiterBruteForceByIp } from './utils/rateLimiter.js';
 
-// config
-import { passport } from './config/passport.js';
+// configs
+import './config/passport.js';
+import './config/database.js';
 
 // routes
 import { accountRouter } from './routes/account.js';
