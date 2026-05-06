@@ -62,7 +62,7 @@ const corsOptions = {
 		process.env.NODE_ENV === 'production'
 			? /helog\.whitesgr03\.com$/
 			: /localhost/,
-	methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
+	methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 	credentials: true,
 	allowedHeaders: ['Content-Type', 'X-CSRF-TOKEN'],
 	exposedHeaders: ['Retry-After', 'Expire-After'],
