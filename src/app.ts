@@ -25,20 +25,6 @@ import { userRouter } from './routes/user.js';
 
 export const app = express();
 
-declare global {
-	namespace Express {
-		interface Request {
-			data?: any;
-			post?: any;
-			comment?: any;
-			reply?: any;
-			deletedByAdmin?: any;
-		}
-		interface User {
-			id: mongoose.Types.ObjectId; // passport req.user
-		}
-	}
-}
 
 app.get('/favicon.ico', (req, res) => {
 	res.status(204);
