@@ -167,17 +167,12 @@ app.use(((_req, res) => {
 }) as RequestHandler);
 
 // Errors handler
-/* eslint-disable no-unused-vars */
+app.use(((err, _req, res, _next) => {
+	serverLog(err);
+	serverLog(err.status);
+	serverLog(err.message);
 
-app.use(((err, req, res, next) => {
-	/* eslint-enable */
-	errorLog(err);
-	errorLog(err.status);
-	errorLog(err.message);
-
-	const serverError = createError(500);
-
-	res.status(serverError.status).json({
+	res.status(500).json({
 		success: false,
 		message: 'The server encountered an unexpected condition.',
 	});
