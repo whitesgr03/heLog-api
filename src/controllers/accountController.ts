@@ -440,12 +440,10 @@ export const requestVerificationCode: RequestHandler[] = [
 		.isEmail()
 		.withMessage('The email address must be in the correct format.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
-		const { email } = req.data;
+	asyncHandler(async (req, res, next) => {
 		const rateLimiterRes = await limiterRequestResettingPasswordByEmail.get(
-			email as string,
+			req.data.email as string,
 		);
-
 		if (!rateLimiterRes) {
 			res.status(428).json({
 				success: false,
@@ -453,9 +451,12 @@ export const requestVerificationCode: RequestHandler[] = [
 			});
 			return;
 		}
-
+		next();
+	}),
+	async (req, res, next) => {
 		try {
-			await limiterRequestResettingPasswordByEmail.consume(email);
+			await limiterRequestResettingPasswordByEmail.consume(req.data.email);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -466,10 +467,12 @@ export const requestVerificationCode: RequestHandler[] = [
 						message: 'You have resend code too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
+	},
+	asyncHandler(async (req, res) => {
+		const { email } = req.data;
 
 		const newCode = randomInt(100000, 999999).toString();
 		const fiveMins = Date.now() + 5 * 60 * 1000;
@@ -667,11 +670,10 @@ export const requestResettingPassword: RequestHandler[] = [
 		.isEmail()
 		.withMessage('The email address must be in the correct format.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
-		const { email } = req.data;
-
+	async (req, res, next) => {
 		try {
-			await limiterRequestResettingPasswordByEmail.consume(email);
+			await limiterRequestResettingPasswordByEmail.consume(req.data.email);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -682,10 +684,12 @@ export const requestResettingPassword: RequestHandler[] = [
 						message: 'You have reset password too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
+	},
+	asyncHandler(async (req, res) => {
+		const { email } = req.data;
 
 		const user = await User.findOne({ email }).exec();
 
