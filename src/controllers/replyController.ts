@@ -78,11 +78,11 @@ export const replyCreate = [
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
 
-		const comment =
+		const parentComment =
 			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
-		if (comment) {
-			req.comment = comment;
+		if (parentComment) {
+			req.comment = parentComment;
 			return next();
 		}
 		res.status(404).json({
@@ -126,12 +126,12 @@ export const subReplyCreate = [
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
 
-		const comment =
+		const parentComment =
 			isValidObjectId(replyId) &&
 			(await Comment.findOne({ child: replyId }).exec());
 
-		if (comment) {
-			req.comment = comment;
+		if (parentComment) {
+			req.comment = parentComment;
 			return next();
 		}
 		res.status(404).json({
