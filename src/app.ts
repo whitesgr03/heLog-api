@@ -25,11 +25,6 @@ app.get('/favicon.ico', (_req, res) => {
 	res.sendStatus(204);
 });
 
-app.get('/robots.txt', (req, res) => {
-	res.type('text/plain');
-	res.send('User-agent: *\nDisallow: /');
-});
-
 app.use(async (req, res, next) => {
 	try {
 		if (process.env.NODE_ENV !== 'development') {
@@ -90,6 +85,12 @@ const helmetOptions: HelmetOptions = {
 	xPoweredBy: false,
 };
 
+const staticOptions = {
+	maxAge: '1d',
+	index: false,
+	redirect: false,
+};
+
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
@@ -98,7 +99,7 @@ app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'common' : 'dev'));
-
+app.use(express.static('public', staticOptions));
 app.use(express.json());
 
 // session touch
