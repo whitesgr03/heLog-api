@@ -4,7 +4,6 @@ import express, {
 	Response,
 } from 'express';
 import morgan from 'morgan';
-import debug from 'debug';
 import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
 import sessionStore from 'connect-mongo';
@@ -13,6 +12,7 @@ import passport from 'passport';
 import helmet, { HelmetOptions } from 'helmet';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 import { limiterBruteForceByIp } from './utils/rateLimiter.js';
+import { server } from './utils/loggers.js';
 
 // configs
 import './config/passport.js';
@@ -51,11 +51,6 @@ app.use((req, res, next) => {
 		}
 	}
 });
-
-const errorLog = debug('ServerError');
-const serverLog = debug('Server');
-
-const port = process.env.PORT;
 
 const corsOptions = {
 	origin:
@@ -156,9 +151,9 @@ app.use(((_req, res) => {
 
 // Errors handler
 app.use(((err, _req, res, _next) => {
-	serverLog(err);
-	serverLog(err.status);
-	serverLog(err.message);
+	server('has an error occur.');
+	if (err instanceof Error) server(`error message: ${err.message}`);
+	server(`error detail: ${err}`);
 
 	res.status(500).json({
 		success: false,
