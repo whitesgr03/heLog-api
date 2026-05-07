@@ -221,16 +221,11 @@ export const postUpdate = [
 		});
 	}),
 	asyncHandler(async (req, res) => {
-		const { title, mainImage, content, publish } = req.data;
-
-		req.post.title = title;
-		req.post.mainImage = mainImage;
-		req.post.content = content;
-		req.post.publish = publish;
+		req.post.set(req.data);
 
 		const post = await req.post.save();
 
-		const { author, ...updatedPost } = post._doc;
+		const { author, ...updatedPost } = post.toObject();
 
 		res.json({
 			success: true,
