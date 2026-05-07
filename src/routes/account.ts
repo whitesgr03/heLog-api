@@ -5,7 +5,7 @@ import { isLogin } from '../middlewares/authenticate.js';
 
 export const accountRouter = express.Router();
 
-accountRouter.post('/logout', accountControllers.userLogout);
+accountRouter.post('/logout', accountControllers.logout);
 
 accountRouter.use(isLogin);
 

@@ -69,7 +69,7 @@ export const federatedRedirect: RequestHandler = asyncHandler(
 	},
 );
 
-export const userLogout: RequestHandler[] = [
+export const logout: RequestHandler[] = [
 	authenticate,
 	validationCSRF,
 	(req, res, next) => {
