@@ -141,7 +141,7 @@ export const userUpdate = [
 	}),
 ];
 export const userDelete = [
-	asyncHandler(async (req, res) => {
+	asyncHandler(async (req, res, next) => {
 		const posts = await Post.find({ author: req.user!.id }, { _id: 1 }).exec();
 
 		await Promise.all([
@@ -164,15 +164,30 @@ export const userDelete = [
 			User.findByIdAndDelete(req.user!.id).exec(),
 		]);
 
-		req.logout(() =>
-			res
-				.clearCookie('id')
-				.clearCookie('token')
-				.set('Clear-Site-Data', ['cache', 'cookies', 'storage'])
-				.json({
-					success: true,
-					message: 'Delete user successfully.',
-				}),
-		);
+		req.logout(logoutError => {
+			if (logoutError) return next(logoutError);
+			req.session.destroy(error => {
+				if (error) {
+					next(error);
+				} else {
+					res
+						.clearCookie(
+							process.env.NODE_ENV === 'production'
+								? '__Secure-token'
+								: 'token',
+							{ domain: process.env.DOMAIN ?? '' },
+						)
+						.clearCookie(
+							process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
+							{ domain: process.env.DOMAIN ?? '' },
+						)
+						.set('Clear-Site-Data', '"cookies"')
+						.json({
+							success: true,
+							message: 'Delete user successfully.',
+						});
+				}
+			});
+		});
 	}),
 ];
