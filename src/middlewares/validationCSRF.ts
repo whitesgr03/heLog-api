@@ -6,7 +6,7 @@ export const validationCSRF: RequestHandler = (req, res, next) => {
 	const [token = '', randomValue = ''] =
 		typeof csrfToken === 'string' ? csrfToken.split('.') : [];
 
-	const secret = process.env.CSRF_SECRETS!;
+	const secret = process.env.CSRF_SECRETS;
 
 	const message = `${req.sessionID.length}!${req.sessionID}!${randomValue.length}!${randomValue}`;
 	const hmac = createHmac('sha256', secret).update(message).digest('hex');

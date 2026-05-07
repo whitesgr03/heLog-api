@@ -78,8 +78,8 @@ export const federatedStrategyCallback = async (
 passport.use(
 	new GoogleStrategy(
 		{
-			clientID: process.env.GOOGLE_CLIENT_ID!,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+			clientID: process.env.GOOGLE_CLIENT_ID,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
 			scope: ['profile'],
 		},
@@ -89,8 +89,8 @@ passport.use(
 passport.use(
 	new FacebookStrategy(
 		{
-			clientID: process.env.FACEBOOK_CLIENT_ID!,
-			clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+			clientID: process.env.FACEBOOK_CLIENT_ID,
+			clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/facebook`,
 			profileFields: ['id', 'displayName'],
 			enableProof: true,

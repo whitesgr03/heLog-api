@@ -53,11 +53,11 @@ export const federatedRedirect: RequestHandler = asyncHandler(
 									sameSite: 'strict',
 									httpOnly: false, // Front-end need to access __Secure-token cookie
 									secure: process.env.NODE_ENV === 'production',
-									domain: process.env.DOMAIN ?? '',
+									domain: process.env.DOMAIN,
 									maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
 								},
 							)
-							.redirect(process.env.HELOG_URL!);
+							.redirect(process.env.HELOG_URL);
 					});
 			};
 			const authenticateFn = passport.authenticate(
@@ -139,7 +139,7 @@ export const login: RequestHandler[] = [
 								sameSite: 'strict',
 								httpOnly: false, // Front-end need to access __Secure-token cookie
 								secure: process.env.NODE_ENV === 'production',
-								domain: process.env.DOMAIN ?? '',
+								domain: process.env.DOMAIN,
 								maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
 							},
 						)
@@ -652,7 +652,7 @@ export const verifyCode: RequestHandler[] = [
 					sameSite: 'strict',
 					httpOnly: false, // Front-end need to access __Secure-token cookie
 					secure: process.env.NODE_ENV === 'production',
-					domain: process.env.DOMAIN ?? '',
+					domain: process.env.DOMAIN,
 					maxAge: fifteenMins,
 				},
 			)
@@ -946,12 +946,12 @@ export const resetPassword: RequestHandler[] = [
 				res
 					.clearCookie(
 						process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
-						{ domain: process.env.DOMAIN ?? '' },
+						{ domain: process.env.DOMAIN },
 					)
 					.clearCookie(
 						process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
 						{
-							domain: process.env.DOMAIN ?? '',
+							domain: process.env.DOMAIN,
 						},
 					)
 					.json({

@@ -12,5 +12,5 @@ export const authenticate: RequestHandler = (req, res, next) => {
 export const isLogin: RequestHandler = (req, res, next) => {
 	if (!req.isAuthenticated()) return next();
 
-	res.redirect(process.env.HELOG_URL!);
+	res.redirect(process.env.HELOG_URL);
 };

@@ -10,5 +10,5 @@ mongoose.connection
 	.on('error', err => databaseLog('Database has some error occurs: ', err));
 
 mongoose
-	.connect(process.env.DATABASE_STRING!)
+	.connect(process.env.DATABASE_STRING)
 	.catch((err: Error) => databaseLog('Database connecting error: ', err));

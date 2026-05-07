@@ -57,7 +57,7 @@ const corsOptions = {
 	optionsSuccessStatus: 204,
 };
 const sessionOptions: SessionOptions = {
-	secret: process.env.SESSION_SECRETS?.split(',') ?? '',
+	secret: process.env.SESSION_SECRETS?.split(','),
 	resave: false,
 	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the req.session is unmodified then will not be stored in the session store.
 	store: sessionStore.create({
@@ -115,8 +115,8 @@ app.use((req, _res, next) => {
 	next();
 });
 
-app.get('/', (req, res) => {
-	res.redirect(process.env.HELOG_URL as string);
+app.get('/', (_req, res) => {
+	res.redirect(process.env.HELOG_URL);
 });
 app.use('/account', accountRouter);
 app.use('/user', userRouter);

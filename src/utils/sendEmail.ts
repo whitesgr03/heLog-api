@@ -4,7 +4,7 @@ const mailgun = new Mailgun(FormData);
 
 const mg = mailgun.client({
 	username: 'api',
-	key: process.env.MAINGUN_API_KEY!,
+	key: process.env.MAILGUN_API_KEY,
 });
 
 interface sendEmailType {
@@ -19,13 +19,13 @@ export const sendEmail = async ({
 	html,
 }: sendEmailType) => {
 	const msg = {
-		from: `Helog <no-reply@${process.env.MAINGUN_DOMAIN}>`,
+		from: `Helog <no-reply@${process.env.MAILGUN_DOMAIN}>`,
 		to,
 		subject,
 		html,
 	};
 
-	await mg.messages.create(process.env.MAINGUN_DOMAIN!, msg).catch(err => {
+	await mg.messages.create(process.env.MAILGUN_DOMAIN, msg).catch(err => {
 		throw Error(err);
 	});
 };
