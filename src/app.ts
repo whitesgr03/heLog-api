@@ -1,8 +1,4 @@
-import express, {
-	ErrorRequestHandler,
-	RequestHandler,
-	Response,
-} from 'express';
+import express, { ErrorRequestHandler, RequestHandler } from 'express';
 import morgan from 'morgan';
 import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
@@ -25,9 +21,8 @@ import { userRouter } from './routes/user.js';
 
 export const app = express();
 
-
-app.get('/favicon.ico', (req, res) => {
-	res.status(204);
+app.get('/favicon.ico', (_req, res) => {
+	res.sendStatus(204);
 });
 
 app.get('/robots.txt', (req, res) => {
@@ -35,10 +30,11 @@ app.get('/robots.txt', (req, res) => {
 	res.send('User-agent: *\nDisallow: /');
 });
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
 	try {
-		process.env.NODE_ENV === 'production' &&
-			limiterBruteForceByIp.consume(req.ip as string);
+		if (process.env.NODE_ENV !== 'development') {
+			await limiterBruteForceByIp.consume(req.ip as string);
+		}
 		next();
 	} catch (rejected) {
 		if (rejected instanceof RateLimiterRes) {
@@ -68,7 +64,7 @@ const corsOptions = {
 const sessionOptions: SessionOptions = {
 	secret: process.env.SESSION_SECRETS?.split(',') ?? '',
 	resave: false,
-	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the session.req is unmodified then will not be stored in the session store.
+	saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the req.session is unmodified then will not be stored in the session store.
 	store: sessionStore.create({
 		client: mongoose.connection.getClient(),
 		stringify: false,
@@ -91,46 +87,30 @@ const helmetOptions: HelmetOptions = {
 	},
 	crossOriginEmbedderPolicy: true, // A document can only load resources from the same origin.
 	crossOriginResourcePolicy: { policy: 'same-site' }, // Limit current resource loading to the site and sub-domains only.
-	contentSecurityPolicy: {
-		// Strict CSP
-		directives: {
-			defaultSrc: ["'none'"],
-			scriptSrc: [
-				(req, res) => `'nonce-${(res as Response).locals.cspNonce}'`, // An attacker can't include or run a malicious script
-				"'strict-dynamic'", // The strict-dynamic tells the browser to trust those script blocks which has either the correct hash or nonce
-				'https:', // A fallback for earlier versions of Safari
-				"'unsafe-inline'", // A fallback for very old browser versions (4+ years)
-			],
-			objectSrc: ["'none'"], // Disable dangerous plugins like Flash
-			baseUri: ["'none'"], // Block the injection of <base> tags
-			frameAncestors: ["'none'"], // To prevent all framing of your content
-			connectSrc: ["'self'"], // AJAX from the same origin only
-			imgSrc: ["'self'", 'data:'], // mages from the same origin only
-			styleSrc: ["'self'", 'https://fonts.googleapis.com'], // CSS from the same origin only
-		},
-	},
+	xPoweredBy: false,
 };
 
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 app.use(cors(corsOptions));
 app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
-app.use(morgan(process.env.production ? 'common' : 'dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'common' : 'dev'));
 
 app.use(express.json());
 
 // session touch
-app.use((req, res, next) => {
-	const idleTimeout = 2 * 24 * 60 * 60 * 1000; // 48 hours
+app.use((req, _res, next) => {
+	if (req.user) {
+		const idleTimeout = 2 * 24 * 60 * 60 * 1000; // 48 hours
 
-	const expires = req.session.cookie.expires?.getTime() ?? Date.now();
+		const expires = req.session.cookie.expires?.getTime() ?? Date.now();
 
-	req.user &&
-		(req.session.cookie.maxAge =
-			Date.now() + idleTimeout > expires ? expires - Date.now() : idleTimeout);
-
+		req.session.cookie.maxAge =
+			Date.now() + idleTimeout > expires ? expires - Date.now() : idleTimeout;
+	}
 	next();
 });
 
