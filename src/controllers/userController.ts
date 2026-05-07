@@ -1,8 +1,7 @@
 // Modules
 import asyncHandler from 'express-async-handler';
-import { Types } from 'mongoose';
 import { body } from 'express-validator';
-import { isValidObjectId } from 'mongoose';
+import { Types, isValidObjectId } from 'mongoose';
 
 // Middlewares
 import { validationScheme } from '../middlewares/validationScheme.js';
