@@ -103,11 +103,10 @@ export const login: RequestHandler[] = [
 	body('email').trim().notEmpty().withMessage('The email is required.'),
 	body('password').notEmpty().withMessage('The password is required.'),
 	validationScheme,
-	asyncHandler(async (req, res, next) => {
-		const { email } = req.data;
-
+	async (req, res, next) => {
 		try {
-			await limiterLoginFailsByEmail.consume(email);
+			await limiterLoginFailsByEmail.consume(req.data.email);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -118,17 +117,17 @@ export const login: RequestHandler[] = [
 						message: 'You have login fails too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
-
+	},
+	asyncHandler(async (req, res, next) => {
 		const authenticateCb: AuthenticateCallback = async (err, user) => {
 			err && next(err);
 
 			if (user) {
 				req.login(user, async () => {
-					await limiterLoginFailsByEmail.delete(email);
+					await limiterLoginFailsByEmail.delete(req.data.email);
 					res
 						.set('Cache-Control', 'no-cache=Set-Cookie') // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
 						.cookie(
@@ -149,11 +148,13 @@ export const login: RequestHandler[] = [
 							message: 'User login successfully',
 						});
 				});
-			} else {
-				res.status(401).json({
-					success: false,
-				});
+				return;
 			}
+
+			res.status(401).json({
+				success: false,
+				message: `The incorrect credentials.`,
+			});
 		};
 
 		const authenticateFn = passport.authenticate('local', authenticateCb);
