@@ -14,9 +14,8 @@ export const validationScheme: RequestHandler = (req, res, next) => {
 	res.status(400).json({
 		success: false,
 		fields: Object.keys(errors).reduce(
-			(obj: any, error: any) =>
-				Object.assign(obj, { [error]: errors[error]['msg'] }),
+			(obj, error) => Object.assign(obj, { [error]: errors[error]['msg'] }),
 			{},
-		),
+		) as Record<string, string>,
 	});
 };
