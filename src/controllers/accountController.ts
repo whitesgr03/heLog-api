@@ -827,7 +827,7 @@ export const resetPassword: RequestHandler[] = [
 		} else {
 			res.status(401).json({
 				success: false,
-				message: 'The credential is invalid.',
+				message: 'Session is invalid.',
 			});
 		}
 	},
