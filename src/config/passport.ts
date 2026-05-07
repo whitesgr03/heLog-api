@@ -1,6 +1,13 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { Strategy as FacebookStrategy } from 'passport-facebook';
+import {
+	Strategy as GoogleStrategy,
+	VerifyCallback,
+	Profile as googleProfile,
+} from 'passport-google-oauth20';
+import {
+	Strategy as FacebookStrategy,
+	Profile as facebookProfile,
+} from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { verify } from 'argon2';
 import { randomUUID } from 'node:crypto';
@@ -28,6 +35,46 @@ passport.use(
 		},
 	),
 );
+
+export const federatedStrategyCallback = async (
+	_accessToken: string,
+	_refreshToken: string,
+	profile: googleProfile | facebookProfile,
+	done: VerifyCallback,
+) => {
+	try {
+		const federated = await Federated.findOne({
+			provider: profile.provider,
+			subject: profile.id,
+		}).exec();
+
+		if (federated) {
+			return done(null, {
+				id: federated.user,
+			});
+		}
+		const handleRegistration = async () => {
+			const newUser = new User({
+				username: `user-${randomUUID()}`,
+				isAdmin: process.env.NODE_ENV === 'development',
+			});
+
+			const newFederated = new Federated({
+				user: newUser.id,
+				provider: profile.provider,
+				subject: profile.id,
+			});
+
+			await Promise.all([newUser.save(), newFederated.save()]);
+			done(null, { id: newUser.id });
+		};
+
+		await handleRegistration();
+	} catch (error) {
+		done(error);
+	}
+};
+
 passport.use(
 	new GoogleStrategy(
 		{
@@ -36,39 +83,7 @@ passport.use(
 			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
 			scope: ['profile'],
 		},
-		async (_accessToken, _refreshToken, profile, done) => {
-			try {
-				const federated = await Federated.findOne({
-					provider: profile.provider,
-					subject: profile.id,
-				}).exec();
-
-				if (federated) {
-					return done(null, {
-						id: federated.user,
-					});
-				}
-				const handleRegistration = async () => {
-					const newUser = new User({
-						username: `user-${randomUUID()}`,
-						isAdmin: process.env.NODE_ENV === 'development',
-					});
-
-					const newFederated = new Federated({
-						user: newUser.id,
-						provider: profile.provider,
-						subject: profile.id,
-					});
-
-					await Promise.all([newUser.save(), newFederated.save()]);
-					done(null, { id: newUser.id });
-				};
-
-				await handleRegistration();
-			} catch (error) {
-				done(error);
-			}
-		},
+		federatedStrategyCallback,
 	),
 );
 passport.use(
@@ -80,39 +95,7 @@ passport.use(
 			profileFields: ['id', 'displayName'],
 			enableProof: true,
 		},
-		async (_accessToken, _refreshToken, profile, done) => {
-			try {
-				const federated = await Federated.findOne({
-					provider: profile.provider,
-					subject: profile.id,
-				}).exec();
-
-				if (federated) {
-					return done(null, {
-						id: federated.user,
-					});
-				}
-				const handleRegistration = async () => {
-					const newUser = new User({
-						username: `user-${randomUUID()}`,
-						isAdmin: process.env.NODE_ENV === 'development',
-					});
-
-					const newFederated = new Federated({
-						user: newUser.id,
-						provider: profile.provider,
-						subject: profile.id,
-					});
-
-					await Promise.all([newUser.save(), newFederated.save()]);
-					done(null, { id: newUser.id });
-				};
-
-				await handleRegistration();
-			} catch (error) {
-				done(error);
-			}
-		},
+		federatedStrategyCallback,
 	),
 );
 
