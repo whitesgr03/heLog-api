@@ -200,9 +200,10 @@ export const requestRegistration: RequestHandler[] = [
 		.custom((value, { req }) => value === req.body.password)
 		.withMessage('The confirmation password is not the same as the password.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
+	async (req, res, next) => {
 		try {
 			await limiterRequestRegistrationByIp.consume(req.ip as string);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -213,10 +214,11 @@ export const requestRegistration: RequestHandler[] = [
 						message: 'You have registered too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
+	},
+	asyncHandler(async (req, res) => {
 		const { username, password, email } = req.data;
 
 		const user = await User.findOne({ email }).exec();
