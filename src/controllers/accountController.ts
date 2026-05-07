@@ -485,7 +485,7 @@ export const requestVerificationCode: RequestHandler[] = [
 		});
 
 		const codeDoc = await Code.findOneAndUpdate(
-			{ email: email },
+			{ email },
 			{ code: hashedCode, expiresAfter: new Date(fiveMins) },
 		).exec();
 
