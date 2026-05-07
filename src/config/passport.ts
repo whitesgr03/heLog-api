@@ -43,6 +43,11 @@ passport.use(
 					subject: profile.id,
 				}).exec();
 
+				if (federated) {
+					return done(null, {
+						id: federated.user,
+					});
+				}
 				const handleRegistration = async () => {
 					const newUser = new User({
 						username: `user-${randomUUID()}`,
@@ -59,11 +64,7 @@ passport.use(
 					done(null, { id: newUser.id });
 				};
 
-				federated
-					? done(null, {
-							id: federated.user,
-						})
-					: await handleRegistration();
+				await handleRegistration();
 			} catch (error) {
 				done(error);
 			}
@@ -86,6 +87,11 @@ passport.use(
 					subject: profile.id,
 				}).exec();
 
+				if (federated) {
+					return done(null, {
+						id: federated.user,
+					});
+				}
 				const handleRegistration = async () => {
 					const newUser = new User({
 						username: `user-${randomUUID()}`,
@@ -102,11 +108,7 @@ passport.use(
 					done(null, { id: newUser.id });
 				};
 
-				federated
-					? done(null, {
-							id: federated.user,
-						})
-					: await handleRegistration();
+				await handleRegistration();
 			} catch (error) {
 				done(error);
 			}
