@@ -11,10 +11,10 @@ export const validationCSRF: RequestHandler = (req, res, next) => {
 	const message = `${req.sessionID.length}!${req.sessionID}!${randomValue.length}!${randomValue}`;
 	const hmac = createHmac('sha256', secret).update(message).digest('hex');
 
-	hmac === token
-		? next()
-		: res.status(403).json({
-				success: false,
-				message: 'CSRF token mismatch.',
-			});
+	if (hmac === token) return next();
+
+	res.status(403).json({
+		success: false,
+		message: 'CSRF token mismatch.',
+	});
 };

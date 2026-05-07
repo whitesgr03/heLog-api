@@ -56,16 +56,18 @@ export const userPostDetail = [
 				},
 			).exec());
 
-		post
-			? res.json({
-					success: true,
-					message: 'Get post successfully.',
-					data: post,
-				})
-			: res.status(404).json({
-					success: false,
-					message: `Post could not be found.`,
-				});
+		if (post) {
+			res.json({
+				success: true,
+				message: 'Get post successfully.',
+				data: post,
+			});
+			return;
+		}
+		res.status(404).json({
+			success: false,
+			message: `Post could not be found.`,
+		});
 	}),
 ];
 export const userDetail = [
@@ -107,14 +109,16 @@ export const userUpdate = [
 			],
 		}).exec();
 
-		existingUserName
-			? res.status(409).json({
-					success: false,
-					fields: {
-						username: 'Username is been used.',
-					},
-				})
-			: next();
+		if (!existingUserName) {
+			return next();
+		}
+
+		res.status(409).json({
+			success: false,
+			fields: {
+				username: 'Username is been used.',
+			},
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		const user = await User.findByIdAndUpdate(
