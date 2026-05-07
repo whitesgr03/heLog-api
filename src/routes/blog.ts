@@ -31,10 +31,10 @@ blogRouter
 	.patch(commentControllers.commentUpdate)
 	.delete(commentControllers.commentDelete);
 
-blogRouter.post('/comments/:commentId/replies', replyControllers.replyComment);
+blogRouter.post('/comments/:commentId/replies', replyControllers.replyCreate);
 
 blogRouter
 	.route('/replies/:replyId')
-	.post(replyControllers.replyCreate)
-	.patch(replyControllers.replyUpdate)
-	.delete(replyControllers.replyDelete);
+	.post(replyControllers.subReplyCreate)
+	.patch(replyControllers.subReplyUpdate)
+	.delete(replyControllers.subReplyDelete);

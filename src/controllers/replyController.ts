@@ -66,7 +66,7 @@ export const replyList = [
 	}),
 ];
 
-export const replyComment = [
+export const replyCreate = [
 	body('content')
 		.trim()
 		.notEmpty()
@@ -114,7 +114,7 @@ export const replyComment = [
 	}),
 ];
 
-export const replyCreate = [
+export const subReplyCreate = [
 	body('content')
 		.trim()
 		.notEmpty()
@@ -179,7 +179,7 @@ export const replyCreate = [
 	}),
 ];
 
-export const replyUpdate = [
+export const subReplyUpdate = [
 	body('content')
 		.trim()
 		.notEmpty()
@@ -249,7 +249,7 @@ export const replyUpdate = [
 	}),
 ];
 
-export const replyDelete = [
+export const subReplyDelete = [
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
 
