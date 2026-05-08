@@ -15,27 +15,6 @@ import { randomUUID } from 'node:crypto';
 import { Federated } from '../models/federated.js';
 import { User } from '../models/user.js';
 
-passport.use(
-	new LocalStrategy(
-		{
-			usernameField: 'email',
-		},
-		async (email, password, done) => {
-			try {
-				const user = await User.findOne({ email });
-
-				if (user && (await verify(user.password as string, password))) {
-					return done(null, { id: user.id });
-				}
-
-				done(null, false);
-			} catch (error) {
-				done(error);
-			}
-		},
-	),
-);
-
 export const federatedStrategyCallback = async (
 	_accessToken: string,
 	_refreshToken: string,
@@ -75,33 +54,57 @@ export const federatedStrategyCallback = async (
 	}
 };
 
-passport.use(
-	new GoogleStrategy(
-		{
-			clientID: process.env.GOOGLE_CLIENT_ID,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
-			scope: ['profile'],
-		},
-		federatedStrategyCallback,
-	),
-);
-passport.use(
-	new FacebookStrategy(
-		{
-			clientID: process.env.FACEBOOK_CLIENT_ID,
-			clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-			callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/facebook`,
-			profileFields: ['id', 'displayName'],
-			enableProof: true,
-		},
-		federatedStrategyCallback,
-	),
-);
+const initialPassport = () => {
+	passport.use(
+		new GoogleStrategy(
+			{
+				clientID: process.env.GOOGLE_CLIENT_ID,
+				clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+				callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/google`,
+				scope: ['profile'],
+			},
+			federatedStrategyCallback,
+		),
+	);
+	passport.use(
+		new FacebookStrategy(
+			{
+				clientID: process.env.FACEBOOK_CLIENT_ID,
+				clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+				callbackURL: `${process.env.HELOG_API_URL}/account/oauth2/redirect/facebook`,
+				profileFields: ['id', 'displayName'],
+				enableProof: true,
+			},
+			federatedStrategyCallback,
+		),
+	);
+	passport.use(
+		new LocalStrategy(
+			{
+				usernameField: 'email',
+			},
+			async (email, password, done) => {
+				try {
+					const user = await User.findOne({ email });
 
-passport.serializeUser((user, done) => {
-	done(null, user);
-});
-passport.deserializeUser((user: Express.User, done) => {
-	done(null, user);
-});
+					if (user && (await argon2.verify(user.password!, password))) {
+						return done(null, { id: user.id });
+					}
+
+					done(null, false);
+				} catch (error) {
+					done(error);
+				}
+			},
+		),
+	);
+
+	passport.serializeUser((user, done) => {
+		done(null, user);
+	});
+	passport.deserializeUser((user: Express.User, done) => {
+		done(null, user);
+	});
+};
+
+export default initialPassport;
