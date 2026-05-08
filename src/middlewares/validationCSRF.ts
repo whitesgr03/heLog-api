@@ -6,15 +6,15 @@ export const validationCSRF: RequestHandler = (req, res, next) => {
 	const [token = '', randomValue = ''] =
 		typeof csrfToken === 'string' ? csrfToken.split('.') : [];
 
-	const secret = process.env.CSRF_SECRETS!;
+	const secret = process.env.CSRF_SECRETS;
 
 	const message = `${req.sessionID.length}!${req.sessionID}!${randomValue.length}!${randomValue}`;
 	const hmac = createHmac('sha256', secret).update(message).digest('hex');
 
-	hmac === token
-		? next()
-		: res.status(403).json({
-				success: false,
-				message: 'CSRF token mismatch.',
-			});
+	if (hmac === token) return next();
+
+	res.status(403).json({
+		success: false,
+		message: 'CSRF token mismatch.',
+	});
 };

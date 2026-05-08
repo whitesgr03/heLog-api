@@ -1,8 +1,7 @@
 // Modules
 import asyncHandler from 'express-async-handler';
-import { Types } from 'mongoose';
 import { body } from 'express-validator';
-import { isValidObjectId } from 'mongoose';
+import { Types, isValidObjectId } from 'mongoose';
 
 // Middlewares
 import { validationScheme } from '../middlewares/validationScheme.js';
@@ -56,16 +55,18 @@ export const userPostDetail = [
 				},
 			).exec());
 
-		post
-			? res.json({
-					success: true,
-					message: 'Get post successfully.',
-					data: post,
-				})
-			: res.status(404).json({
-					success: false,
-					message: `Post could not be found.`,
-				});
+		if (post) {
+			res.json({
+				success: true,
+				message: 'Get post successfully.',
+				data: post,
+			});
+			return;
+		}
+		res.status(404).json({
+			success: false,
+			message: `Post could not be found.`,
+		});
 	}),
 ];
 export const userDetail = [
@@ -107,14 +108,16 @@ export const userUpdate = [
 			],
 		}).exec();
 
-		existingUserName
-			? res.status(409).json({
-					success: false,
-					fields: {
-						username: 'Username is been used.',
-					},
-				})
-			: next();
+		if (!existingUserName) {
+			return next();
+		}
+
+		res.status(409).json({
+			success: false,
+			fields: {
+				username: 'Username is been used.',
+			},
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		const user = await User.findByIdAndUpdate(
@@ -137,7 +140,7 @@ export const userUpdate = [
 	}),
 ];
 export const userDelete = [
-	asyncHandler(async (req, res) => {
+	asyncHandler(async (req, res, next) => {
 		const posts = await Post.find({ author: req.user!.id }, { _id: 1 }).exec();
 
 		await Promise.all([
@@ -160,15 +163,30 @@ export const userDelete = [
 			User.findByIdAndDelete(req.user!.id).exec(),
 		]);
 
-		req.logout(() =>
-			res
-				.clearCookie('id')
-				.clearCookie('token')
-				.set('Clear-Site-Data', ['cache', 'cookies', 'storage'])
-				.json({
-					success: true,
-					message: 'Delete user successfully.',
-				}),
-		);
+		req.logout(logoutError => {
+			if (logoutError) return next(logoutError);
+			req.session.destroy(error => {
+				if (error) {
+					next(error);
+				} else {
+					res
+						.clearCookie(
+							process.env.NODE_ENV === 'production'
+								? '__Secure-token'
+								: 'token',
+							{ domain: process.env.DOMAIN ?? '' },
+						)
+						.clearCookie(
+							process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
+							{ domain: process.env.DOMAIN ?? '' },
+						)
+						.set('Clear-Site-Data', '"cookies"')
+						.json({
+							success: true,
+							message: 'Delete user successfully.',
+						});
+				}
+			});
+		});
 	}),
 ];

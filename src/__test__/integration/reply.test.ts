@@ -1,16 +1,10 @@
-import { expect, describe, it } from 'vitest';
+import { expect, describe, it, beforeEach } from 'vitest';
 import request from 'supertest';
-import express from 'express';
 import { Types, isValidObjectId } from 'mongoose';
-import session from 'express-session';
+import { hash } from 'argon2';
+import createApp from '../../app';
 
-import { blogRouter } from '../../routes/blog.js';
-
-import { generateCSRFToken } from '../../utils/generateCSRFToken.js';
-
-import { User } from '../../models/user.js';
-
-import { UserDocument } from '../../models/user.js';
+import { User, UserDocument } from '../../models/user.js';
 import { CommentDocument } from '../../models/comment.js';
 
 import {
@@ -18,45 +12,27 @@ import {
 	createComments,
 	createCommentReplies,
 	createReplies,
-} from '../../lib/seed.js';
-import { passport } from '../../lib/passport.js';
+} from '../../seed/methods.js';
 
-const app = express();
-
-app.use(
-	session({
-		secret: 'secret',
-		resave: false,
-		saveUninitialized: false,
-		name: 'id',
-	}),
-);
-app.use(passport.session());
-app.use(express.json());
-
-app.post('/login', (req, res, next) => {
-	req.body = {
-		...req.body,
-		password: ' ',
-	};
-	passport.authenticate('local', (_err: any, user: Express.User) => {
-		req.login(user, () =>
-			res.send({
-				token: generateCSRFToken(req.sessionID),
-			}),
-		);
-	})(req, res, next);
-});
-
-app.use('/', blogRouter);
+const app = createApp();
 
 describe('Reply paths', () => {
+	const password = '12345678';
+	let user = {} as UserDocument;
+	beforeEach(async () => {
+		user = await new User({
+			username: 'example',
+			password: await hash(password),
+			email: 'example@gmail.com',
+			isAdmin: false,
+		}).save();
+	});
 	describe('GET /comments/:commentId/replies', () => {
 		it('should respond with empty array, if the provided comment id is invalid', async () => {
 			const fakeCommentId = 'abc123';
 
 			const { status, body } = await request(app).get(
-				`/comments/${fakeCommentId}/replies`,
+				`/blog/comments/${fakeCommentId}/replies`,
 			);
 
 			expect(status).toBe(200);
@@ -85,7 +61,7 @@ describe('Reply paths', () => {
 			const mockCommentId = String(mockComments[0]._id);
 
 			const { status, body } = await request(app).get(
-				`/comments/${mockCommentId}/replies`,
+				`/blog/comments/${mockCommentId}/replies`,
 			);
 
 			expect(status).toBe(200);
@@ -98,63 +74,45 @@ describe('Reply paths', () => {
 			});
 		});
 	});
-	describe('Authenticate', () => {
+	describe('POST /comments/:commentId/replies', () => {
 		it('should respond with a 401 status code and message if the user is not logged in', async () => {
-			const { status, body } = await request(app).post(`/replies/testId`);
+			const agent = request.agent(app);
+			const { status, body } = await agent.post(
+				`/blog/comments/test-id/replies`,
+			);
 			expect(status).toBe(401);
 			expect(body).toStrictEqual({
 				success: false,
 				message: 'Missing authentication token.',
 			});
 		});
-	});
-	describe('Verify CSRF token', () => {
-		it('should respond with a 403 status code and message if a CSRF token is not provided', async () => {
-			const user = (await User.findOne().exec()) as UserDocument;
-
-			const agent = request.agent(app);
-
-			await agent.post(`/login`).send({ email: user.email });
-
-			const { status, body } = await agent.post(`/replies/testId`);
-
-			expect(status).toBe(403);
-			expect(body).toStrictEqual({
-				success: false,
-				message: 'CSRF token mismatch.',
-			});
-		});
 		it('should respond with a 403 status code and message if a CSRF token send by client but mismatch', async () => {
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const agent = request.agent(app);
-
-			await agent.post(`/login`).send({ email: user.email });
-
+			await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password: password });
 			const { status, body } = await agent
-				.post(`/replies/testId`)
+				.post(`/blog/comments/test-id/replies`)
 				.set('x-csrf-token', '123.456');
-
 			expect(status).toBe(403);
 			expect(body).toStrictEqual({
 				success: false,
 				message: 'CSRF token mismatch.',
 			});
 		});
-	});
-	describe('POST /comments/:commentId/replies', () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.post(`/comments/test-id/replies`)
+				.post(`/blog/comments/test-id/replies`)
 				.send({ test: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
 
@@ -166,17 +124,17 @@ describe('Reply paths', () => {
 			const fakeCommentId = 'abc123';
 
 			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.post(`/comments/${fakeCommentId}/replies`)
+				.post(`/blog/comments/${fakeCommentId}/replies`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -190,16 +148,17 @@ describe('Reply paths', () => {
 
 			const agent = request.agent(app);
 
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.post(`/comments/${fakeCommentId}/replies`)
+				.post(`/blog/comments/${fakeCommentId}/replies`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -209,31 +168,32 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Comment could not be found.');
 		});
 		it("should create a comment's reply and return new reply id to client", async () => {
-			const [user, secondUser] = await User.find({}).exec();
+			const agent = request.agent(app);
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
-				users: [secondUser],
+				users: [user],
 				amount: 1,
 			});
 			const mockComments = await createComments({
-				users: [secondUser],
+				users: [user],
 				posts: mockPosts,
 				amount: 1,
 			});
 
-			const secondUserCommentId = String(mockComments[0]._id);
+			const commentId = mockComments[0].id;
 			const mockContent = 'new content';
 
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
-
 			const { status, body } = await agent
-				.post(`/comments/${secondUserCommentId}/replies`)
+				.post(`/blog/comments/${commentId}/replies`)
 				.type('json')
 				.send({ content: mockContent })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -247,17 +207,17 @@ describe('Reply paths', () => {
 	describe('POST /replies/:replyId', () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.post(`/replies/test123`)
+				.post(`/blog/replies/test123`)
 				.type('json')
 				.send({ text: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -267,20 +227,20 @@ describe('Reply paths', () => {
 			expect(body.fields).toHaveProperty('content');
 		});
 		it(`should respond with a 404 status code and an error message, if the provided reply id is invalid`, async () => {
+			const agent = request.agent(app);
 			const fakeReplyId = 'abc123';
 
-			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.post(`/replies/${fakeReplyId}`)
+				.post(`/blog/replies/${fakeReplyId}`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -290,20 +250,20 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Reply could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
+			const agent = request.agent(app);
 			const fakeReplyId = new Types.ObjectId();
 
-			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.post(`/replies/${fakeReplyId}`)
+				.post(`/blog/replies/${fakeReplyId}`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -313,7 +273,22 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Reply could not be found.');
 		});
 		it('should create a reply that is a comment on that other reply.', async () => {
-			const [user, secondUser] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const secondUser = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
@@ -335,16 +310,8 @@ describe('Reply paths', () => {
 
 			const mockContent = 'new content';
 
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
-
 			const { status, body } = await agent
-				.post(`/replies/${secondUserReplyId}`)
+				.post(`/blog/replies/${secondUserReplyId}`)
 				.type('json')
 				.send({ content: mockContent })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -363,17 +330,17 @@ describe('Reply paths', () => {
 	describe('PATCH /replies/:replyId', () => {
 		it(`should respond with a 400 status code and an error field message, if a value of content field is not provided`, async () => {
 			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.patch(`/replies/test123`)
+				.patch(`/blog/replies/test123`)
 				.type('json')
 				.send({ text: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -383,20 +350,19 @@ describe('Reply paths', () => {
 			expect(body.fields).toHaveProperty('content');
 		});
 		it(`should respond with a 404 status code and an error message, if the provided reply id is invalid`, async () => {
-			const fakeReplyId = 'abc123';
-
 			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
+			const fakeReplyId = 'abc123';
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.patch(`/replies/${fakeReplyId}`)
+				.patch(`/blog/replies/${fakeReplyId}`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -406,20 +372,19 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Reply could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
-			const fakeReplyId = new Types.ObjectId();
-
 			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
+			const fakeReplyId = new Types.ObjectId();
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.patch(`/replies/${fakeReplyId}`)
+				.patch(`/blog/replies/${fakeReplyId}`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -429,7 +394,22 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Reply could not be found.');
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the reply nor the blog admin`, async () => {
-			const [admin, user] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const admin = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
 				users: [admin],
@@ -447,18 +427,10 @@ describe('Reply paths', () => {
 				amount: 1,
 			});
 
-			const adminReplyId = String(mockCommentReplies[0]._id);
-
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
+			const adminReplyId = mockCommentReplies[0].id;
 
 			const { status, body } = await agent
-				.patch(`/replies/${adminReplyId}`)
+				.patch(`/blog/replies/${adminReplyId}`)
 				.type('json')
 				.send({ content: 'new content' })
 				.set('x-csrf-token', `${token}.${value}`);
@@ -468,7 +440,22 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('This request requires higher permissions.');
 		});
 		it("should successfully updated comment's reply and return to client, if the authenticate user is a blog admin", async () => {
-			const [admin, user] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const admin = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -490,15 +477,8 @@ describe('Reply paths', () => {
 
 			const mockContent = 'This message is updated by admin not second user';
 
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
-			const [token, value] = loginResponse.body.token.split('.');
-
 			const { status, body } = await agent
-				.patch(`/replies/${userReplyId}`)
+				.patch(`/blog/replies/${userReplyId}`)
 				.type('json')
 				.send({
 					content: mockContent,
@@ -515,14 +495,29 @@ describe('Reply paths', () => {
 			expect(body.data.content).toBe(mockContent);
 		});
 		it("should successfully updated comment's reply and return to client, if the authenticate user is owner of the comment's reply", async () => {
-			const [firstUser, secondUser] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const secondUser = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: secondUser.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
 				users: [secondUser],
 				amount: 1,
 			});
 			const mockComments = await createComments({
-				users: [firstUser],
+				users: [user],
 				posts: mockPosts,
 				amount: 1,
 			});
@@ -537,16 +532,8 @@ describe('Reply paths', () => {
 
 			const mockContent = 'This message is updated by owner';
 
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: secondUser.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
-
 			const { status, body } = await agent
-				.patch(`/replies/${secondUserReplyId}`)
+				.patch(`/blog/replies/${secondUserReplyId}`)
 				.type('json')
 				.send({
 					content: mockContent,
@@ -563,10 +550,25 @@ describe('Reply paths', () => {
 			expect(body.data.content).toBe(mockContent);
 		});
 		it('should successfully updated reply and return to client, if the authenticate user is owner of the reply', async () => {
-			const [firstUser, secondUser] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const secondUser = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: secondUser.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
-				users: [firstUser],
+				users: [user],
 				amount: 1,
 			});
 			const mockComments = await createComments({
@@ -576,7 +578,7 @@ describe('Reply paths', () => {
 			});
 
 			const mockCommentReplies = await createCommentReplies({
-				users: [firstUser],
+				users: [user],
 				comments: mockComments,
 				amount: 1,
 			});
@@ -587,20 +589,12 @@ describe('Reply paths', () => {
 				amount: 1,
 			});
 
-			const secondUserReplyId = String(mockReplies[0]._id);
+			const secondUserReplyId = mockReplies[0].id;
 
 			const mockContent = 'This message is updated by owner';
 
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: secondUser.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
-
 			const { status, body } = await agent
-				.patch(`/replies/${secondUserReplyId}`)
+				.patch(`/blog/replies/${secondUserReplyId}`)
 				.type('json')
 				.send({
 					content: mockContent,
@@ -620,19 +614,20 @@ describe('Reply paths', () => {
 	});
 	describe('DELETE /replies/:replyId', () => {
 		it(`should respond with a 404 status code and an error message, if the provided reply id is invalid`, async () => {
+			const agent = request.agent(app);
 			const fakeReplyId = 'abc123';
 
-			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
-			const [token, value] = loginResponse.body.token.split('.');
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.delete(`/replies/${fakeReplyId}`)
+				.delete(`/blog/replies/${fakeReplyId}`)
 				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
@@ -640,20 +635,19 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Reply could not be found.');
 		});
 		it(`should respond with a 404 status code and an error message, if a specified reply is not found`, async () => {
-			const fakeReplyId = new Types.ObjectId();
-
 			const agent = request.agent(app);
-
-			const user = (await User.findOne().exec()) as UserDocument;
-
+			const fakeReplyId = new Types.ObjectId();
 			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
+				.post(`/account/login`)
+				.send({ email: user.email, password });
 
-			const [token, value] = loginResponse.body.token.split('.');
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const { status, body } = await agent
-				.delete(`/replies/${fakeReplyId}`)
+				.delete(`/blog/replies/${fakeReplyId}`)
 				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(404);
@@ -661,7 +655,22 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('Reply could not be found.');
 		});
 		it(`should respond with a 403 status code and an error message, if the authenticate user is nether the owner of the reply nor the blog admin`, async () => {
-			const [admin, user] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const admin = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
 				users: [admin],
@@ -679,18 +688,10 @@ describe('Reply paths', () => {
 				amount: 1,
 			});
 
-			const adminReplyId = String(mockCommentReplies[0]._id);
-
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: user.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
+			const adminReplyId = mockCommentReplies[0].id;
 
 			const { status, body } = await agent
-				.delete(`/replies/${adminReplyId}`)
+				.delete(`/blog/replies/${adminReplyId}`)
 				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(403);
@@ -698,7 +699,22 @@ describe('Reply paths', () => {
 			expect(body.message).toBe('This request requires higher permissions.');
 		});
 		it('should successfully delete reply and return to client, if the authenticate user is a blog admin', async () => {
-			const [admin, user] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const admin = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: admin.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
 				users: [user],
@@ -716,20 +732,12 @@ describe('Reply paths', () => {
 				amount: 1,
 			});
 
-			const userReplyId = String(mockCommentReplies[0]._id);
+			const userReplyId = mockCommentReplies[0].id;
 
-			const editor = String(admin._id);
-
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: admin.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
+			const editor = admin.id;
 
 			const { status, body } = await agent
-				.delete(`/replies/${userReplyId}`)
+				.delete(`/blog/replies/${userReplyId}`)
 				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
@@ -743,43 +751,50 @@ describe('Reply paths', () => {
 			expect(body.data.deleted).toBe(true);
 		});
 		it('should successfully delete reply and return to client, if the authenticate user is owner of the reply', async () => {
-			const [firstUser, secondUser] = await User.find({}).exec();
+			const agent = request.agent(app);
+			const secondUser = await new User({
+				username: 'example2',
+				password: await hash(password),
+				email: 'example2@gmail.com',
+				isAdmin: true,
+			}).save();
+
+			const loginResponse = await agent
+				.post(`/account/login`)
+				.send({ email: user.email, password });
+
+			const cookies = loginResponse.headers['set-cookie'];
+			const [_, token, value] = cookies[0].match(
+				/(?<=token=)(\w+).(\w+)(?=;)/,
+			) as RegExpMatchArray;
 
 			const mockPosts = await createPosts({
-				users: [secondUser],
+				users: [user],
 				amount: 1,
 			});
 			const mockComments = await createComments({
-				users: [firstUser],
+				users: [secondUser],
 				posts: mockPosts,
 				amount: 1,
 			});
 
 			const mockCommentReplies = await createCommentReplies({
-				users: [secondUser],
+				users: [user],
 				comments: mockComments,
 				amount: 1,
 			});
 
-			const secondUserReplyId = String(mockCommentReplies[0]._id);
-
-			const agent = request.agent(app);
-
-			const loginResponse = await agent
-				.post(`/login`)
-				.send({ email: secondUser.email });
-
-			const [token, value] = loginResponse.body.token.split('.');
+			const secondUserReplyId = mockCommentReplies[0].id;
 
 			const { status, body } = await agent
-				.delete(`/replies/${secondUserReplyId}`)
+				.delete(`/blog/replies/${secondUserReplyId}`)
 				.set('x-csrf-token', `${token}.${value}`);
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(body.message).toBe('Delete reply successfully.');
 
-			expect(body.data.author.username).toBe(secondUser.username);
+			expect(body.data.author.username).toBe(user.username);
 			expect(body.data.post).toBe(String(mockPosts[0]._id));
 			expect(body.data.parent).toBe(String(mockComments[0]._id));
 			expect(body.data.content).toBe('Reply deleted by user');

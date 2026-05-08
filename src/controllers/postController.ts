@@ -199,39 +199,33 @@ export const postUpdate = [
 		const post =
 			isValidObjectId(postId) && (await Post.findById(postId).exec());
 
-		const handleSetLocalVariable = () => {
+		if (post) {
 			req.post = post;
-			next();
-		};
+			return next();
+		}
 
-		post
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Post could not be found.`,
-				});
+		res.status(404).json({
+			success: false,
+			message: `Post could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
-		user?.isAdmin || user?.id.toString() === req.post.author._id.toString()
-			? next()
-			: res.status(403).json({
-					success: false,
-					message: 'This request requires higher permissions.',
-				});
+		if (user?.isAdmin || user?.id.toString() === req.post.author._id.toString())
+			return next();
+
+		res.status(403).json({
+			success: false,
+			message: 'This request requires higher permissions.',
+		});
 	}),
 	asyncHandler(async (req, res) => {
-		const { title, mainImage, content, publish } = req.data;
-
-		req.post.title = title;
-		req.post.mainImage = mainImage;
-		req.post.content = content;
-		req.post.publish = publish;
+		req.post.set(req.data);
 
 		const post = await req.post.save();
 
-		const { author, ...updatedPost } = post._doc;
+		const { author, ...updatedPost } = post.toObject();
 
 		res.json({
 			success: true,
@@ -248,27 +242,26 @@ export const postDelete = [
 		const post =
 			isValidObjectId(postId) && (await Post.findById(postId).exec());
 
-		const handleSetLocalVariable = () => {
+		if (post) {
 			req.post = post;
-			next();
-		};
+			return next();
+		}
 
-		post
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Post could not be found.`,
-				});
+		res.status(404).json({
+			success: false,
+			message: `Post could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
 
-		user?.isAdmin || user?.id.toString() === req.post.author._id.toString()
-			? next()
-			: res.status(403).json({
-					success: false,
-					message: 'This request requires higher permissions.',
-				});
+		if (user?.isAdmin || user?.id.toString() === req.post.author._id.toString())
+			return next();
+
+		res.status(403).json({
+			success: false,
+			message: 'This request requires higher permissions.',
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		await Promise.all([

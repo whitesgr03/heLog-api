@@ -78,12 +78,12 @@ export const commentCreate = [
 		const post =
 			isValidObjectId(postId) && (await Post.findById(postId).exec());
 
-		post
-			? next()
-			: res.status(404).json({
-					success: false,
-					message: `Post could not be found.`,
-				});
+		if (post) return next();
+
+		res.status(404).json({
+			success: false,
+			message: `Post could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
@@ -116,17 +116,14 @@ export const commentUpdate = [
 		const comment =
 			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
-		const handleSetLocalVariable = () => {
+		if (comment) {
 			req.comment = comment;
-			next();
-		};
-
-		comment
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Comment could not be found.`,
-				});
+			return next();
+		}
+		res.status(404).json({
+			success: false,
+			message: `Comment could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user =
@@ -164,17 +161,14 @@ export const commentDelete = [
 		const comment =
 			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
-		const handleSetLocalVariable = () => {
+		if (comment) {
 			req.comment = comment;
-			next();
-		};
-
-		comment
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Comment could not be found.`,
-				});
+			return next();
+		}
+		res.status(404).json({
+			success: false,
+			message: `Comment could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user =
@@ -183,24 +177,20 @@ export const commentDelete = [
 		const isCommentOwner =
 			user?.id.toString() === req.comment.author._id.toString();
 
-		const handleSetLocalVariable = () => {
-			req.deletedByAdmin = user?.isAdmin && !isCommentOwner;
-			next();
-		};
+		if (user?.isAdmin || isCommentOwner) {
+			req.comment.content = isCommentOwner
+				? 'Comment deleted by user'
+				: 'Comment deleted by admin';
+			req.comment.deleted = true;
+			return next();
+		}
 
-		user?.isAdmin || isCommentOwner
-			? handleSetLocalVariable()
-			: res.status(403).json({
-					success: false,
-					message: 'This request requires higher permissions.',
-				});
+		res.status(403).json({
+			success: false,
+			message: 'This request requires higher permissions.',
+		});
 	}),
 	asyncHandler(async (req, res) => {
-		req.comment.content = req.deletedByAdmin
-			? 'Comment deleted by admin'
-			: 'Comment deleted by user';
-		req.comment.deleted = true;
-
 		await req.comment.save();
 
 		const deletedComment = await req.comment.populate('author', {

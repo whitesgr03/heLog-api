@@ -66,7 +66,7 @@ export const replyList = [
 	}),
 ];
 
-export const replyComment = [
+export const replyCreate = [
 	body('content')
 		.trim()
 		.notEmpty()
@@ -78,20 +78,17 @@ export const replyComment = [
 	asyncHandler(async (req, res, next) => {
 		const { commentId } = req.params;
 
-		const comment =
+		const parentComment =
 			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
 
-		const handleSetLocalVariable = () => {
-			req.comment = comment;
-			next();
-		};
-
-		comment
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Comment could not be found.`,
-				});
+		if (parentComment) {
+			req.comment = parentComment;
+			return next();
+		}
+		res.status(404).json({
+			success: false,
+			message: `Comment could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		const { commentId } = req.params;
@@ -117,7 +114,7 @@ export const replyComment = [
 	}),
 ];
 
-export const replyCreate = [
+export const subReplyCreate = [
 	body('content')
 		.trim()
 		.notEmpty()
@@ -129,21 +126,18 @@ export const replyCreate = [
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
 
-		const comment =
+		const parentComment =
 			isValidObjectId(replyId) &&
 			(await Comment.findOne({ child: replyId }).exec());
 
-		const handleSetLocalVariable = () => {
-			req.comment = comment;
-			next();
-		};
-
-		comment
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Reply could not be found.`,
-				});
+		if (parentComment) {
+			req.comment = parentComment;
+			return next();
+		}
+		res.status(404).json({
+			success: false,
+			message: `Reply could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
@@ -185,7 +179,7 @@ export const replyCreate = [
 	}),
 ];
 
-export const replyUpdate = [
+export const subReplyUpdate = [
 	body('content')
 		.trim()
 		.notEmpty()
@@ -200,17 +194,14 @@ export const replyUpdate = [
 		const reply =
 			isValidObjectId(replyId) && (await Comment.findById(replyId).exec());
 
-		const handleSetLocalVariable = () => {
+		if (reply) {
 			req.reply = reply;
-			next();
-		};
-
-		reply
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Reply could not be found.`,
-				});
+			return next();
+		}
+		res.status(404).json({
+			success: false,
+			message: `Reply could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, {
@@ -258,24 +249,21 @@ export const replyUpdate = [
 	}),
 ];
 
-export const replyDelete = [
+export const subReplyDelete = [
 	asyncHandler(async (req, res, next) => {
 		const { replyId } = req.params;
 
 		const reply =
 			isValidObjectId(replyId) && (await Comment.findById(replyId).exec());
 
-		const handleSetLocalVariable = () => {
+		if (reply) {
 			req.reply = reply;
-			next();
-		};
-
-		reply
-			? handleSetLocalVariable()
-			: res.status(404).json({
-					success: false,
-					message: `Reply could not be found.`,
-				});
+			return next();
+		}
+		res.status(404).json({
+			success: false,
+			message: `Reply could not be found.`,
+		});
 	}),
 	asyncHandler(async (req, res, next) => {
 		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
@@ -283,25 +271,20 @@ export const replyDelete = [
 		const isReplyOwner =
 			user?.id.toString() === req.reply.author._id.toString();
 
-		const handleSetLocalVariable = () => {
-			req.deletedByAdmin = user?.isAdmin && !isReplyOwner;
-			next();
-		};
-
-		user?.isAdmin || isReplyOwner
-			? handleSetLocalVariable()
-			: res.status(403).json({
-					success: false,
-					message: 'This request requires higher permissions.',
-				});
+		if (user?.isAdmin || isReplyOwner) {
+			req.reply.content = isReplyOwner
+				? 'Reply deleted by user'
+				: 'Reply deleted by admin';
+			req.reply.deleted = true;
+			return next();
+		}
+		res.status(403).json({
+			success: false,
+			message: 'This request requires higher permissions.',
+		});
 	}),
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
-
-		req.reply.content = req.deletedByAdmin
-			? 'Reply deleted by admin'
-			: 'Reply deleted by user';
-		req.reply.deleted = true;
 
 		await req.reply.save();
 

@@ -1,18 +1,16 @@
-import debug from 'debug';
 import mongoose from 'mongoose';
+import { database } from '../utils/loggers.js';
 
-const databaseLog = debug('Mongoose');
+const connectDB = async () => {
+	mongoose.connection
+		.on('connecting', () => database('connecting...'))
+		.on('connected', () => database('is connected.'))
+		.on('disconnected', () => database('is disconnected.'))
+		.on('error', err => database('has an error occurs: ', err));
 
-mongoose.connection
-	.on('connecting', () => databaseLog('MongoDB connecting ...'))
-	.on('connected', () => databaseLog('MongoDB is connected.'))
-	.on('disconnected', () => databaseLog('MongoDB is disconnected.'))
-	.on('error', err => {
-		databaseLog('Database has some error occurs: ', err);
-	});
+	await mongoose
+		.connect(process.env.DATABASE_STRING)
+		.catch((err: Error) => database('has an error occur in connecting: ', err));
+};
 
-mongoose.connect(process.env.DATABASE_STRING as string).catch((err: Error) => {
-	databaseLog('Database connecting error: ', err);
-});
-
-export { mongoose };
+export default connectDB;

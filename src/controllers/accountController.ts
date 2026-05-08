@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import asyncHandler from 'express-async-handler';
 import passport, { AuthenticateCallback } from 'passport';
 import { body } from 'express-validator';
-import { hash, verify, argon2id } from 'argon2';
+import argon2 from 'argon2';
 import { randomInt, randomBytes } from 'node:crypto';
 import mjml2html from 'mjml';
 import mongoose from 'mongoose';
@@ -53,11 +53,11 @@ export const federatedRedirect: RequestHandler = asyncHandler(
 									sameSite: 'strict',
 									httpOnly: false, // Front-end need to access __Secure-token cookie
 									secure: process.env.NODE_ENV === 'production',
-									domain: process.env.DOMAIN ?? '',
+									domain: process.env.DOMAIN,
 									maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
 								},
 							)
-							.redirect(process.env.HELOG_URL!);
+							.redirect(process.env.HELOG_URL);
 					});
 			};
 			const authenticateFn = passport.authenticate(
@@ -69,30 +69,33 @@ export const federatedRedirect: RequestHandler = asyncHandler(
 	},
 );
 
-export const userLogout: RequestHandler[] = [
+export const logout: RequestHandler[] = [
 	authenticate,
 	validationCSRF,
 	(req, res, next) => {
-		req.session.destroy(error => {
-			if (error) {
-				next(error);
-			} else {
+		req.logout(logoutError => {
+			if (logoutError) return next(logoutError);
+			req.session.destroy(error => {
+				if (error) {
+					return next(error);
+				}
 				res
 					.clearCookie(
 						process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
-						{ domain: process.env.DOMAIN ?? '' },
+						{ domain: process.env.DOMAIN },
 					)
 					.clearCookie(
 						process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
 						{
-							domain: process.env.DOMAIN ?? '',
+							domain: process.env.DOMAIN,
 						},
 					)
+					.set('Clear-Site-Data', '"cookies"')
 					.json({
 						success: true,
 						message: 'User logout successfully.',
 					});
-			}
+			});
 		});
 	},
 ];
@@ -100,11 +103,10 @@ export const login: RequestHandler[] = [
 	body('email').trim().notEmpty().withMessage('The email is required.'),
 	body('password').notEmpty().withMessage('The password is required.'),
 	validationScheme,
-	asyncHandler(async (req, res, next) => {
-		const { email } = req.data;
-
+	async (req, res, next) => {
 		try {
-			await limiterLoginFailsByEmail.consume(email);
+			await limiterLoginFailsByEmail.consume(req.data.email);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -115,17 +117,17 @@ export const login: RequestHandler[] = [
 						message: 'You have login fails too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
-
+	},
+	asyncHandler(async (req, res, next) => {
 		const authenticateCb: AuthenticateCallback = async (err, user) => {
 			err && next(err);
 
 			if (user) {
 				req.login(user, async () => {
-					await limiterLoginFailsByEmail.delete(email);
+					await limiterLoginFailsByEmail.delete(req.data.email);
 					res
 						.set('Cache-Control', 'no-cache=Set-Cookie') // To avoid the private or sensitive data exchanged within the session through the web browser cache after the session has been closed.
 						.cookie(
@@ -137,7 +139,7 @@ export const login: RequestHandler[] = [
 								sameSite: 'strict',
 								httpOnly: false, // Front-end need to access __Secure-token cookie
 								secure: process.env.NODE_ENV === 'production',
-								domain: process.env.DOMAIN ?? '',
+								domain: process.env.DOMAIN,
 								maxAge: req.session.cookie.originalMaxAge ?? Date.now(),
 							},
 						)
@@ -146,11 +148,13 @@ export const login: RequestHandler[] = [
 							message: 'User login successfully',
 						});
 				});
-			} else {
-				res.status(401).json({
-					success: false,
-				});
+				return;
 			}
+
+			res.status(401).json({
+				success: false,
+				message: `The incorrect credentials.`,
+			});
 		};
 
 		const authenticateFn = passport.authenticate('local', authenticateCb);
@@ -196,9 +200,10 @@ export const requestRegistration: RequestHandler[] = [
 		.custom((value, { req }) => value === req.body.password)
 		.withMessage('The confirmation password is not the same as the password.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
+	async (req, res, next) => {
 		try {
 			await limiterRequestRegistrationByIp.consume(req.ip as string);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -209,10 +214,11 @@ export const requestRegistration: RequestHandler[] = [
 						message: 'You have registered too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
+	},
+	asyncHandler(async (req, res) => {
 		const { username, password, email } = req.data;
 
 		const user = await User.findOne({ email }).exec();
@@ -269,15 +275,15 @@ export const requestRegistration: RequestHandler[] = [
 		} else {
 			const token = randomBytes(32).toString('hex');
 
-			const hashedPassword = await hash(password, {
-				type: argon2id,
+			const hashedPassword = await argon2.hash(password, {
+				type: argon2.argon2id,
 				memoryCost: 47104,
 				timeCost: 1,
 				parallelism: 1,
 			});
 
-			const hashedToken = await hash(token, {
-				type: argon2id,
+			const hashedToken = await argon2.hash(token, {
+				type: argon2.argon2id,
 				memoryCost: 47104,
 				timeCost: 1,
 				parallelism: 1,
@@ -406,7 +412,7 @@ export const register: RequestHandler[] = [
 
 		if (
 			!tokenDoc ||
-			!(await verify(tokenDoc.token as string, req.body.token))
+			!(await argon2.verify(tokenDoc.token as string, req.body.token))
 		) {
 			res.status(401).json({
 				success: false,
@@ -434,12 +440,10 @@ export const requestVerificationCode: RequestHandler[] = [
 		.isEmail()
 		.withMessage('The email address must be in the correct format.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
-		const { email } = req.data;
+	asyncHandler(async (req, res, next) => {
 		const rateLimiterRes = await limiterRequestResettingPasswordByEmail.get(
-			email as string,
+			req.data.email as string,
 		);
-
 		if (!rateLimiterRes) {
 			res.status(428).json({
 				success: false,
@@ -447,9 +451,12 @@ export const requestVerificationCode: RequestHandler[] = [
 			});
 			return;
 		}
-
+		next();
+	}),
+	async (req, res, next) => {
 		try {
-			await limiterRequestResettingPasswordByEmail.consume(email);
+			await limiterRequestResettingPasswordByEmail.consume(req.data.email);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -460,23 +467,25 @@ export const requestVerificationCode: RequestHandler[] = [
 						message: 'You have resend code too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
+	},
+	asyncHandler(async (req, res) => {
+		const { email } = req.data;
 
 		const newCode = randomInt(100000, 999999).toString();
 		const fiveMins = Date.now() + 5 * 60 * 1000;
 
-		const hashedCode = await hash(newCode, {
-			type: argon2id,
+		const hashedCode = await argon2.hash(newCode, {
+			type: argon2.argon2id,
 			memoryCost: 47104,
 			timeCost: 1,
 			parallelism: 1,
 		});
 
 		const codeDoc = await Code.findOneAndUpdate(
-			{ email: email },
+			{ email },
 			{ code: hashedCode, expiresAfter: new Date(fiveMins) },
 		).exec();
 
@@ -618,7 +627,7 @@ export const verifyCode: RequestHandler[] = [
 			return;
 		}
 
-		if (!(await verify(codeDoc.code as string, req.body.code))) {
+		if (!(await argon2.verify(codeDoc.code as string, req.body.code))) {
 			res.status(401).json({
 				success: false,
 				message: 'Code is invalid.',
@@ -643,7 +652,7 @@ export const verifyCode: RequestHandler[] = [
 					sameSite: 'strict',
 					httpOnly: false, // Front-end need to access __Secure-token cookie
 					secure: process.env.NODE_ENV === 'production',
-					domain: process.env.DOMAIN ?? '',
+					domain: process.env.DOMAIN,
 					maxAge: fifteenMins,
 				},
 			)
@@ -661,11 +670,10 @@ export const requestResettingPassword: RequestHandler[] = [
 		.isEmail()
 		.withMessage('The email address must be in the correct format.'),
 	validationScheme,
-	asyncHandler(async (req, res) => {
-		const { email } = req.data;
-
+	async (req, res, next) => {
 		try {
-			await limiterRequestResettingPasswordByEmail.consume(email);
+			await limiterRequestResettingPasswordByEmail.consume(req.data.email);
+			next();
 		} catch (rejected) {
 			if (rejected instanceof RateLimiterRes) {
 				res
@@ -676,10 +684,12 @@ export const requestResettingPassword: RequestHandler[] = [
 						message: 'You have reset password too many times',
 					});
 				return;
-			} else {
-				throw rejected;
 			}
+			next(rejected);
 		}
+	},
+	asyncHandler(async (req, res) => {
+		const { email } = req.data;
 
 		const user = await User.findOne({ email }).exec();
 
@@ -688,8 +698,8 @@ export const requestResettingPassword: RequestHandler[] = [
 		if (user) {
 			const code = randomInt(100000, 999999).toString();
 
-			const hashedCode = await hash(code, {
-				type: argon2id,
+			const hashedCode = await argon2.hash(code, {
+				type: argon2.argon2id,
 				memoryCost: 47104,
 				timeCost: 1,
 				parallelism: 1,
@@ -817,7 +827,7 @@ export const resetPassword: RequestHandler[] = [
 		} else {
 			res.status(401).json({
 				success: false,
-				message: 'The credential is invalid.',
+				message: 'Session is invalid.',
 			});
 		}
 	},
@@ -853,8 +863,8 @@ export const resetPassword: RequestHandler[] = [
 			return;
 		}
 
-		const hashedPassword = await hash(req.data.password, {
-			type: argon2id,
+		const hashedPassword = await argon2.hash(req.data.password, {
+			type: argon2.argon2id,
 			memoryCost: 47104,
 			timeCost: 1,
 			parallelism: 1,
@@ -936,12 +946,12 @@ export const resetPassword: RequestHandler[] = [
 				res
 					.clearCookie(
 						process.env.NODE_ENV === 'production' ? '__Secure-token' : 'token',
-						{ domain: process.env.DOMAIN ?? '' },
+						{ domain: process.env.DOMAIN },
 					)
 					.clearCookie(
 						process.env.NODE_ENV === 'production' ? '__Secure-id' : 'id',
 						{
-							domain: process.env.DOMAIN ?? '',
+							domain: process.env.DOMAIN,
 						},
 					)
 					.json({

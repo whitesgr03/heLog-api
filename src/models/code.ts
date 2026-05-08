@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
-
-const Schema = mongoose.Schema;
+import { Schema, model } from 'mongoose';
 
 const codeSchema = {
 	code: { type: String, required: true },
@@ -8,10 +6,4 @@ const codeSchema = {
 	expiresAfter: { type: Date },
 };
 
-export type CodeDocument = mongoose.Document &
-	mongoose.InferRawDocType<typeof codeSchema>;
-
-export const Code = mongoose.model(
-	'Code',
-	new Schema<CodeDocument>(codeSchema),
-);
+export const Code = model('Code', new Schema(codeSchema));

@@ -4,23 +4,18 @@ import { validationResult, matchedData } from 'express-validator';
 export const validationScheme: RequestHandler = (req, res, next) => {
 	const schemaErrors = validationResult(req);
 
-	const handleSchemaErrors = () => {
-		const errors = schemaErrors.mapped();
-
-		res.status(400).json({
-			success: false,
-			fields: Object.keys(errors).reduce(
-				(obj: any, error: any) =>
-					Object.assign(obj, { [error]: errors[error]['msg'] }),
-				{},
-			),
-		});
-	};
-
-	const setMatchData = () => {
+	if (schemaErrors.isEmpty()) {
 		req.data = matchedData(req);
-		next();
-	};
+		return next();
+	}
 
-	schemaErrors.isEmpty() ? setMatchData() : handleSchemaErrors();
+	const errors = schemaErrors.mapped();
+
+	res.status(400).json({
+		success: false,
+		fields: Object.keys(errors).reduce(
+			(obj, error) => Object.assign(obj, { [error]: errors[error]['msg'] }),
+			{},
+		) as Record<string, string>,
+	});
 };
