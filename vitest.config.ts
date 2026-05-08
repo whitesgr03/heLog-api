@@ -16,6 +16,7 @@ export default defineConfig({
 			GOOGLE_CLIENT_SECRET: 'mock_secret',
 			HELOG_API_URL: 'http://example.com',
 			HELOG_URL: 'http://example2.com',
+			MAILGUN_API_KEY: 'MAILGUN_API_KEY',
 			SESSION_SECRETS: 'secrets',
 			CSRF_SECRETS: 'secrets',
 		},
