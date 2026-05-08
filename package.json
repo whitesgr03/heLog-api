@@ -12,7 +12,7 @@
 		"start": "NODE_ENV=production DEBUG=App:* node dist/index.js",
 		"build": "rimraf dist && tsc && cp -r src/public dist/public",
 		"dev": "NODE_ENV=development DEBUG=App:* tsx watch --env-file=.env src/index.ts",
-		"seed": "tsx --env-file=.env src/lib/seed.ts",
+		"seed": "DEBUG=App:* tsx --env-file=.env src/seed/index.ts",
 		"test": "vitest",
 		"coverage": "vitest --coverage"
 	},
