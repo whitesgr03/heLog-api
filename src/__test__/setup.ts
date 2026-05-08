@@ -1,13 +1,19 @@
-import { afterAll, beforeEach, vi } from 'vitest';
-import { mongoose } from '../config/database.js';
-import { clearAllCollections, createFakeUsers } from '../lib/seed.js';
+import { afterAll, afterEach, vi } from 'vitest';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import initialPassport from '../config/passport';
+import { clearAllCollections } from '../seed/methods.js';
 
-beforeEach(async () => {
+const mongoServer = await MongoMemoryServer.create();
+mongoose.connect(mongoServer.getUri());
+
+initialPassport();
+
+afterEach(async () => {
 	vi.resetAllMocks();
-	await clearAllCollections({ forTesting: true });
-	await createFakeUsers({ amount: 2, forTesting: true });
+	await clearAllCollections();
 });
 
-afterAll(() => {
-	mongoose.disconnect();
+afterAll(async () => {
+	await mongoServer.stop();
 });
