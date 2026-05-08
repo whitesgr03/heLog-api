@@ -9,7 +9,7 @@ import {
 	Profile as facebookProfile,
 } from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { verify } from 'argon2';
+import argon2 from 'argon2';
 import { randomUUID } from 'node:crypto';
 
 import { Federated } from '../models/federated.js';

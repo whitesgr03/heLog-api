@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import asyncHandler from 'express-async-handler';
 import passport, { AuthenticateCallback } from 'passport';
 import { body } from 'express-validator';
-import { hash, verify, argon2id } from 'argon2';
+import argon2 from 'argon2';
 import { randomInt, randomBytes } from 'node:crypto';
 import mjml2html from 'mjml';
 import mongoose from 'mongoose';
@@ -275,15 +275,15 @@ export const requestRegistration: RequestHandler[] = [
 		} else {
 			const token = randomBytes(32).toString('hex');
 
-			const hashedPassword = await hash(password, {
-				type: argon2id,
+			const hashedPassword = await argon2.hash(password, {
+				type: argon2.argon2id,
 				memoryCost: 47104,
 				timeCost: 1,
 				parallelism: 1,
 			});
 
-			const hashedToken = await hash(token, {
-				type: argon2id,
+			const hashedToken = await argon2.hash(token, {
+				type: argon2.argon2id,
 				memoryCost: 47104,
 				timeCost: 1,
 				parallelism: 1,
@@ -412,7 +412,7 @@ export const register: RequestHandler[] = [
 
 		if (
 			!tokenDoc ||
-			!(await verify(tokenDoc.token as string, req.body.token))
+			!(await argon2.verify(tokenDoc.token as string, req.body.token))
 		) {
 			res.status(401).json({
 				success: false,
@@ -477,8 +477,8 @@ export const requestVerificationCode: RequestHandler[] = [
 		const newCode = randomInt(100000, 999999).toString();
 		const fiveMins = Date.now() + 5 * 60 * 1000;
 
-		const hashedCode = await hash(newCode, {
-			type: argon2id,
+		const hashedCode = await argon2.hash(newCode, {
+			type: argon2.argon2id,
 			memoryCost: 47104,
 			timeCost: 1,
 			parallelism: 1,
@@ -627,7 +627,7 @@ export const verifyCode: RequestHandler[] = [
 			return;
 		}
 
-		if (!(await verify(codeDoc.code as string, req.body.code))) {
+		if (!(await argon2.verify(codeDoc.code as string, req.body.code))) {
 			res.status(401).json({
 				success: false,
 				message: 'Code is invalid.',
@@ -698,8 +698,8 @@ export const requestResettingPassword: RequestHandler[] = [
 		if (user) {
 			const code = randomInt(100000, 999999).toString();
 
-			const hashedCode = await hash(code, {
-				type: argon2id,
+			const hashedCode = await argon2.hash(code, {
+				type: argon2.argon2id,
 				memoryCost: 47104,
 				timeCost: 1,
 				parallelism: 1,
@@ -863,8 +863,8 @@ export const resetPassword: RequestHandler[] = [
 			return;
 		}
 
-		const hashedPassword = await hash(req.data.password, {
-			type: argon2id,
+		const hashedPassword = await argon2.hash(req.data.password, {
+			type: argon2.argon2id,
 			memoryCost: 47104,
 			timeCost: 1,
 			parallelism: 1,
