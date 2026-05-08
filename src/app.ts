@@ -9,6 +9,7 @@ import helmet, { HelmetOptions } from 'helmet';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 import { limiterBruteForceByIp } from './utils/rateLimiter.js';
 import { server } from './utils/loggers.js';
+import path from 'node:path';
 
 // configs
 import './config/passport.js';
@@ -99,7 +100,9 @@ app.use(helmet(helmetOptions));
 app.use(session(sessionOptions));
 app.use(passport.session());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'common' : 'dev'));
-app.use(express.static('public', staticOptions));
+app.use(
+	express.static(path.join(import.meta.dirname, 'public'), staticOptions),
+);
 app.use(express.json());
 
 // session touch
