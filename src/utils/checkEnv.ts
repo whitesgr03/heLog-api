@@ -4,7 +4,7 @@ export default function checkEnv(vars: readonly string[]) {
 	server('checking environment variables...');
 	try {
 		vars.forEach(variable => {
-			if (!process.env[variable]) {
+			if (process.env[variable] === undefined) {
 				throw Error(`environment variable ${variable} is missing.`);
 			}
 		});
