@@ -10,7 +10,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "NODE_ENV=production DEBUG=App:* node dist/index.js",
-		"build": "rimraf dist && tsc",
+		"build": "rimraf dist && tsc && cp -r src/public dist/public",
 		"dev": "NODE_ENV=development DEBUG=App:* tsx watch --env-file=.env src/index.ts",
 		"seed": "tsx --env-file=.env src/lib/seed.ts",
 		"test": "vitest",
