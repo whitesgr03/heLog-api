@@ -71,16 +71,19 @@ export const postDetail = [
 				})
 				.exec());
 
-		post
-			? res.json({
-					success: true,
-					message: 'Get post successfully.',
-					data: post,
-				})
-			: res.status(404).json({
-					success: false,
-					message: `Post could not be found.`,
-				});
+		if (post) {
+			res.json({
+				success: true,
+				message: 'Get post successfully.',
+				data: post,
+			});
+			return;
+		}
+
+		res.status(404).json({
+			success: false,
+			message: `Post could not be found.`,
+		});
 	}),
 ];
 
