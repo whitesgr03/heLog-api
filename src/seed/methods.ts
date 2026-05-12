@@ -152,7 +152,7 @@ export const createCommentReplies = async ({
 			deleted: false,
 		});
 
-		comment.child.push(newReply.id);
+		comment.child.push(newReply._id);
 		await comment.save();
 
 		fakeCommentReplies.push(newReply);
@@ -186,7 +186,7 @@ export const createReplies = async ({
 		});
 
 		const comment = await Comment.findById(commentReply.parent).exec();
-		comment?.child.push(newReply.id);
+		comment?.child.push(newReply._id);
 		await comment?.save();
 		fakeReplies.push(newReply);
 	}
