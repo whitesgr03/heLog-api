@@ -226,7 +226,7 @@ export const requestRegistration: RequestHandler[] = [
 		let emailTemplate = null;
 
 		if (user) {
-			emailTemplate = mjml2html(
+			emailTemplate = await mjml2html(
 				`
 		    <mjml>
           <mj-body>
@@ -310,7 +310,7 @@ export const requestRegistration: RequestHandler[] = [
 			await Promise.all([newUser.save(), newToken.save()]);
 
 			const verificationUrl = `${process.env.HELOG_ACCOUNT}/create?identity=${newToken.id}&token=${token}`;
-			emailTemplate = mjml2html(
+			emailTemplate = await mjml2html(
 				`
 			  <mjml>
 			    <mj-body>
@@ -497,7 +497,7 @@ export const requestVerificationCode: RequestHandler[] = [
 			return;
 		}
 
-		const emailTemplate = mjml2html(
+		const emailTemplate = await mjml2html(
 			`
 			        <mjml>
 			          <mj-body>
@@ -719,7 +719,7 @@ export const requestResettingPassword: RequestHandler[] = [
 				limiterVerifyCodeByEmail.delete(email),
 			]);
 
-			emailTemplate = mjml2html(
+			emailTemplate = await mjml2html(
 				`
 			        <mjml>
 			          <mj-body>
@@ -770,7 +770,7 @@ export const requestResettingPassword: RequestHandler[] = [
 
 			res.set('Expire-After', fiveMins.toString());
 		} else {
-			emailTemplate = mjml2html(
+			emailTemplate = await mjml2html(
 				`
 			        <mjml>
 			          <mj-body>
@@ -888,7 +888,7 @@ export const resetPassword: RequestHandler[] = [
 			if (error) {
 				next(error);
 			} else {
-				const emailTemplate = mjml2html(
+				const emailTemplate = await mjml2html(
 					`
 				  <mjml>
 				    <mj-body>
