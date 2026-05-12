@@ -1,7 +1,7 @@
 // Modules
 import asyncHandler from 'express-async-handler';
 import { body } from 'express-validator';
-import { Types, isValidObjectId } from 'mongoose';
+import { isValidObjectId } from 'mongoose';
 
 // Middlewares
 import { validationScheme } from '../middlewares/validationScheme.js';
@@ -15,10 +15,11 @@ import { Comment } from '../models/comment.js';
 export const userPostList = [
 	asyncHandler(async (req, res) => {
 		const { skip = 0 } = req.query;
+		const { id } = req.user as Express.User;
 
 		const [userPosts, userPostsCount] = await Promise.all([
 			Post.find(
-				{ author: req.user!.id },
+				{ author: id },
 				{ author: 0, mainImage: 0, content: 0 },
 				{
 					skip: Number(skip),
@@ -29,7 +30,7 @@ export const userPostList = [
 					},
 				},
 			).exec(),
-			Post.countDocuments({ author: req.user!.id }),
+			Post.countDocuments({ author: id }),
 		]);
 
 		res.json({
@@ -42,13 +43,15 @@ export const userPostList = [
 export const userPostDetail = [
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
+		const { id } = req.user as Express.User;
 
 		const post =
+			typeof postId === 'string' &&
 			isValidObjectId(postId) &&
 			(await Post.findOne(
 				{
-					_id: new Types.ObjectId(`${postId}`),
-					author: req.user!.id,
+					_id: postId,
+					author: id,
 				},
 				{
 					author: 0,
@@ -71,7 +74,9 @@ export const userPostDetail = [
 ];
 export const userDetail = [
 	asyncHandler(async (req, res) => {
-		const user = await User.findById(req.user!.id, {
+		const { id } = req.user as Express.User;
+
+		const user = await User.findById(id, {
 			username: 1,
 			isAdmin: 1,
 		}).exec();
@@ -97,12 +102,14 @@ export const userUpdate = [
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
 		const { username } = req.data;
+		const { id } = req.user as Express.User;
+
 		const existingUserName = await User.findOne({
 			$and: [
 				{ username },
 				{
 					_id: {
-						$ne: new Types.ObjectId(`${req.user!.id}`),
+						$ne: id,
 					},
 				},
 			],
@@ -120,8 +127,10 @@ export const userUpdate = [
 		});
 	}),
 	asyncHandler(async (req, res) => {
+		const { id } = req.user as Express.User;
+
 		const user = await User.findByIdAndUpdate(
-			req.user!.id,
+			id,
 			{ ...req.data },
 			{
 				new: true,
@@ -141,7 +150,9 @@ export const userUpdate = [
 ];
 export const userDelete = [
 	asyncHandler(async (req, res, next) => {
-		const posts = await Post.find({ author: req.user!.id }, { _id: 1 }).exec();
+		const { id } = req.user as Express.User;
+
+		const posts = await Post.find({ author: id }, { _id: 1 }).exec();
 
 		await Promise.all([
 			...posts.map(async post => {
@@ -152,15 +163,15 @@ export const userDelete = [
 			}),
 			Comment.updateMany(
 				{
-					author: req.user!.id,
+					author: id,
 				},
 				{
 					content: 'Comment deleted by user',
 					deleted: true,
 				},
 			).exec(),
-			Federated.deleteOne({ user: req.user!.id }).exec(),
-			User.findByIdAndDelete(req.user!.id).exec(),
+			Federated.deleteOne({ user: id }).exec(),
+			User.findByIdAndDelete(id).exec(),
 		]);
 
 		req.logout(logoutError => {

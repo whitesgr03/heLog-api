@@ -1,7 +1,7 @@
 // Modules
 import asyncHandler from 'express-async-handler';
 import { body } from 'express-validator';
-import { isValidObjectId, Types } from 'mongoose';
+import { isValidObjectId } from 'mongoose';
 
 // Middlewares
 import { validationScheme } from '../middlewares/validationScheme.js';
@@ -54,10 +54,11 @@ export const postDetail = [
 		const { postId } = req.params;
 
 		const post =
+			typeof postId === 'string' &&
 			isValidObjectId(postId) &&
 			(await Post.findOne(
 				{
-					_id: new Types.ObjectId(`${postId}`),
+					_id: postId,
 					publish: true,
 				},
 				{
@@ -119,9 +120,10 @@ export const postCreate = [
 		.withMessage('Content must be less than 8000 long.'),
 	validationScheme,
 	asyncHandler(async (req, res) => {
+		const { id } = req.user as Express.User;
 		const newPost = new Post({
 			...req.data,
-			author: req.user!.id,
+			author: id,
 		});
 
 		await newPost.save();
@@ -197,7 +199,9 @@ export const postUpdate = [
 		const { postId } = req.params;
 
 		const post =
-			isValidObjectId(postId) && (await Post.findById(postId).exec());
+			typeof postId === 'string' &&
+			isValidObjectId(postId) &&
+			(await Post.findById(postId).exec());
 
 		if (post) {
 			req.post = post;
@@ -210,7 +214,8 @@ export const postUpdate = [
 		});
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
+		const { id } = req.user as Express.User;
+		const user = await User.findById(id, { isAdmin: 1 }).exec();
 
 		if (user?.isAdmin || user?.id.toString() === req.post.author._id.toString())
 			return next();
@@ -240,7 +245,9 @@ export const postDelete = [
 		const { postId } = req.params;
 
 		const post =
-			isValidObjectId(postId) && (await Post.findById(postId).exec());
+			typeof postId === 'string' &&
+			isValidObjectId(postId) &&
+			(await Post.findById(postId).exec());
 
 		if (post) {
 			req.post = post;
@@ -253,7 +260,8 @@ export const postDelete = [
 		});
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
+		const { id } = req.user as Express.User;
+		const user = await User.findById(id, { isAdmin: 1 }).exec();
 
 		if (user?.isAdmin || user?.id.toString() === req.post.author._id.toString())
 			return next();

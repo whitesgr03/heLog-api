@@ -1,6 +1,6 @@
 // Modules
 import asyncHandler from 'express-async-handler';
-import { isValidObjectId, Types } from 'mongoose';
+import { isValidObjectId } from 'mongoose';
 import { body } from 'express-validator';
 
 // Middlewares
@@ -17,29 +17,10 @@ export const replyList = [
 
 		const replies = !isValidObjectId(commentId)
 			? []
-			: await Comment.find(
-					{ parent: new Types.ObjectId(`${commentId}`) },
-					{},
-					{
-						skip: Number(skip),
-						limit: 100,
-						sort: {
-							createdAt: 1,
-							_id: -1,
-						},
-						populate: {
-							path: 'reply',
-							select: {
-								deleted: 1,
-								author: 1,
-							},
-						},
-					},
-				)
-					.populate('author', {
-						_id: 0,
-						username: 1,
-					})
+			: typeof commentId === 'string' &&
+				(await Comment.find({ parent: commentId })
+					.skip(Number(skip))
+					.limit(100)
 					.populate({
 						path: 'reply',
 						select: {
@@ -56,7 +37,15 @@ export const replyList = [
 							},
 						},
 					})
-					.exec();
+					.populate('author', {
+						_id: 0,
+						username: 1,
+					})
+					.sort({
+						createdAt: 1,
+						_id: -1,
+					})
+					.exec());
 
 		res.json({
 			success: true,
@@ -79,7 +68,9 @@ export const replyCreate = [
 		const { commentId } = req.params;
 
 		const parentComment =
-			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
+			typeof commentId === 'string' &&
+			isValidObjectId(commentId) &&
+			(await Comment.findById(commentId).exec());
 
 		if (parentComment) {
 			req.comment = parentComment;
@@ -92,9 +83,10 @@ export const replyCreate = [
 	}),
 	asyncHandler(async (req, res) => {
 		const { commentId } = req.params;
+		const { id } = req.user as Express.User;
 
 		const newReply = new Comment({
-			author: req.user!.id,
+			author: id,
 			post: req.comment.post,
 			parent: commentId,
 			...req.data,
@@ -127,8 +119,11 @@ export const subReplyCreate = [
 		const { replyId } = req.params;
 
 		const parentComment =
+			typeof replyId === 'string' &&
 			isValidObjectId(replyId) &&
-			(await Comment.findOne({ child: replyId }).exec());
+			(await Comment.findOne({
+				child: replyId,
+			}).exec());
 
 		if (parentComment) {
 			req.comment = parentComment;
@@ -141,9 +136,10 @@ export const subReplyCreate = [
 	}),
 	asyncHandler(async (req, res) => {
 		const { replyId } = req.params;
+		const { id } = req.user as Express.User;
 
 		const newReply = new Comment({
-			author: req.user!.id,
+			author: id,
 			post: req.comment.post,
 			parent: req.comment.id,
 			reply: replyId,
@@ -192,7 +188,9 @@ export const subReplyUpdate = [
 		const { replyId } = req.params;
 
 		const reply =
-			isValidObjectId(replyId) && (await Comment.findById(replyId).exec());
+			typeof replyId === 'string' &&
+			isValidObjectId(replyId) &&
+			(await Comment.findById(replyId).exec());
 
 		if (reply) {
 			req.reply = reply;
@@ -204,7 +202,8 @@ export const subReplyUpdate = [
 		});
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user!.id, {
+		const { id } = req.user as Express.User;
+		const user = await User.findById(id, {
 			isAdmin: 1,
 		}).exec();
 
@@ -254,7 +253,9 @@ export const subReplyDelete = [
 		const { replyId } = req.params;
 
 		const reply =
-			isValidObjectId(replyId) && (await Comment.findById(replyId).exec());
+			typeof replyId === 'string' &&
+			isValidObjectId(replyId) &&
+			(await Comment.findById(replyId).exec());
 
 		if (reply) {
 			req.reply = reply;
@@ -266,7 +267,8 @@ export const subReplyDelete = [
 		});
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user = await User.findById(req.user!.id, { isAdmin: 1 }).exec();
+		const { id } = req.user as Express.User;
+		const user = await User.findById(id, { isAdmin: 1 }).exec();
 
 		const isReplyOwner =
 			user?.id.toString() === req.reply.author._id.toString();
@@ -288,25 +290,27 @@ export const subReplyDelete = [
 
 		await req.reply.save();
 
-		const deletedReply = await Comment.findById(replyId)
-			.populate('author', {
-				_id: 0,
-				username: 1,
-			})
-			.populate({
-				path: 'reply',
-				select: {
-					author: 1,
-					deleted: 1,
-				},
-				populate: {
-					path: 'author',
+		const deletedReply =
+			typeof replyId === 'string' &&
+			(await Comment.findById(replyId)
+				.populate({
+					path: 'reply',
 					select: {
-						username: 1,
-						_id: 0,
+						author: 1,
+						deleted: 1,
 					},
-				},
-			});
+					populate: {
+						path: 'author',
+						select: {
+							username: 1,
+							_id: 0,
+						},
+					},
+				})
+				.populate('author', {
+					_id: 0,
+					username: 1,
+				}));
 
 		res.json({
 			success: true,

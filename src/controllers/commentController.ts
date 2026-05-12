@@ -1,6 +1,6 @@
 // Modules
 import asyncHandler from 'express-async-handler';
-import { isValidObjectId, Types } from 'mongoose';
+import { isValidObjectId } from 'mongoose';
 import { body } from 'express-validator';
 
 // Middlewares
@@ -17,10 +17,11 @@ export const commentList = [
 		const { skip = 0 } = req.query;
 
 		const result =
+			typeof postId === 'string' &&
 			isValidObjectId(postId) &&
 			(await Promise.all([
 				Comment.find(
-					{ post: new Types.ObjectId(`${postId}`), parent: null },
+					{ post: postId, parent: null },
 					{},
 					{
 						skip: Number(skip),
@@ -39,11 +40,11 @@ export const commentList = [
 					},
 				).exec(),
 				Comment.countDocuments({
-					post: new Types.ObjectId(`${postId}`),
+					post: postId,
 					parent: null,
 				}),
 				Comment.countDocuments({
-					post: new Types.ObjectId(`${postId}`),
+					post: postId,
 				}),
 			]));
 
@@ -76,7 +77,9 @@ export const commentCreate = [
 		const { postId } = req.params;
 
 		const post =
-			isValidObjectId(postId) && (await Post.findById(postId).exec());
+			typeof postId === 'string' &&
+			isValidObjectId(postId) &&
+			(await Post.findById(postId).exec());
 
 		if (post) return next();
 
@@ -87,9 +90,9 @@ export const commentCreate = [
 	}),
 	asyncHandler(async (req, res) => {
 		const { postId } = req.params;
-
+		const { id } = req.user as Express.User;
 		await new Comment({
-			author: req.user!.id,
+			author: id,
 			post: postId,
 			...req.data,
 		}).save();
@@ -114,7 +117,9 @@ export const commentUpdate = [
 		const { commentId } = req.params;
 
 		const comment =
-			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
+			typeof commentId === 'string' &&
+			isValidObjectId(commentId) &&
+			(await Comment.findById(commentId).exec());
 
 		if (comment) {
 			req.comment = comment;
@@ -126,8 +131,8 @@ export const commentUpdate = [
 		});
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user =
-			req.user && (await User.findById(req.user.id, { isAdmin: 1 }).exec());
+		const { id } = req.user as Express.User;
+		const user = await User.findById(id, { isAdmin: 1 }).exec();
 
 		user?.isAdmin || user?.id.toString() === req.comment.author._id.toString()
 			? next()
@@ -159,7 +164,9 @@ export const commentDelete = [
 		const { commentId } = req.params;
 
 		const comment =
-			isValidObjectId(commentId) && (await Comment.findById(commentId).exec());
+			typeof commentId === 'string' &&
+			isValidObjectId(commentId) &&
+			(await Comment.findById(commentId).exec());
 
 		if (comment) {
 			req.comment = comment;
@@ -171,8 +178,8 @@ export const commentDelete = [
 		});
 	}),
 	asyncHandler(async (req, res, next) => {
-		const user =
-			req.user && (await User.findById(req.user.id, { isAdmin: 1 }).exec());
+		const { id } = req.user as Express.User;
+		const user = await User.findById(id, { isAdmin: 1 }).exec();
 
 		const isCommentOwner =
 			user?.id.toString() === req.comment.author._id.toString();
