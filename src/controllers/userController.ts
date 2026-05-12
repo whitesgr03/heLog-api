@@ -133,7 +133,7 @@ export const userUpdate = [
 			id,
 			{ ...req.data },
 			{
-				new: true,
+				returnDocument: 'after',
 				select: {
 					username: 1,
 					isAdmin: 1,
