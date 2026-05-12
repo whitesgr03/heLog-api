@@ -29,7 +29,7 @@ export const federatedStrategyCallback = async (
 
 		if (federated) {
 			return done(null, {
-				id: federated.user,
+				id: federated.user.toString(),
 			});
 		}
 		const handleRegistration = async () => {

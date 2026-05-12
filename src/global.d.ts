@@ -12,7 +12,7 @@ declare global {
 			reply: CommentDocument;
 		}
 		interface User {
-			id: mongoose.Types.ObjectId; // passport req.user
+			id: string; // passport req.user
 		}
 	}
 	namespace NodeJS {
