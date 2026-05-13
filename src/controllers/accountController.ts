@@ -6,6 +6,8 @@ import argon2 from 'argon2';
 import { randomInt, randomBytes } from 'node:crypto';
 import mjml2html from 'mjml';
 import mongoose from 'mongoose';
+import { mailgun } from '../utils/mailgun.js';
+import { SessionData } from 'express-session';
 
 import { authenticate } from '../middlewares/authenticate.js';
 import { validationCSRF } from '../middlewares/validationCSRF.js';
@@ -15,7 +17,6 @@ import { User } from '../models/user.js';
 import { Code } from '../models/code.js';
 import { Token } from '../models/token.js';
 
-import { sendEmail } from '../utils/sendEmail.js';
 import {
 	limiterLoginFailsByEmail,
 	limiterRequestRegistrationByIp,
@@ -23,12 +24,6 @@ import {
 	limiterVerifyCodeByEmail,
 } from '../utils/rateLimiter.js';
 import { RateLimiterRes } from 'rate-limiter-flexible';
-
-declare module 'express-session' {
-	interface SessionData {
-		email: string;
-	}
-}
 
 export const federatedLogin: RequestHandler = (req, res, next) =>
 	passport.authenticate(req.params.federation)(req, res, next);
@@ -369,11 +364,16 @@ export const requestRegistration: RequestHandler[] = [
 			);
 		}
 
-		await sendEmail({
-			receiver: email,
-			subject: 'Account registration',
-			html: emailTemplate.html,
-		});
+		await mailgun.messages
+			.create(process.env.MAILGUN_DOMAIN, {
+				from: `Helog <no-reply@${process.env.MAILGUN_DOMAIN}>`,
+				to: email,
+				subject: 'Account registration',
+				html: emailTemplate.html,
+			})
+			.catch(err => {
+				throw Error(err);
+			});
 
 		res.json({
 			success: true,
@@ -546,13 +546,16 @@ export const requestVerificationCode: RequestHandler[] = [
 			      `,
 		);
 		await Promise.all([
-			sendEmail({
-				receiver: email,
+			mailgun.messages.create(process.env.MAILGUN_DOMAIN, {
+				from: `Helog <no-reply@${process.env.MAILGUN_DOMAIN}>`,
+				to: email,
 				subject: 'Password reset request',
 				html: emailTemplate.html,
 			}),
 			limiterVerifyCodeByEmail.delete(email),
-		]);
+		]).catch(err => {
+			throw Error(err);
+		});
 
 		res.json({
 			success: true,
@@ -808,11 +811,16 @@ export const requestResettingPassword: RequestHandler[] = [
 			);
 		}
 
-		await sendEmail({
-			receiver: email,
-			subject: 'Password reset request',
-			html: emailTemplate.html,
-		});
+		await mailgun.messages
+			.create(process.env.MAILGUN_DOMAIN, {
+				from: `Helog <no-reply@${process.env.MAILGUN_DOMAIN}>`,
+				to: email,
+				subject: 'Password reset request',
+				html: emailTemplate.html,
+			})
+			.catch(err => {
+				throw Error(err);
+			});
 
 		res.json({
 			success: true,
@@ -822,7 +830,8 @@ export const requestResettingPassword: RequestHandler[] = [
 ];
 export const resetPassword: RequestHandler[] = [
 	(req, res, next) => {
-		if (req.session.email) {
+		const { email } = req.session as SessionData;
+		if (email) {
 			next();
 		} else {
 			res.status(401).json({
@@ -839,10 +848,9 @@ export const resetPassword: RequestHandler[] = [
 		),
 	validationScheme,
 	asyncHandler(async (req, res, next) => {
-		const { email } = req.session;
-		const rateLimiterRes = await limiterRequestResettingPasswordByEmail.get(
-			email as string,
-		);
+		const { email } = req.session as SessionData;
+		const rateLimiterRes =
+			await limiterRequestResettingPasswordByEmail.get(email);
 
 		if (!rateLimiterRes) {
 			res.status(428).json({
@@ -936,12 +944,15 @@ export const resetPassword: RequestHandler[] = [
 					Sessions.deleteMany({
 						'session.passport.user.id': user.id,
 					}),
-					sendEmail({
-						receiver: user.email as string,
+					await mailgun.messages.create(process.env.MAILGUN_DOMAIN, {
+						from: `Helog <no-reply@${process.env.MAILGUN_DOMAIN}>`,
+						to: user.email as string,
 						subject: 'Your password has been reset',
 						html: emailTemplate.html,
 					}),
-				]);
+				]).catch(err => {
+					throw Error(err);
+				});
 
 				res
 					.clearCookie(
