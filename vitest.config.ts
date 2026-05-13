@@ -9,6 +9,8 @@ export default defineConfig({
 			exclude: ['src/**/delete_*'],
 		},
 		setupFiles: 'src/__test__/setup.js',
+		mockReset: true,
+		restoreMocks: true,
 		env: {
 			FACEBOOK_CLIENT_ID: 'mock_id',
 			FACEBOOK_CLIENT_SECRET: 'mock_secret',

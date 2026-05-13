@@ -2,7 +2,7 @@ import express, { ErrorRequestHandler, RequestHandler } from 'express';
 import morgan from 'morgan';
 import session, { SessionOptions } from 'express-session';
 import cors from 'cors';
-import sessionStore from 'connect-mongo';
+import MongoStore from 'connect-mongo';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import helmet, { HelmetOptions } from 'helmet';
@@ -58,7 +58,7 @@ const createApp = () => {
 		secret: process.env.SESSION_SECRETS?.split(','),
 		resave: false,
 		saveUninitialized: false, // If the user first send request to the server, at the end of the request and when saveUninitialized is false, the req.session is unmodified then will not be stored in the session store.
-		store: sessionStore.create({
+		store: MongoStore.create({
 			client: mongoose.connection.getClient(),
 			stringify: false,
 		}),

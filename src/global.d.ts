@@ -12,7 +12,7 @@ declare global {
 			reply: CommentDocument;
 		}
 		interface User {
-			id: mongoose.Types.ObjectId; // passport req.user
+			id: string; // passport req.user
 		}
 	}
 	namespace NodeJS {
@@ -34,6 +34,12 @@ declare global {
 			MAILGUN_API_KEY: string;
 			MAILGUN_DOMAIN: string;
 		}
+	}
+}
+
+declare module 'express-session' {
+	interface SessionData {
+		email: string;
 	}
 }
 

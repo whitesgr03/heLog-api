@@ -245,11 +245,11 @@ describe('User paths', () => {
 				'id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
 			]);
 
-			expect(Comment.deleteMany).toBeCalledTimes(mockPosts.length);
-			expect(Post.deleteOne).toBeCalledTimes(mockPosts.length);
-			expect(Federated.deleteOne).toBeCalledTimes(1);
-			expect(User.findByIdAndDelete).toBeCalledTimes(1);
-			expect(Comment.updateMany).toBeCalledTimes(1);
+			expect(Comment.deleteMany).toHaveBeenCalledTimes(mockPosts.length);
+			expect(Post.deleteOne).toHaveBeenCalledTimes(mockPosts.length);
+			expect(Federated.deleteOne).toHaveBeenCalledTimes(1);
+			expect(User.findByIdAndDelete).toHaveBeenCalledTimes(1);
+			expect(Comment.updateMany).toHaveBeenCalledTimes(1);
 		});
 	});
 });

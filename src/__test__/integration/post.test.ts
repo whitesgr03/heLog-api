@@ -541,9 +541,9 @@ describe('Post paths', async () => {
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(body.message).toBe('Delete post successfully.');
-			expect(Comment.deleteMany).toBeCalledWith({ post: userPostId });
-			expect(Comment.deleteMany).toBeCalledTimes(1);
-			expect(Post.deleteOne).toBeCalledTimes(1);
+			expect(Comment.deleteMany).toHaveBeenCalledWith({ post: userPostId });
+			expect(Comment.deleteMany).toHaveBeenCalledTimes(1);
+			expect(Post.deleteOne).toHaveBeenCalledTimes(1);
 		});
 	});
 });

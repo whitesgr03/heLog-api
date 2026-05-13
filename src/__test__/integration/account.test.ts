@@ -6,6 +6,7 @@ import passport from 'passport';
 import argon2 from 'argon2';
 import mjml2html from 'mjml';
 import createApp from '../../app';
+import { mailgun } from '../../utils/mailgun.js';
 
 import { User } from '../../models/user.js';
 import { Token } from '../../models/token.js';
@@ -18,10 +19,9 @@ import {
 	limiterRequestResettingPasswordByEmail,
 	limiterVerifyCodeByEmail,
 } from '../../utils/rateLimiter.js';
-import { sendEmail } from '../../utils/sendEmail.js';
 
-vi.mock('../../utils/sendEmail.js');
-vi.mock('mjml');
+vi.mock('mjml', { spy: true });
+vi.mock('../../utils/mailgun.js');
 
 const app = createApp();
 
@@ -272,9 +272,7 @@ describe('Account paths', async () => {
 			expect(body.success).toBe(false);
 		});
 		it('should send email and respond a success message if the email is exist', async () => {
-			vi.mocked(mjml2html).mockReturnValue({
-				html: '',
-			} as any);
+			vi.mocked(mailgun.messages.create).mockResolvedValueOnce('' as any);
 			limiterLoginFailsByEmail.consume = vi.fn().mockResolvedValueOnce('');
 
 			const { status, body } = await request(app)
@@ -287,13 +285,11 @@ describe('Account paths', async () => {
 				});
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(sendEmail).toHaveBeenCalledTimes(1);
+			expect(mailgun.messages.create).toHaveBeenCalledTimes(1);
 			expect(mjml2html).toHaveBeenCalledTimes(1);
 		});
 		it('should send email and create a new user and token and respond a success message if the email is not found', async () => {
-			vi.mocked(mjml2html).mockReturnValue({
-				html: '',
-			} as any);
+			vi.mocked(mailgun.messages.create).mockResolvedValueOnce('' as any);
 			vi.spyOn(argon2, 'hash');
 			limiterLoginFailsByEmail.consume = vi.fn().mockResolvedValueOnce('');
 
@@ -312,7 +308,7 @@ describe('Account paths', async () => {
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(body.message).toBe('The verification token is sending');
-			expect(sendEmail).toHaveBeenCalledTimes(1);
+			expect(mailgun.messages.create).toHaveBeenCalledTimes(1);
 			expect(newUser).not.toBeNull();
 			expect(newToken).not.toBeNull();
 			expect(argon2.hash).toHaveBeenCalledTimes(2);
@@ -490,9 +486,7 @@ describe('Account paths', async () => {
 			expect(argon2.hash).toHaveBeenCalledTimes(1);
 		});
 		it('should send email and create a code and respond a success message if the email is exist', async () => {
-			vi.mocked(mjml2html).mockReturnValue({
-				html: '',
-			} as any);
+			vi.mocked(mailgun.messages.create).mockResolvedValueOnce('' as any);
 			limiterRequestResettingPasswordByEmail.get = vi
 				.fn()
 				.mockResolvedValueOnce(true);
@@ -520,7 +514,7 @@ describe('Account paths', async () => {
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(mjml2html).toHaveBeenCalledTimes(1);
-			expect(sendEmail).toHaveBeenCalledTimes(1);
+			expect(mailgun.messages.create).toHaveBeenCalledTimes(1);
 			expect(newCode?.code).not.toBe(verificationCode.code);
 		});
 	});
@@ -692,10 +686,7 @@ describe('Account paths', async () => {
 			expect(headers).toHaveProperty('retry-after');
 		});
 		it('should send email and respond a success message if the email is not found', async () => {
-			vi.mocked(mjml2html).mockReturnValue({
-				html: '',
-			} as any);
-
+			vi.mocked(mailgun.messages.create).mockResolvedValueOnce('' as any);
 			limiterRequestResettingPasswordByEmail.consume = vi
 				.fn()
 				.mockResolvedValueOnce('');
@@ -708,13 +699,10 @@ describe('Account paths', async () => {
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
 			expect(mjml2html).toHaveBeenCalledTimes(1);
-			expect(sendEmail).toHaveBeenCalledTimes(1);
+			expect(mailgun.messages.create).toHaveBeenCalledTimes(1);
 		});
 		it('should send email and create a code and respond a success message if the email is exist', async () => {
-			vi.mocked(mjml2html).mockReturnValue({
-				html: '',
-			} as any);
-
+			vi.mocked(mailgun.messages.create).mockResolvedValueOnce('' as any);
 			limiterRequestResettingPasswordByEmail.consume = vi
 				.fn()
 				.mockResolvedValueOnce('');
@@ -733,7 +721,7 @@ describe('Account paths', async () => {
 
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(sendEmail).toHaveBeenCalledTimes(1);
+			expect(mailgun.messages.create).toHaveBeenCalledTimes(1);
 			expect(argon2.hash).toHaveBeenCalledTimes(1);
 			expect(newCode).not.toBeNull();
 			expect(headers).toHaveProperty('expire-after');
@@ -856,40 +844,32 @@ describe('Account paths', async () => {
 			expect(headers).toHaveProperty('retry-after');
 		});
 		it(`should respond success and reset user's password`, async () => {
-			vi.mocked(mjml2html).mockReturnValue({
-				html: '',
-			} as any);
+			vi.mocked(mailgun.messages.create).mockResolvedValueOnce('' as any);
 			const agent = request.agent(app);
-
 			const verifyCodeResponse = await agent.post(`/account/verifyCode`).send({
 				email: user.email,
 				code,
 			});
-
 			const cookies = verifyCodeResponse.headers['set-cookie'];
 			const [_, token, value] = cookies[0].match(
 				/(?<=token=)(\w+).(\w+)(?=;)/,
 			) as RegExpMatchArray;
-
 			vi.spyOn(argon2, 'hash');
 			limiterRequestResettingPasswordByEmail.get = vi
 				.fn()
 				.mockResolvedValueOnce(
 					new RateLimiterMemory({ points: 999, duration: 1 }),
 				);
-
 			const { status, body, headers } = await agent
 				.post(`/account/resetPassword`)
 				.send({
 					password,
 				})
 				.set('x-csrf-token', `${token}.${value}`);
-
 			const newPasswordUser = await User.findOne({ email: user.email }).exec();
-
 			expect(status).toBe(200);
 			expect(body.success).toBe(true);
-			expect(sendEmail).toHaveBeenCalledTimes(1);
+			expect(mailgun.messages.create).toHaveBeenCalledTimes(1);
 			expect(mjml2html).toHaveBeenCalledTimes(1);
 			expect(argon2.hash).toHaveBeenCalledTimes(1);
 			expect(headers['set-cookie']).toStrictEqual([

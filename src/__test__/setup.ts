@@ -10,7 +10,6 @@ mongoose.connect(mongoServer.getUri());
 initialPassport();
 
 afterEach(async () => {
-	vi.resetAllMocks();
 	await clearAllCollections();
 });
 

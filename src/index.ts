@@ -28,24 +28,24 @@ await connectDB();
 
 initialPassport();
 
-createApp()
-	.listen(port, () => server(`is listened.`))
-	.on('error', error => {
-		server(`has an error occur.`);
-		if ('code' in error) {
-			switch (error.code) {
-				case 'EACCES':
-					server(`port ${port} requires elevated privileges`);
-					break;
-				case 'EADDRINUSE':
-					server(`port ${port} is already in use`);
-					break;
-				default:
-					server(`process exit with error code: ${error.code}`);
-					process.exit(1);
-			}
-		} else {
-			if (error instanceof Error) server(`error message: ${error.message}`);
-			server(`error detail: ${error}`);
+createApp().listen(port, error => {
+	if (!error) return server(`is listened.`);
+
+	server(`has an error occur.`);
+	if ('code' in error) {
+		switch (error.code) {
+			case 'EACCES':
+				server(`port ${port} requires elevated privileges`);
+				break;
+			case 'EADDRINUSE':
+				server(`port ${port} is already in use`);
+				break;
+			default:
+				server(`process exit with error code: ${error.code}`);
+				process.exit(1);
 		}
-	});
+	} else {
+		if (error instanceof Error) server(`error message: ${error.message}`);
+		server(`error detail: ${error}`);
+	}
+});

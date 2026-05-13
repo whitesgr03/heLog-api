@@ -78,6 +78,6 @@ describe('federated strategy verify callback', () => {
 			mockDone,
 		);
 
-		expect(mockDone).toHaveBeenCalledWith(null, { id: user._id });
+		expect(mockDone).toHaveBeenCalledWith(null, { id: user.id.toString() });
 	});
 });
